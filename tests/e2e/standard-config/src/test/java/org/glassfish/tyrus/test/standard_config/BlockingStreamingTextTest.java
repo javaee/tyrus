@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -66,7 +66,7 @@ import org.junit.Test;
  * @author Danny Coward (danny.coward at oracle.com)
  * @author Martin Matula (martin.matula at oracle.com)
  */
-public class BlockingStreamingTextTest extends TestContainer{
+public class BlockingStreamingTextTest extends TestContainer {
 
     @Test
     public void testBlockingStreamingTextServer() {
@@ -85,7 +85,8 @@ public class BlockingStreamingTextTest extends TestContainer{
             messageLatch.await(5, TimeUnit.SECONDS);
             System.out.println("SENT: " + bstc.sentMessage);
             System.out.println("RECEIVED: " + bstc.receivedMessage);
-            Assert.assertTrue("Client got back what it sent, all pieces in the right order.", bstc.sentMessage.equals(bstc.receivedMessage));
+            Assert.assertTrue("Client got back what it sent, all pieces in the right order.",
+                              bstc.sentMessage.equals(bstc.receivedMessage));
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

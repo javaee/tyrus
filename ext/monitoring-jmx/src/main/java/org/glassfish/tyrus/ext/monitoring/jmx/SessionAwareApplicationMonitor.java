@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -46,8 +46,8 @@ package org.glassfish.tyrus.ext.monitoring.jmx;
  * {@link org.glassfish.tyrus.ext.monitoring.jmx.SessionlessApplicationMonitor} does not collect statistics on session
  * level.
  * <p/>
- * It also creates and registers MXBeans that can be used to access these collected statistics.
- * The created MXBeans will allow accessing monitored properties and statistics on application, endpoint and session level.
+ * It also creates and registers MXBeans that can be used to access these collected statistics. The created MXBeans will
+ * allow accessing monitored properties and statistics on application, endpoint and session level.
  * <p/>
  * For monitoring in Grizzly server an instance should be passed to the server in server properties.
  * <pre>

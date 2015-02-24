@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -146,14 +146,17 @@ public class Match {
     }
 
     /**
-     * Return a list of all endpoints with path matching the request path. The endpoints are in order of match preference, best match first.
+     * Return a list of all endpoints with path matching the request path. The endpoints are in order of match
+     * preference, best match first.
      *
      * @param requestPath  request path.
      * @param endpoints    endpoints.
      * @param debugContext debug context.
-     * @return a list of all endpoints with path matching the request path. The endpoints are in order of match preference, best match first.
+     * @return a list of all endpoints with path matching the request path. The endpoints are in order of match
+     * preference, best match first.
      */
-    public static List<Match> getAllMatches(String requestPath, Set<TyrusEndpointWrapper> endpoints, DebugContext debugContext) {
+    public static List<Match> getAllMatches(String requestPath, Set<TyrusEndpointWrapper> endpoints,
+                                            DebugContext debugContext) {
         List<Match> matches = new ArrayList<Match>();
 
         for (TyrusEndpointWrapper endpoint : endpoints) {
@@ -165,17 +168,21 @@ public class Match {
         }
 
         Collections.sort(matches, new MatchComparator(debugContext));
-        debugContext.appendTraceMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_IN, "Endpoints matched to the request URI: ", matches);
+        debugContext.appendTraceMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_IN,
+                                        "Endpoints matched to the request URI: ", matches);
         return matches;
     }
 
     private static Match matchPath(String requestPath, TyrusEndpointWrapper endpoint, DebugContext debugContext) {
-        debugContext.appendTraceMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_IN, "Matching request URI ", requestPath, " against ", endpoint.getEndpointPath());
+        debugContext.appendTraceMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_IN, "Matching request URI ",
+                                        requestPath, " against ", endpoint.getEndpointPath());
         List<PathSegment> requestPathSegments = UriComponent.decodePath(requestPath, true);
         List<PathSegment> endpointPathSegments = UriComponent.decodePath(endpoint.getEndpointPath(), true);
 
         if (requestPathSegments.size() != endpointPathSegments.size()) {
-            debugContext.appendTraceMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_IN, "URIs ", requestPath, " and ", endpoint.getEndpointPath(), " have different length");
+            debugContext
+                    .appendTraceMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_IN, "URIs ", requestPath, " and ",
+                                        endpoint.getEndpointPath(), " have different length");
             return null;
         } else {
             Match m = new Match(endpoint);
@@ -192,7 +199,8 @@ public class Match {
                     somethingMatched = true;
                     m.addParameter(getVariableName(endpointSegment), requestSegment, i);
                 } else {
-                    debugContext.appendTraceMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_IN, "Segment \"", endpointSegment, "\" does not match");
+                    debugContext.appendTraceMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_IN, "Segment \"",
+                                                    endpointSegment, "\" does not match");
                     return null; // no match
                 }
             }

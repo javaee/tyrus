@@ -94,8 +94,8 @@ public class UriTemplateParser {
      * Parse a template.
      *
      * @param template the template.
-     * @throws IllegalArgumentException if the template is null, an empty string
-     *                                  or does not conform to a JAX-RS URI template.
+     * @throws IllegalArgumentException if the template is null, an empty string or does not conform to a JAX-RS URI
+     *                                  template.
      */
     public UriTemplateParser(final String template) throws IllegalArgumentException {
         if (template == null || template.isEmpty()) {
@@ -108,8 +108,8 @@ public class UriTemplateParser {
             pattern = Pattern.compile(regex.toString());
         } catch (PatternSyntaxException ex) {
             throw new IllegalArgumentException("Invalid syntax for the template expression '"
-                    + regex + "'",
-                    ex
+                                                       + regex + "'",
+                                               ex
             );
         }
     }
@@ -134,9 +134,8 @@ public class UriTemplateParser {
 
     /**
      * Get the normalized template.
-     * <p>
-     * A normalized template is a template without any explicit regular
-     * expressions.
+     * <p/>
+     * A normalized template is a template without any explicit regular expressions.
      *
      * @return the normalized template.
      */
@@ -173,10 +172,9 @@ public class UriTemplateParser {
 
     /**
      * Get the group indexes to capturing groups.
-     * <p>
-     * Any nested capturing groups will be ignored and the
-     * the group index will refer to the top-level capturing
-     * groups associated with the templates variables.
+     * <p/>
+     * Any nested capturing groups will be ignored and the the group index will refer to the top-level capturing groups
+     * associated with the templates variables.
      *
      * @return the group indexes to capturing groups.
      */
@@ -207,7 +205,6 @@ public class UriTemplateParser {
      * Get the number of regular expression groups
      *
      * @return the number of regular expressions groups
-     *
      * @since 2.9
      */
     public final int getNumberOfRegexGroups() {
@@ -287,7 +284,7 @@ public class UriTemplateParser {
         }
     }
 
-    private final static String[] HEX_TO_UPPERCASE_REGEX = initHexToUpperCaseRegex();
+    private static final String[] HEX_TO_UPPERCASE_REGEX = initHexToUpperCaseRegex();
 
     private static String[] initHexToUpperCaseRegex() {
         String[] table = new String[0x80];
@@ -324,7 +321,8 @@ public class UriTemplateParser {
             nameBuffer.append(c);
         } else {
             throw new IllegalArgumentException("Illegal character '" + c
-                    + "' at position " + ci.pos() + " is not as the start of a name");
+                                                       + "' at position " + ci.pos() +
+                                                       " is not as the start of a name");
         }
 
         String nameRegexString = "";
@@ -353,11 +351,13 @@ public class UriTemplateParser {
                 } else {
                     // Error
                     throw new IllegalArgumentException("Illegal character '" + c
-                            + "' at position " + ci.pos() + " is not allowed after a name");
+                                                               + "' at position " + ci.pos() +
+                                                               " is not allowed after a name");
                 }
             } else {
                 throw new IllegalArgumentException("Illegal character '" + c
-                        + "' at position " + ci.pos() + " is not allowed as part of a name");
+                                                           + "' at position " + ci.pos() +
+                                                           " is not allowed as part of a name");
             }
         }
 
@@ -415,9 +415,10 @@ public class UriTemplateParser {
                         ? TEMPLATE_VALUE_PATTERN : Pattern.compile(nameRegexString);
                 if (nameToPattern.containsKey(name)) {
                     if (!nameToPattern.get(name).equals(namePattern)) {
-                    throw new IllegalArgumentException("The name '" + name
-                            + "' is declared "
-                            + "more than once with different regular expressions");
+                        throw new IllegalArgumentException("The name '" + name
+                                                                   + "' is declared "
+                                                                   +
+                                                                   "more than once with different regular expressions");
                     }
                 } else {
                     nameToPattern.put(name, namePattern);
@@ -432,15 +433,15 @@ public class UriTemplateParser {
 
             regex.append('(').
                     append(namePattern).
-                    append(')');
+                         append(')');
 
             normalizedTemplate.append('{').
                     append(name).
-                    append('}');
+                                      append('}');
         } catch (PatternSyntaxException ex) {
             throw new IllegalArgumentException("Invalid syntax for the expression '" + nameRegexString
-                    + "' associated with the name '" + name + "'",
-                    ex);
+                                                       + "' associated with the name '" + name + "'",
+                                               ex);
         }
 
         // Tell the next time through the loop how many to skip

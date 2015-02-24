@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -73,16 +73,20 @@ class MBeanPublisher {
      *
      * @param applicationName                name of the application.
      * @param applicationMXBean              MXBean exposing application-level statistics.
-     * @param textMessageStatisticsMXBean    MXBean exposing statistics about text messages sent and received by the application.
-     * @param binaryMessageStatisticsMXBean  MXBean exposing statistics about binary messages sent and received by the application.
-     * @param controlMessageStatisticsMXBean MXBean exposing statistics about control messages sent and received by the application.
+     * @param textMessageStatisticsMXBean    MXBean exposing statistics about text messages sent and received by the
+     *                                       application.
+     * @param binaryMessageStatisticsMXBean  MXBean exposing statistics about binary messages sent and received by the
+     *                                       application.
+     * @param controlMessageStatisticsMXBean MXBean exposing statistics about control messages sent and received by the
+     *                                       application.
      */
     static void registerApplicationMXBeans(String applicationName, ApplicationMXBean applicationMXBean,
                                            MessageStatisticsMXBean textMessageStatisticsMXBean,
                                            MessageStatisticsMXBean binaryMessageStatisticsMXBean,
                                            MessageStatisticsMXBean controlMessageStatisticsMXBean) {
         String nameBase = getApplicationBeansBaseName(applicationName);
-        registerStatisticsMXBeans(nameBase, applicationMXBean, textMessageStatisticsMXBean, binaryMessageStatisticsMXBean, controlMessageStatisticsMXBean);
+        registerStatisticsMXBeans(nameBase, applicationMXBean, textMessageStatisticsMXBean,
+                                  binaryMessageStatisticsMXBean, controlMessageStatisticsMXBean);
     }
 
     /**
@@ -92,35 +96,46 @@ class MBeanPublisher {
      * @param applicationName                application name.
      * @param endpointPath                   endpoint path.
      * @param endpointMXBean                 MXBean exposing endpoint-level statistics.
-     * @param textMessageStatisticsMXBean    MXBean exposing statistics about text messages sent and received by the endpoint.
-     * @param binaryMessageStatisticsMXBean  MXBean exposing statistics about binary messages sent and received by the endpoint.
-     * @param controlMessageStatisticsMXBean MXBean exposing statistics about control messages sent and received by the endpoint
+     * @param textMessageStatisticsMXBean    MXBean exposing statistics about text messages sent and received by the
+     *                                       endpoint.
+     * @param binaryMessageStatisticsMXBean  MXBean exposing statistics about binary messages sent and received by the
+     *                                       endpoint.
+     * @param controlMessageStatisticsMXBean MXBean exposing statistics about control messages sent and received by the
+     *                                       endpoint
      */
     static void registerEndpointMXBeans(String applicationName, String endpointPath, EndpointMXBean endpointMXBean,
                                         MessageStatisticsMXBean textMessageStatisticsMXBean,
                                         MessageStatisticsMXBean binaryMessageStatisticsMXBean,
                                         MessageStatisticsMXBean controlMessageStatisticsMXBean) {
         String nameBase = getEndpointBeansBaseName(applicationName, endpointPath);
-        registerStatisticsMXBeans(nameBase, endpointMXBean, textMessageStatisticsMXBean, binaryMessageStatisticsMXBean, controlMessageStatisticsMXBean);
+        registerStatisticsMXBeans(nameBase, endpointMXBean, textMessageStatisticsMXBean, binaryMessageStatisticsMXBean,
+                                  controlMessageStatisticsMXBean);
     }
 
     /**
-     * Register MXBeans exposing statistics about text, binary, control and total messages sent and received by the session.
+     * Register MXBeans exposing statistics about text, binary, control and total messages sent and received by the
+     * session.
      *
      * @param applicationName                application name.
      * @param endpointPath                   endpoint path.
      * @param sessionId                      session ID.
-     * @param sessionMXBean                  MXBean exposing statistics about total messages sent and received by the session.
-     * @param textMessageStatisticsMXBean    MXBean exposing statistics about text messages sent and received by the session.
-     * @param binaryMessageStatisticsMXBean  MXBean exposing statistics about binary messages sent and received by the session.
-     * @param controlMessageStatisticsMXBean MXBean exposing statistics about control messages sent and received by the session.
+     * @param sessionMXBean                  MXBean exposing statistics about total messages sent and received by the
+     *                                       session.
+     * @param textMessageStatisticsMXBean    MXBean exposing statistics about text messages sent and received by the
+     *                                       session.
+     * @param binaryMessageStatisticsMXBean  MXBean exposing statistics about binary messages sent and received by the
+     *                                       session.
+     * @param controlMessageStatisticsMXBean MXBean exposing statistics about control messages sent and received by the
+     *                                       session.
      */
-    static void registerSessionMXBeans(String applicationName, String endpointPath, String sessionId, MessageStatisticsMXBean sessionMXBean,
+    static void registerSessionMXBeans(String applicationName, String endpointPath, String sessionId,
+                                       MessageStatisticsMXBean sessionMXBean,
                                        MessageStatisticsMXBean textMessageStatisticsMXBean,
                                        MessageStatisticsMXBean binaryMessageStatisticsMXBean,
                                        MessageStatisticsMXBean controlMessageStatisticsMXBean) {
         String baseName = getSessionBeansBaseName(applicationName, endpointPath, sessionId);
-        registerStatisticsMXBeans(baseName, sessionMXBean, textMessageStatisticsMXBean, binaryMessageStatisticsMXBean, controlMessageStatisticsMXBean);
+        registerStatisticsMXBeans(baseName, sessionMXBean, textMessageStatisticsMXBean, binaryMessageStatisticsMXBean,
+                                  controlMessageStatisticsMXBean);
     }
 
     /**
@@ -156,7 +171,8 @@ class MBeanPublisher {
         unregisterMXBean(name);
     }
 
-    private static void registerStatisticsMXBeans(String nameBase, MessageStatisticsMXBean nodeMXBean, MessageStatisticsMXBean textMessageStatisticsMXBean,
+    private static void registerStatisticsMXBeans(String nameBase, MessageStatisticsMXBean nodeMXBean,
+                                                  MessageStatisticsMXBean textMessageStatisticsMXBean,
                                                   MessageStatisticsMXBean binaryMessageStatisticsMXBean,
                                                   MessageStatisticsMXBean controlMessageStatisticsMXBean) {
         registerMXBean(nameBase, nodeMXBean);

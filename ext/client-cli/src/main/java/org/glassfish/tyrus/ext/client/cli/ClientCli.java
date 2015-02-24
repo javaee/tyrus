@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -139,8 +139,7 @@ public class ClientCli {
 
         try {
             final ConsoleReader console = new ConsoleReader(
-                    NAME,
-                    new FileInputStream(FileDescriptor.in), System.out, null);
+                    NAME, new FileInputStream(FileDescriptor.in), System.out, null);
 
             console.addCompleter(new StringsCompleter("open", "close", "send", "ping", "exit", "quit", "help"));
             console.setPrompt(getPrompt());
@@ -189,7 +188,8 @@ public class ClientCli {
                 }
 
                 if (i != args.length) {
-                    ClientCli.print(console, null, String.format("Invalid argument count, usage cmd [--proxy proxyUrl] [ws uri]"), false);
+                    ClientCli.print(console, null, String.format("Invalid argument count, usage cmd [--proxy " +
+                                                                         "proxyUrl] [ws uri]"), false);
                     return;
                 }
             }
@@ -223,7 +223,8 @@ public class ClientCli {
                         // Multiline send, complets on the full stop
                     } else if (line.startsWith("send")) {
 
-                        ClientCli.print(console, null, String.format("End multiline message with . on own line"), false);
+                        ClientCli.print(console, null, String.format("End multiline message with . on own line"),
+                                        false);
 
                         String temporaryPrompt = "send...> ";
                         console.setPrompt(temporaryPrompt);
@@ -281,8 +282,8 @@ public class ClientCli {
         }
     }
 
-
-    private static void connectToURI(final ConsoleReader console, final String uri, final WebSocketContainer webSocketContainer) throws IOException {
+    private static void connectToURI(final ConsoleReader console, final String uri, final WebSocketContainer
+            webSocketContainer) throws IOException {
 
         // Use a local copy so that we don't get odd race conditions
         //
@@ -299,12 +300,13 @@ public class ClientCli {
 
             ClientCli.print(console, null, String.format("Connected in session %s", localCopy.getId()), false);
         } catch (URISyntaxException ex) {
-            ClientCli.print(console, null, String.format("Problem parsing uri %s beause of %s", uri, ex.getMessage()), false);
+            ClientCli.print(console, null,
+                            String.format("Problem parsing uri %s beause of %s", uri, ex.getMessage()), false);
         } catch (DeploymentException ex) {
-            ClientCli.print(console, null, String.format("Failed to connect to %s due to %s", uri, ex.getMessage()), false);
+            ClientCli.print(console, null,
+                            String.format("Failed to connect to %s due to %s", uri, ex.getMessage()), false);
         }
     }
-
 
     /**
      * Derive the prompt from the session id.
@@ -316,8 +318,7 @@ public class ClientCli {
         Session currentSession = session;
         if (session != null) {
             String id = currentSession.getId();
-            String shortId = id.substring(0, 4) + "..."
-                    + id.substring(id.length() - 4);
+            String shortId = id.substring(0, 4) + "..." + id.substring(id.length() - 4);
             return String.format(CONSOLE_PREFIX_CONN, shortId);
         } else {
             return CONSOLE_PREFIX_NO_CONN;
@@ -349,9 +350,10 @@ public class ClientCli {
      * @param restore restore command line prefix.
      * @throws IOException when there is some issue with printing to a console.
      */
-    private static synchronized void print(ConsoleReader console, String prefix, String message, boolean restore) throws IOException {
+    private static synchronized void print(ConsoleReader console, String prefix, String message, boolean restore)
+            throws IOException {
 
-        // Store the buffer information so we can restore it 
+        // Store the buffer information so we can restore it
         // after the message has been sent
         CursorBuffer cursorBuffer = console.getCursorBuffer().copy();
         String buffer = cursorBuffer.buffer.toString();

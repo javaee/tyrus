@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -52,11 +52,22 @@ public abstract class ServerContainerFactory {
     private static final String CONTAINTER_CLASS =
             "org.glassfish.tyrus.container.grizzly.server.GrizzlyServerContainer";
 
+    /**
+     * Create new {@link org.glassfish.tyrus.spi.ServerContainer} with default configuration.
+     *
+     * @return new {@link org.glassfish.tyrus.spi.ServerContainer}.
+     */
     public static ServerContainer createServerContainer() {
         return createServerContainer(Collections.<String, Object>emptyMap());
     }
 
-    public static ServerContainer createServerContainer(Map<String, Object> properties) {
+    /**
+     * Create new {@link org.glassfish.tyrus.spi.ServerContainer} with configuration.
+     *
+     * @param properties configuration passed to created server container.
+     * @return new {@link org.glassfish.tyrus.spi.ServerContainer}.
+     */
+    public static ServerContainer createServerContainer(final Map<String, Object> properties) {
         ServerContainerFactory factory = null;
 
         Iterator<ServerContainerFactory> it = ServiceLoader.load(ServerContainerFactory.class).iterator();
@@ -66,9 +77,8 @@ public abstract class ServerContainerFactory {
         if (factory == null) {
             try {
                 ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-                Class factoryClass = (classLoader == null)
-                        ? Class.forName(CONTAINTER_CLASS)
-                        : classLoader.loadClass(CONTAINTER_CLASS);
+                Class factoryClass = (classLoader == null) ? Class.forName(CONTAINTER_CLASS) : classLoader.loadClass
+                        (CONTAINTER_CLASS);
                 factory = (ServerContainerFactory) factoryClass.newInstance();
             } catch (ClassNotFoundException ce) {
                 throw new RuntimeException(ce);
@@ -81,6 +91,14 @@ public abstract class ServerContainerFactory {
         return factory.createContainer(properties);
     }
 
+    /**
+     * Create container delegate method.
+     * <p/>
+     * Has to be implemented by {@link org.glassfish.tyrus.spi.ServerContainerFactory} implementations.
+     *
+     * @param properties configuration passed to created server container.
+     * @return new {@link org.glassfish.tyrus.spi.ServerContainer}.
+     */
     public abstract ServerContainer createContainer(Map<String, Object> properties);
 
 }

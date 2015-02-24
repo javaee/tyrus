@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -81,16 +81,17 @@ public class GlassFishToolkit implements ServerToolkit {
     private ScatteredArchive deploy;
     private final static Logger logger = Logger.getLogger(GlassFishToolkit.class.getName());
     private static final String glassfishWeb =
-            "<!DOCTYPE glassfish-web-app PUBLIC \"-//GlassFish.org//DTD GlassFish Application Server 3.1 Servlet 3.0//EN\" \"http://glassfish.org/dtds/glassfish-web-app_3_0-1.dtd\">"
-            + "<glassfish-web-app error-url=\"\">"
-            + "<context-root>%s</context-root>"
-            + "<class-loader delegate=\"true\"/>"
-            + "<jsp-config>"
-            + "<property name=\"keepgenerated\" value=\"true\">"
-            + "<description>Keep a copy of the generated servlet class' java code.</description>"
-            + "</property>"
-            + "</jsp-config>"
-            + "</glassfish-web-app>";
+            "<!DOCTYPE glassfish-web-app PUBLIC \"-//GlassFish.org//DTD GlassFish Application Server 3.1 Servlet 3" +
+                    ".0//EN\" \"http://glassfish.org/dtds/glassfish-web-app_3_0-1.dtd\">"
+                    + "<glassfish-web-app error-url=\"\">"
+                    + "<context-root>%s</context-root>"
+                    + "<class-loader delegate=\"true\"/>"
+                    + "<jsp-config>"
+                    + "<property name=\"keepgenerated\" value=\"true\">"
+                    + "<description>Keep a copy of the generated servlet class' java code.</description>"
+                    + "</property>"
+                    + "</jsp-config>"
+                    + "</glassfish-web-app>";
     private AppConfig config;
 
     public GlassFishToolkit(AppConfig config) {
@@ -156,7 +157,8 @@ public class GlassFishToolkit implements ServerToolkit {
         }
 
         public String getAsadminDeployCommand(String warfile, String key, String value) {
-            return String.format(getAsadminCommand(), installRoot, String.format(ASADMIN_DEPLOY_WAR_PROPS, key, value, warfile));
+            return String.format(getAsadminCommand(), installRoot,
+                                 String.format(ASADMIN_DEPLOY_WAR_PROPS, key, value, warfile));
         }
 
         public String getAsadminUnDeployCommand(String appname) {
@@ -201,7 +203,8 @@ public class GlassFishToolkit implements ServerToolkit {
 
     private String getClazzCanonicalName(File clazz) {
         logger.log(Level.FINE, "getClazzCanonicalName:{0}", clazz.toString());
-        return FilenameUtils.removeExtension(FilenameUtils.separatorsToUnix(clazz.toString())).replaceFirst("target/classes/", "").replace('/', '.');
+        return FilenameUtils.removeExtension(FilenameUtils.separatorsToUnix(clazz.toString()))
+                            .replaceFirst("target/classes/", "").replace('/', '.');
     }
 
     private File getDirname(File clazz) {
@@ -257,7 +260,8 @@ public class GlassFishToolkit implements ServerToolkit {
         return new File(getDirname(new File(clazz.toString())), clazzBasename);
     }
 
-    public ScatteredArchive makeWar(Class clazz, String path) throws IOException, ClassNotFoundException, InterruptedException, URISyntaxException {
+    public ScatteredArchive makeWar(Class clazz, String path) throws IOException, ClassNotFoundException,
+            InterruptedException, URISyntaxException {
         ScatteredArchive archive = new ScatteredArchive("testapp", ScatteredArchive.Type.WAR);
         String name = clazz.getName();
 
@@ -300,9 +304,9 @@ public class GlassFishToolkit implements ServerToolkit {
             Asadmin asadmin = new Asadmin();
             asadmin.exec(
                     new String[]{
-                        asadmin.getAsadminStartDomain1(),
-                        asadmin.getAsadminDeployCommand(getLocalFileFromURI(deploy.toURI())),
-                        asadmin.getAsadminListApplications()
+                            asadmin.getAsadminStartDomain1(),
+                            asadmin.getAsadminDeployCommand(getLocalFileFromURI(deploy.toURI())),
+                            asadmin.getAsadminListApplications()
                     });
             try {
                 Thread.sleep(10000);
@@ -330,8 +334,8 @@ public class GlassFishToolkit implements ServerToolkit {
             }
             asadmin.exec(
                     new String[]{
-                        asadmin.getAsadminListApplications(),
-                        asadmin.getAsadminStopDomain1()
+                            asadmin.getAsadminListApplications(),
+                            asadmin.getAsadminStopDomain1()
                     });
         } catch (IOException ex) {
             ex.printStackTrace();

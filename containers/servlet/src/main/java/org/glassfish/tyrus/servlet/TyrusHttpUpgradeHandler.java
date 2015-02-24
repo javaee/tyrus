@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -62,8 +62,7 @@ import org.glassfish.tyrus.spi.Writer;
 /**
  * {@link HttpUpgradeHandler} and {@link ReadListener} implementation.
  * <p/>
- * Reads data from {@link ServletInputStream} and passes it further to the
- * Tyrus runtime.
+ * Reads data from {@link ServletInputStream} and passes it further to the Tyrus runtime.
  *
  * @author Jitendra Kotamraju
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -146,12 +145,13 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
 
                 int toRead = (buf == null ?
                         (available > incomingBufferSize ? incomingBufferSize : available) :
-                        buf.remaining() + available > incomingBufferSize ? incomingBufferSize - buf.remaining() : buf.remaining() + available
+                        buf.remaining() + available > incomingBufferSize ? incomingBufferSize - buf.remaining() :
+                                buf.remaining() + available
                 );
 
                 if (toRead == 0) {
                     throw new IOException(String.format("Tyrus input buffer exceeded. Current buffer size is %s bytes.",
-                            incomingBufferSize));
+                                                        incomingBufferSize));
                 }
 
                 available -= fillBuf(toRead);
@@ -228,7 +228,8 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
 
     @Override
     public void onError(Throwable t) {
-        close(CloseReason.CloseCodes.CLOSED_ABNORMALLY.getCode(), t.getMessage() == null ? "No reason given." : t.getMessage());
+        close(CloseReason.CloseCodes.CLOSED_ABNORMALLY.getCode(),
+              t.getMessage() == null ? "No reason given." : t.getMessage());
     }
 
     @Override

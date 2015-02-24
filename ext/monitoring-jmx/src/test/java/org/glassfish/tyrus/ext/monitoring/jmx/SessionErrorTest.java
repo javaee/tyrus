@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -66,8 +66,8 @@ import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
 /**
- * Tests that error statistics collected at session level are accessible.
- * Complementary test to {@link org.glassfish.tyrus.ext.monitoring.jmx.ErrorStatisticsTest}
+ * Tests that error statistics collected at session level are accessible. Complementary test to {@link
+ * org.glassfish.tyrus.ext.monitoring.jmx.ErrorStatisticsTest}
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
@@ -98,19 +98,23 @@ public class SessionErrorTest extends TestContainer {
 
             CountDownLatch errorCountDownLatch = new CountDownLatch(1);
 
-            ApplicationEventListener applicationEventListener = new TestApplicationEventListener(new SessionAwareApplicationMonitor(), null, null, null, null, errorCountDownLatch);
+            ApplicationEventListener applicationEventListener =
+                    new TestApplicationEventListener(new SessionAwareApplicationMonitor(), null, null, null, null,
+                                                     errorCountDownLatch);
             getServerProperties().put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, applicationEventListener);
             server = startServer(AnnotatedServerEndpoint.class);
 
             ClientManager client = createClient();
-            Session session = client.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
+            Session session =
+                    client.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
             session.getBasicRemote().sendText("Hello");
 
             assertTrue(errorCountDownLatch.await(1, TimeUnit.SECONDS));
 
             String applicationMXBeanName = "org.glassfish.tyrus:type=/errorInSessionTestApp";
             MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-            ApplicationMXBean applicationMXBean = JMX.newMXBeanProxy(mBeanServer, new ObjectName(applicationMXBeanName), ApplicationMXBean.class);
+            ApplicationMXBean applicationMXBean =
+                    JMX.newMXBeanProxy(mBeanServer, new ObjectName(applicationMXBeanName), ApplicationMXBean.class);
 
             List<EndpointMXBean> endpointMXBeans = applicationMXBean.getEndpointMXBeans();
             assertEquals(1, endpointMXBeans.size());

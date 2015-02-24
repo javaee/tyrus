@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -74,8 +74,11 @@ class MessageHandlerManager {
 
     private static final List<Class<?>> WHOLE_TEXT_HANDLER_TYPES = Arrays.<Class<?>>asList(String.class, Reader.class);
     private static final Class<?> PARTIAL_TEXT_HANDLER_TYPE = String.class;
-    private static final List<Class<?>> WHOLE_BINARY_HANDLER_TYPES = Arrays.<Class<?>>asList(ByteBuffer.class, InputStream.class, byte[].class);
-    private static final List<Class<?>> PARTIAL_BINARY_HANDLER_TYPES = Arrays.<Class<?>>asList(ByteBuffer.class, byte[].class);
+    private static final List<Class<?>> WHOLE_BINARY_HANDLER_TYPES = Arrays.<Class<?>>asList(ByteBuffer.class,
+                                                                                             InputStream.class,
+                                                                                             byte[].class);
+    private static final List<Class<?>> PARTIAL_BINARY_HANDLER_TYPES = Arrays.<Class<?>>asList(ByteBuffer.class,
+                                                                                               byte[].class);
     private static final Class<?> PONG_HANDLER_TYPE = PongMessage.class;
 
     private boolean textHandlerPresent = false;
@@ -179,7 +182,7 @@ class MessageHandlerManager {
         } else {
             boolean viable = false;
 
-            if (checkTextDecoders(clazz)) {//decodable text
+            if (checkTextDecoders(clazz)) { //decodable text
                 if (textHandlerPresent) {
                     throwException(LocalizationMessages.MESSAGE_HANDLER_ALREADY_REGISTERED_TEXT());
                 } else {
@@ -189,7 +192,7 @@ class MessageHandlerManager {
                 }
             }
 
-            if (checkBinaryDecoders(clazz)) {//decodable binary
+            if (checkBinaryDecoders(clazz)) { //decodable binary
                 if (binaryHandlerPresent) {
                     throwException(LocalizationMessages.MESSAGE_HANDLER_ALREADY_REGISTERED_BINARY());
                 } else {
@@ -292,11 +295,11 @@ class MessageHandlerManager {
             } else if (PONG_HANDLER_TYPE.equals(handlerClass)) { // pong
                 pongHandlerPresent = false;
             } else {
-                if (checkTextDecoders(handlerClass)) {//decodable text
+                if (checkTextDecoders(handlerClass)) { //decodable text
                     textHandlerPresent = false;
                     textWholeHandlerPresent = false;
 
-                } else if (checkBinaryDecoders(handlerClass)) {//decodable binary
+                } else if (checkBinaryDecoders(handlerClass)) { //decodable binary
                     binaryHandlerPresent = false;
                     binaryWholeHandlerPresent = false;
                 }
@@ -354,7 +357,8 @@ class MessageHandlerManager {
 
     private boolean checkTextDecoders(Class<?> requiredType) {
         for (Class<? extends Decoder> decoderClass : decoders) {
-            if (isTextDecoder(decoderClass) && requiredType.isAssignableFrom(AnnotatedEndpoint.getDecoderClassType(decoderClass))) {
+            if (isTextDecoder(decoderClass) && requiredType.isAssignableFrom(AnnotatedEndpoint.getDecoderClassType
+                    (decoderClass))) {
                 return true;
             }
         }
@@ -364,7 +368,8 @@ class MessageHandlerManager {
 
     private boolean checkBinaryDecoders(Class<?> requiredType) {
         for (Class<? extends Decoder> decoderClass : decoders) {
-            if (isBinaryDecoder(decoderClass) && requiredType.isAssignableFrom(AnnotatedEndpoint.getDecoderClassType(decoderClass))) {
+            if (isBinaryDecoder(decoderClass) && requiredType.isAssignableFrom(AnnotatedEndpoint.getDecoderClassType
+                    (decoderClass))) {
                 return true;
             }
         }
@@ -373,11 +378,13 @@ class MessageHandlerManager {
     }
 
     private boolean isTextDecoder(Class<? extends Decoder> decoderClass) {
-        return Decoder.Text.class.isAssignableFrom(decoderClass) || Decoder.TextStream.class.isAssignableFrom(decoderClass);
+        return Decoder.Text.class.isAssignableFrom(decoderClass) || Decoder.TextStream.class.isAssignableFrom
+                (decoderClass);
     }
 
     private boolean isBinaryDecoder(Class<? extends Decoder> decoderClass) {
-        return Decoder.Binary.class.isAssignableFrom(decoderClass) || Decoder.BinaryStream.class.isAssignableFrom(decoderClass);
+        return Decoder.Binary.class.isAssignableFrom(decoderClass) || Decoder.BinaryStream.class.isAssignableFrom
+                (decoderClass);
     }
 
     boolean isWholeTextHandlerPresent() {
@@ -408,7 +415,8 @@ class MessageHandlerManager {
         return pongHandlerPresent;
     }
 
-    private static class MessageHandlerComparator implements Comparator<Map.Entry<Class<?>, MessageHandler>>, Serializable {
+    private static class MessageHandlerComparator implements Comparator<Map.Entry<Class<?>, MessageHandler>>,
+            Serializable {
 
         private static final long serialVersionUID = -5136634876439146784L;
 

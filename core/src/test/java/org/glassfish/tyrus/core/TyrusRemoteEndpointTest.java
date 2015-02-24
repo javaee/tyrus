@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -88,7 +88,8 @@ public class TyrusRemoteEndpointTest {
 
     public TyrusRemoteEndpointTest() {
         try {
-            endpointWrapper = new TyrusEndpointWrapper(EchoEndpoint.class, null, ComponentProviderService.create(), new TestContainer(), null, null, null, null, null, null);
+            endpointWrapper = new TyrusEndpointWrapper(EchoEndpoint.class, null, ComponentProviderService.create(),
+                                                       new TestContainer(), null, null, null, null, null, null);
         } catch (DeploymentException e) {
             // do nothing.
         }
@@ -108,12 +109,14 @@ public class TyrusRemoteEndpointTest {
 
         stream.flush();
 
-        // Assert.assertArrayEquals("Writing bytes one by one to stream and flushing.", sentBytes, tre.getBytesAndClearBuffer());
+        // Assert.assertArrayEquals("Writing bytes one by one to stream and flushing.", sentBytes, tre
+        // .getBytesAndClearBuffer());
 
         stream.write(sentBytes);
         stream.close();
 
-        Assert.assertArrayEquals("Writing byte[] to stream and flushing.", sentBytesComplete, tre.getBytesAndClearBuffer());
+        Assert.assertArrayEquals("Writing byte[] to stream and flushing.", sentBytesComplete,
+                                 tre.getBytesAndClearBuffer());
     }
 
     @Test
@@ -129,7 +132,8 @@ public class TyrusRemoteEndpointTest {
         stream.close();
         Assert.assertEquals(0, tre.getLastSentMessageSize());
 
-        Assert.assertArrayEquals("Writing byte[] to stream and flushing.", sentBytesComplete, tre.getBytesAndClearBuffer());
+        Assert.assertArrayEquals("Writing byte[] to stream and flushing.", sentBytesComplete,
+                                 tre.getBytesAndClearBuffer());
     }
 
     @Test
@@ -147,7 +151,8 @@ public class TyrusRemoteEndpointTest {
         stream.close();
         Assert.assertEquals(0, tre.getLastSentMessageSize());
 
-        Assert.assertArrayEquals("Writing byte[] to stream and flushing.", sentBytesComplete, tre.getBytesAndClearBuffer());
+        Assert.assertArrayEquals("Writing byte[] to stream and flushing.", sentBytesComplete,
+                                 tre.getBytesAndClearBuffer());
     }
 
 
@@ -316,7 +321,9 @@ public class TyrusRemoteEndpointTest {
     }
 
     private TyrusSession createTestSession(TyrusWebSocket webSocket, TyrusEndpointWrapper endpointWrapper) {
-        return new TyrusSession(null, webSocket, endpointWrapper, null, null, true, null, null, Collections.<String, String>emptyMap(), null, new HashMap<String, List<String>>(), null, null, null, new DebugContext());
+        return new TyrusSession(null, webSocket, endpointWrapper, null, null, true, null, null,
+                                Collections.<String, String>emptyMap(), null, new HashMap<String, List<String>>(), null,
+                                null, null, new DebugContext());
     }
 
     private class TestRemoteEndpoint extends TyrusWebSocket {
@@ -354,7 +361,8 @@ public class TyrusRemoteEndpointTest {
                 }
 
                 @Override
-                public Frame get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+                public Frame get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException,
+                        TimeoutException {
                     return null;
                 }
             };
@@ -388,7 +396,8 @@ public class TyrusRemoteEndpointTest {
                 }
 
                 @Override
-                public Frame get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+                public Frame get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException,
+                        TimeoutException {
                     return null;
                 }
             };
@@ -466,12 +475,14 @@ public class TyrusRemoteEndpointTest {
         }
 
         @Override
-        public Session connectToServer(Endpoint endpoint, ClientEndpointConfig clientEndpointConfig, URI uri) throws DeploymentException, IOException {
+        public Session connectToServer(Endpoint endpoint, ClientEndpointConfig clientEndpointConfig, URI uri) throws
+                DeploymentException, IOException {
             return null;
         }
 
         @Override
-        public Session connectToServer(Class<? extends Endpoint> aClass, ClientEndpointConfig clientEndpointConfig, URI uri) throws DeploymentException, IOException {
+        public Session connectToServer(Class<? extends Endpoint> aClass, ClientEndpointConfig clientEndpointConfig,
+                                       URI uri) throws DeploymentException, IOException {
             return null;
         }
 

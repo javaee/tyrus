@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -54,10 +54,13 @@ import org.glassfish.tyrus.spi.CompletionHandler;
 /**
  * A filter that adds SSL support to the transport.
  * <p/>
- * {@link #write(java.nio.ByteBuffer, org.glassfish.tyrus.spi.CompletionHandler)} and {@link #onRead(java.nio.ByteBuffer)}
+ * {@link #write(java.nio.ByteBuffer, org.glassfish.tyrus.spi.CompletionHandler)} and {@link
+ * #onRead(java.nio.ByteBuffer)}
  * calls are passed through until {@link #startSsl()} method is called, after which SSL handshake is started.
- * When SSL handshake is being initiated, all data passed in {@link #write(java.nio.ByteBuffer, org.glassfish.tyrus.spi.CompletionHandler)}
- * method are stored until SSL handshake completes, after which they will be encrypted and passed to a downstream filter.
+ * When SSL handshake is being initiated, all data passed in {@link #write(java.nio.ByteBuffer,
+ * org.glassfish.tyrus.spi.CompletionHandler)}
+ * method are stored until SSL handshake completes, after which they will be encrypted and passed to a downstream
+ * filter.
  * After SSL handshake has completed, all data passed in write method will be encrypted and data passed in
  * {@link #onRead(java.nio.ByteBuffer)} method will be decrypted.
  *
@@ -87,7 +90,8 @@ class SslFilter extends Filter {
      * @param serverHost            server host (hostname or IP address), which will be used to verify authenticity of
      *                              the server (the provided host will be compared against the host in the certificate
      *                              provided by the server). IP address and hostname cannot be used interchangeably -
-     *                              if a certificate contains hostname and an IP address of the server is provided here,
+     *                              if a certificate contains hostname and an IP address of the server is provided
+     *                              here,
      *                              the verification will fail.
      */
     SslFilter(Filter downstreamFilter, SslEngineConfigurator sslEngineConfigurator, String serverHost) {
@@ -117,7 +121,8 @@ class SslFilter extends Filter {
      * @param downstreamFilter a filter that is positioned under the SSL filter.
      * @deprecated Please use {@link #SslFilter(Filter, org.glassfish.tyrus.client.SslEngineConfigurator, String)}.
      */
-    SslFilter(Filter downstreamFilter, org.glassfish.tyrus.container.jdk.client.SslEngineConfigurator sslEngineConfigurator) {
+    SslFilter(Filter downstreamFilter,
+              org.glassfish.tyrus.container.jdk.client.SslEngineConfigurator sslEngineConfigurator) {
         super(downstreamFilter);
         sslEngine = sslEngineConfigurator.createSSLEngine();
         applicationInputBuffer = ByteBuffer.allocate(sslEngine.getSession().getApplicationBufferSize());
@@ -137,7 +142,8 @@ class SslFilter extends Filter {
         handleWrite(networkOutputBuffer, applicationData, downstreamFilter, completionHandler);
     }
 
-    private void handleWrite(final ByteBuffer networkOutputBuffer, final ByteBuffer applicationData, final Filter downstreamFilter,
+    private void handleWrite(final ByteBuffer networkOutputBuffer, final ByteBuffer applicationData,
+                             final Filter downstreamFilter,
                              final CompletionHandler<ByteBuffer> completionHandler) {
         try {
             networkOutputBuffer.clear();
@@ -197,7 +203,8 @@ class SslFilter extends Filter {
         SSLEngineResult.HandshakeStatus hs = sslEngine.getHandshakeStatus();
         try {
             // SSL handshake logic
-            if (hs != SSLEngineResult.HandshakeStatus.FINISHED && hs != SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING) {
+            if (hs != SSLEngineResult.HandshakeStatus.FINISHED &&
+                    hs != SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING) {
                 synchronized (handshakeLock) {
 
                     if (hs != SSLEngineResult.HandshakeStatus.NEED_UNWRAP) {
@@ -217,14 +224,18 @@ class SslFilter extends Filter {
                             handshakeCompleted = true;
 
                             // apply a custom host verifier if present
-                            if (customHostnameVerifier != null && !customHostnameVerifier.verify(serverHost, sslEngine.getSession())) {
-                                handleSslError(new SSLException("Server host name verification using " + customHostnameVerifier.getClass() + " has failed"));
+                            if (customHostnameVerifier != null &&
+                                    !customHostnameVerifier.verify(serverHost, sslEngine.getSession())) {
+                                handleSslError(new SSLException(
+                                        "Server host name verification using " + customHostnameVerifier.getClass() +
+                                                " has failed"));
                             }
 
                             onSslHandshakeCompleted();
                             return false;
                         }
-                        if (!networkData.hasRemaining() || result.getHandshakeStatus() != SSLEngineResult.HandshakeStatus.NEED_UNWRAP) {
+                        if (!networkData.hasRemaining() ||
+                                result.getHandshakeStatus() != SSLEngineResult.HandshakeStatus.NEED_UNWRAP) {
                             // all data has been read or the engine needs to do something else than read
                             break;
                         }
@@ -263,7 +274,8 @@ class SslFilter extends Filter {
                 while (true) {
                     SSLEngineResult.HandshakeStatus hs = sslEngine.getHandshakeStatus();
 
-                    if (handshakeCompleted || (hs != SSLEngineResult.HandshakeStatus.NEED_WRAP && hs != SSLEngineResult.HandshakeStatus.NEED_TASK)) {
+                    if (handshakeCompleted || (hs != SSLEngineResult.HandshakeStatus.NEED_WRAP &&
+                            hs != SSLEngineResult.HandshakeStatus.NEED_TASK)) {
                         return;
                     }
 
@@ -274,12 +286,13 @@ class SslFilter extends Filter {
                             sslEngine.wrap(networkOutputBuffer, networkOutputBuffer);
                             networkOutputBuffer.flip();
                             /**
-                             *  Latch to make the write operation synchronous. If it was asynchronous, the {@link #handshakeLock}
-                             *  will be released before the write is completed and another thread arriving form
-                             *  {@link #onRead(Filter, java.nio.ByteBuffer)} will be allowed to write resulting in
-                             *  {@link java.nio.channels.WritePendingException}. This is only concern during the handshake
-                             *  phase as {@link org.glassfish.tyrus.container.jdk.client.TaskQueueFilter} ensures that
-                             *  only one write operation is allowed at a time during "data transfer" phase.
+                             *  Latch to make the write operation synchronous. If it was asynchronous, the {@link
+                             *  #handshakeLock} will be released before the write is completed and another thread
+                             *  arriving form {@link #onRead(Filter, java.nio.ByteBuffer)} will be allowed to write
+                             *  resulting in {@link java.nio.channels.WritePendingException}. This is only concern
+                             *  during the handshake phase as {@link org.glassfish.tyrus.container.jdk.client
+                             *  .TaskQueueFilter} ensures that only one write operation is allowed at a time during
+                             *  "data transfer" phase.
                              */
                             final CountDownLatch writeLatch = new CountDownLatch(1);
                             filter.write(networkOutputBuffer, new CompletionHandler<ByteBuffer>() {
@@ -305,7 +318,9 @@ class SslFilter extends Filter {
                                 delegatedTask.run();
                             }
                             if (sslEngine.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NEED_UNWRAP) {
-                                handleSslError(new SSLException("SSL handshake error has occurred - more data needed for validating the certificate"));
+                                handleSslError(new SSLException(
+                                        "SSL handshake error has occurred - more data needed for validating the " +
+                                                "certificate"));
                                 return;
                             }
                             break;

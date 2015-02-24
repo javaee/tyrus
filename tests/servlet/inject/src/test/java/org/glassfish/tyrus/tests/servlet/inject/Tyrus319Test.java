@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -94,7 +94,8 @@ public class Tyrus319Test extends TestContainer {
                         // do nothing
                     }
                 }
-            }, ClientEndpointConfig.Builder.create().build(), getURI(EchoServiceEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
+            }, ClientEndpointConfig.Builder.create().build(),
+                                   getURI(EchoServiceEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
 
             assertTrue(messageLatch.await(1, TimeUnit.SECONDS));
         } catch (Exception e) {

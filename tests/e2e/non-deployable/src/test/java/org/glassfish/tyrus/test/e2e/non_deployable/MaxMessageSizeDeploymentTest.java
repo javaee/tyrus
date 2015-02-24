@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -68,8 +68,7 @@ import static org.junit.Assert.fail;
 
 /**
  * Tests warnings logged when max message size given in {@link javax.websocket.OnMessage} is larger than max message
- * size specified in a container.
- * Cannot be moved to standard tests due the need to handle server logger.
+ * size specified in a container. Cannot be moved to standard tests due the need to handle server logger.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
@@ -93,7 +92,10 @@ public class MaxMessageSizeDeploymentTest extends TestContainer {
         LoggerHandler handler = new LoggerHandler() {
             @Override
             public void publish(LogRecord record) {
-                String expectedWarningMessage = LocalizationMessages.ENDPOINT_MAX_MESSAGE_SIZE_TOO_LONG(2, LargeMaxMessageSizeServerEndpoint.class.getMethods()[0].getName(), LargeMaxMessageSizeServerEndpoint.class.getName(), 1);
+                String expectedWarningMessage =
+                        LocalizationMessages.ENDPOINT_MAX_MESSAGE_SIZE_TOO_LONG(
+                                2, LargeMaxMessageSizeServerEndpoint.class.getMethods()[0].getName(),
+                                LargeMaxMessageSizeServerEndpoint.class.getName(), 1);
                 System.out.println("Expected message: " + expectedWarningMessage);
                 System.out.println("Logged message: " + record.getMessage());
                 if (expectedWarningMessage.equals(record.getMessage())) {
@@ -114,9 +116,9 @@ public class MaxMessageSizeDeploymentTest extends TestContainer {
     }
 
     /**
-     * Tests that no warning is given during server endpoint deployment.
-     * It does not look for a specific message, but checks that no warning is given, therefore it
-     * might fail, when other warnings than max message size check are introduced.
+     * Tests that no warning is given during server endpoint deployment. It does not look for a specific message, but
+     * checks that no warning is given, therefore it might fail, when other warnings than max message size check are
+     * introduced.
      */
     @Test
     public void serverMaxMessageSizeOkTest() throws DeploymentException, InterruptedException, IOException {
@@ -167,7 +169,10 @@ public class MaxMessageSizeDeploymentTest extends TestContainer {
             LoggerHandler handler = new LoggerHandler() {
                 @Override
                 public void publish(LogRecord record) {
-                    String expectedWarningMessage = LocalizationMessages.ENDPOINT_MAX_MESSAGE_SIZE_TOO_LONG(2, LargeMaxMessageSizeClientEndpoint.class.getMethods()[0].getName(), LargeMaxMessageSizeClientEndpoint.class.getName(), 1);
+                    String expectedWarningMessage =
+                            LocalizationMessages.ENDPOINT_MAX_MESSAGE_SIZE_TOO_LONG(
+                                    2, LargeMaxMessageSizeClientEndpoint.class.getMethods()[0].getName(),
+                                    LargeMaxMessageSizeClientEndpoint.class.getName(), 1);
                     System.out.println("Expected message: " + expectedWarningMessage);
                     System.out.println("Logged message: " + record.getMessage());
                     if (expectedWarningMessage.equals(record.getMessage())) {
@@ -190,9 +195,9 @@ public class MaxMessageSizeDeploymentTest extends TestContainer {
     }
 
     /**
-     * Tests that no warning is given during client endpoint deployment.
-     * It does not look for a specific message, but checks that no warning is given, therefore it
-     * might fail, when other warnings than max message size check are introduced.
+     * Tests that no warning is given during client endpoint deployment. It does not look for a specific message, but
+     * checks that no warning is given, therefore it might fail, when other warnings than max message size check are
+     * introduced.
      */
     @Test
     public void clientMaxMessageSizeOkTest() throws DeploymentException {
@@ -223,7 +228,7 @@ public class MaxMessageSizeDeploymentTest extends TestContainer {
         }
     }
 
-    private static abstract class LoggerHandler extends Handler {
+    private abstract static class LoggerHandler extends Handler {
 
         @Override
         public void flush() {

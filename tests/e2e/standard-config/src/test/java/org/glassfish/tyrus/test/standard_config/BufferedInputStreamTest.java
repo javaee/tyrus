@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -67,8 +67,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Tests the BufferedInputStream and bug fix TYRUS-274
  * <p/>
- * Client opens DataOutputStream to write int and server uses DataInputStream
- * to read int and verify the message
+ * Client opens DataOutputStream to write int and server uses DataInputStream to read int and verify the message
  *
  * @author Raghuram Krishnamchari (raghuramcbz at gmail.com) jira/github user: raghucbz
  */
@@ -116,7 +115,8 @@ public class BufferedInputStreamTest extends TestContainer {
                 DataInputStream dataInputStream = new DataInputStream(inputStream);
                 int messageReceived = dataInputStream.readInt();
 
-                // assertTrue("Server did not get the right message: " + messageReceived, messageReceived == BufferedInputStreamTest.MESSAGE);
+                // assertTrue("Server did not get the right message: " + messageReceived, messageReceived ==
+                // BufferedInputStreamTest.MESSAGE);
                 if (messageReceived == BufferedInputStreamEndpoint.MESSAGE) {
                     System.out.println("Server successfully got message: " + messageReceived);
                     session.getBasicRemote().sendText("ok");

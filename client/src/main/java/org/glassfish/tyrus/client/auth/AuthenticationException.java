@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -51,7 +51,8 @@ import org.glassfish.tyrus.core.HandshakeException;
 import org.glassfish.tyrus.spi.UpgradeResponse;
 
 /**
- * This exception is set as a cause of {@link DeploymentException} thrown when {@link WebSocketContainer}.connectToServer(...)
+ * This exception is set as a cause of {@link DeploymentException} thrown when {@link
+ * WebSocketContainer}.connectToServer(...)
  * fails because of any of the following:
  * <ul>
  * <li>
@@ -63,7 +64,8 @@ import org.glassfish.tyrus.spi.UpgradeResponse;
  * does not contain authentication scheme token or "{@value UpgradeResponse#WWW_AUTHENTICATE}" header is missing.
  * </li>
  * <li>
- * {@link AuthenticationException} is thrown from {@link Authenticator#generateAuthorizationHeader(URI, String, Credentials)}
+ * {@link AuthenticationException} is thrown from {@link Authenticator#generateAuthorizationHeader(URI, String,
+ * Credentials)}
  * method.
  * </li>
  * <li>
@@ -83,8 +85,8 @@ public class AuthenticationException extends HandshakeException {
     /**
      * Constructor.
      *
-     * @param message the detail message. The detail message is saved for
-     *                later retrieval by the {@link #getMessage()} method.
+     * @param message the detail message. The detail message is saved for later retrieval by the {@link #getMessage()}
+     *                method.
      */
     public AuthenticationException(String message) {
         super(401, message);

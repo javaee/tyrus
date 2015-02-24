@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -77,31 +77,34 @@ public class EchoTest {
 
         // InMemory client container is automatically discovered
         final WebSocketContainer webSocketContainer = ContainerProvider.getWebSocketContainer();
-        final ServerApplicationConfig serverConfig = new TyrusServerConfiguration(new HashSet<Class<?>>(Arrays.<Class<?>>asList(EchoEndpoint.class)), Collections.<ServerEndpointConfig>emptySet());
+        final ServerApplicationConfig serverConfig =
+                new TyrusServerConfiguration(new HashSet<Class<?>>(Arrays.<Class<?>>asList(EchoEndpoint.class)),
+                                             Collections.<ServerEndpointConfig>emptySet());
 
         ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
         cec.getUserProperties().put(InMemoryClientContainer.SERVER_CONFIG, serverConfig);
 
-        webSocketContainer.connectToServer(new Endpoint() {
-            @Override
-            public void onOpen(Session session, EndpointConfig config) {
-                try {
-                    session.addMessageHandler(new MessageHandler.Whole<String>() {
-                        @Override
-                        public void onMessage(String message) {
-                            System.out.println("# client received: " + message);
-                            messageLatch.countDown();
-                        }
-                    });
+        webSocketContainer.connectToServer(
+                new Endpoint() {
+                    @Override
+                    public void onOpen(Session session, EndpointConfig config) {
+                        try {
+                            session.addMessageHandler(new MessageHandler.Whole<String>() {
+                                @Override
+                                public void onMessage(String message) {
+                                    System.out.println("# client received: " + message);
+                                    messageLatch.countDown();
+                                }
+                            });
 
-                    session.getBasicRemote().sendText("in-memory echo!");
-                    System.out.println("# client sent: in-memory echo!");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                // "inmemory" acts here as a hostname, will be removed in InMemoryClientContainer.
-            }
-        }, cec, URI.create("ws://inmemory/echo"));
+                            session.getBasicRemote().sendText("in-memory echo!");
+                            System.out.println("# client sent: in-memory echo!");
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        // "inmemory" acts here as a hostname, will be removed in InMemoryClientContainer.
+                    }
+                }, cec, URI.create("ws://inmemory/echo"));
 
         assertTrue(messageLatch.await(1, TimeUnit.SECONDS));
     }

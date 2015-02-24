@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -54,13 +54,16 @@ class SessionAwareEndpointMonitor extends EndpointMonitor {
 
     private final Map<String, SessionMonitor> sessions = new ConcurrentHashMap<String, SessionMonitor>();
 
-    SessionAwareEndpointMonitor(ApplicationMonitor applicationJmx, ApplicationMXBeanImpl applicationMXBean, String applicationName, String endpointPath, String endpointClassName) {
+    SessionAwareEndpointMonitor(ApplicationMonitor applicationJmx, ApplicationMXBeanImpl applicationMXBean,
+                                String applicationName, String endpointPath, String endpointClassName) {
         super(applicationJmx, applicationMXBean, applicationName, endpointPath, endpointClassName);
     }
 
     @Override
     public MessageEventListener onSessionOpened(String sessionId) {
-        SessionMonitor sessionMonitor = new SessionMonitor(applicationName, endpointClassNamePathPair.getEndpointPath(), sessionId, this, endpointMXBean);
+        SessionMonitor sessionMonitor =
+                new SessionMonitor(applicationName, endpointClassNamePathPair.getEndpointPath(), sessionId, this,
+                                   endpointMXBean);
         sessions.put(sessionId, sessionMonitor);
 
         if (sessions.size() > maxOpenSessionsCount) {

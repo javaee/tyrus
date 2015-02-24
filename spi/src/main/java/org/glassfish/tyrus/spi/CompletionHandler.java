@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -42,9 +42,11 @@ package org.glassfish.tyrus.spi;
 /**
  * A callback to notify about asynchronous I/O operations status updates.
  *
+ * @param <E> result type.
  * @author Alexey Stashok
  */
 public abstract class CompletionHandler<E> {
+
     /**
      * The operation was cancelled.
      */
@@ -56,7 +58,7 @@ public abstract class CompletionHandler<E> {
      *
      * @param throwable error, which occurred during operation execution.
      */
-    public void failed(Throwable throwable) {
+    public void failed(final Throwable throwable) {
     }
 
     /**
@@ -64,7 +66,7 @@ public abstract class CompletionHandler<E> {
      *
      * @param result the operation result.
      */
-    public void completed(E result) {
+    public void completed(final E result) {
     }
 
     /**
@@ -73,6 +75,6 @@ public abstract class CompletionHandler<E> {
      *
      * @param result the current result.
      */
-    public void updated(E result) {
+    public void updated(final E result) {
     }
 }

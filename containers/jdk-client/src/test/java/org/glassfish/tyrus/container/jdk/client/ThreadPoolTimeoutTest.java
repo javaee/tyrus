@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -81,26 +81,29 @@ public class ThreadPoolTimeoutTest extends TestContainer {
 
             ClientManager client1 = ClientManager.createClient(JdkClientContainer.class.getName());
             final AtomicBoolean factory1Used = new AtomicBoolean(false);
-            ThreadPoolConfig threadPoolConfig1 = ThreadPoolConfig.defaultConfig()
-                    .setPoolName("testThreadPoolTimeout")
-                    .setThreadFactory(new ThreadFactory() {
-                        @Override
-                        public Thread newThread(Runnable r) {
-                            factory1Used.set(true);
-                            return new Thread(r);
-                        }
+            ThreadPoolConfig threadPoolConfig1 =
+                    ThreadPoolConfig.defaultConfig()
+                                    .setPoolName("testThreadPoolTimeout")
+                                    .setThreadFactory(new ThreadFactory() {
+                                        @Override
+                                        public Thread newThread(Runnable r) {
+                                            factory1Used.set(true);
+                                            return new Thread(r);
+                                        }
 
-                        // this will decide if the two ThreadPoolConfigs equal or not
-                        @Override
-                        public boolean equals(Object obj) {
-                            return true;
-                        }
-                    });
+                                        // this will decide if the two ThreadPoolConfigs
+                                        // equal or not
+                                        @Override
+                                        public boolean equals(Object obj) {
+                                            return true;
+                                        }
+                                    });
             client1.getProperties().put(ClientProperties.WORKER_THREAD_POOL_CONFIG, threadPoolConfig1);
             client1.getProperties().put(ClientProperties.SHARED_CONTAINER_IDLE_TIMEOUT, 1);
 
             CountDownLatch sessionCloseLatch = new CountDownLatch(1);
-            client1.connectToServer(new AnnotatedClientEndpoint(sessionCloseLatch), getURI(AnnotatedServerEndpoint.class));
+            client1.connectToServer(new AnnotatedClientEndpoint(sessionCloseLatch),
+                                    getURI(AnnotatedServerEndpoint.class));
             assertTrue(factory1Used.get());
             terminateServer(server, sessionCloseLatch);
 
@@ -112,25 +115,27 @@ public class ThreadPoolTimeoutTest extends TestContainer {
             ClientManager client2 = ClientManager.createClient(JdkClientContainer.class.getName());
             final AtomicBoolean factory2Used = new AtomicBoolean(false);
             ThreadPoolConfig threadPoolConfig2 = ThreadPoolConfig.defaultConfig()
-                    .setPoolName("testThreadPoolTimeout")
-                    .setThreadFactory(new ThreadFactory() {
-                        @Override
-                        public Thread newThread(Runnable r) {
-                            factory2Used.set(true);
-                            return new Thread(r);
-                        }
+                                                                 .setPoolName("testThreadPoolTimeout")
+                                                                 .setThreadFactory(new ThreadFactory() {
+                                                                     @Override
+                                                                     public Thread newThread(Runnable r) {
+                                                                         factory2Used.set(true);
+                                                                         return new Thread(r);
+                                                                     }
 
-                        // this will decide if the two ThreadPoolConfigs equal or not
-                        @Override
-                        public boolean equals(Object obj) {
-                            return true;
-                        }
-                    });
+                                                                     // this will decide if the two ThreadPoolConfigs
+                                                                     // equal or not
+                                                                     @Override
+                                                                     public boolean equals(Object obj) {
+                                                                         return true;
+                                                                     }
+                                                                 });
             client2.getProperties().put(ClientProperties.WORKER_THREAD_POOL_CONFIG, threadPoolConfig2);
             client2.getProperties().put(ClientProperties.SHARED_CONTAINER_IDLE_TIMEOUT, 1);
 
             sessionCloseLatch = new CountDownLatch(1);
-            client2.connectToServer(new AnnotatedClientEndpoint(sessionCloseLatch), getURI(AnnotatedServerEndpoint.class));
+            client2.connectToServer(new AnnotatedClientEndpoint(sessionCloseLatch),
+                                    getURI(AnnotatedServerEndpoint.class));
             assertTrue(factory2Used.get());
             terminateServer(server, sessionCloseLatch);
 
@@ -143,8 +148,8 @@ public class ThreadPoolTimeoutTest extends TestContainer {
     }
 
     /**
-     * Test that if there is an idle thread pool and a client with the same thread pool config is initiated,
-     * the idle thread poll will be reused.
+     * Test that if there is an idle thread pool and a client with the same thread pool config is initiated, the idle
+     * thread poll will be reused.
      */
     @Test
     public void testSameConfig() {
@@ -155,24 +160,26 @@ public class ThreadPoolTimeoutTest extends TestContainer {
             ClientManager client1 = ClientManager.createClient(JdkClientContainer.class.getName());
             final AtomicBoolean factory1Used = new AtomicBoolean(false);
             ThreadPoolConfig threadPoolConfig1 = ThreadPoolConfig.defaultConfig()
-                    .setPoolName("testSameConfig")
-                    .setThreadFactory(new ThreadFactory() {
-                        @Override
-                        public Thread newThread(Runnable r) {
-                            factory1Used.set(true);
-                            return new Thread(r);
-                        }
+                                                                 .setPoolName("testSameConfig")
+                                                                 .setThreadFactory(new ThreadFactory() {
+                                                                     @Override
+                                                                     public Thread newThread(Runnable r) {
+                                                                         factory1Used.set(true);
+                                                                         return new Thread(r);
+                                                                     }
 
-                        // this will decide if the two ThreadPoolConfigs equal or not
-                        @Override
-                        public boolean equals(Object obj) {
-                            return true;
-                        }
-                    });
+                                                                     // this will decide if the two ThreadPoolConfigs
+                                                                     // equal or not
+                                                                     @Override
+                                                                     public boolean equals(Object obj) {
+                                                                         return true;
+                                                                     }
+                                                                 });
             client1.getProperties().put(ClientProperties.WORKER_THREAD_POOL_CONFIG, threadPoolConfig1);
 
             CountDownLatch sessionCloseLatch = new CountDownLatch(1);
-            client1.connectToServer(new AnnotatedClientEndpoint(sessionCloseLatch), getURI(AnnotatedServerEndpoint.class));
+            client1.connectToServer(new AnnotatedClientEndpoint(sessionCloseLatch),
+                                    getURI(AnnotatedServerEndpoint.class));
             assertTrue(factory1Used.get());
             terminateServer(server, sessionCloseLatch);
 
@@ -181,24 +188,26 @@ public class ThreadPoolTimeoutTest extends TestContainer {
             ClientManager client2 = ClientManager.createClient(JdkClientContainer.class.getName());
             final AtomicBoolean factory2Used = new AtomicBoolean(false);
             ThreadPoolConfig threadPoolConfig2 = ThreadPoolConfig.defaultConfig()
-                    .setPoolName("testSameConfig")
-                    .setThreadFactory(new ThreadFactory() {
-                        @Override
-                        public Thread newThread(Runnable r) {
-                            factory2Used.set(true);
-                            return new Thread(r);
-                        }
+                                                                 .setPoolName("testSameConfig")
+                                                                 .setThreadFactory(new ThreadFactory() {
+                                                                     @Override
+                                                                     public Thread newThread(Runnable r) {
+                                                                         factory2Used.set(true);
+                                                                         return new Thread(r);
+                                                                     }
 
-                        // this will decide if the two ThreadPoolConfigs equal or not
-                        @Override
-                        public boolean equals(Object obj) {
-                            return true;
-                        }
-                    });
+                                                                     // this will decide if the two ThreadPoolConfigs
+                                                                     // equal or not
+                                                                     @Override
+                                                                     public boolean equals(Object obj) {
+                                                                         return true;
+                                                                     }
+                                                                 });
             client2.getProperties().put(ClientProperties.WORKER_THREAD_POOL_CONFIG, threadPoolConfig2);
 
             sessionCloseLatch = new CountDownLatch(1);
-            client2.connectToServer(new AnnotatedClientEndpoint(sessionCloseLatch), getURI(AnnotatedServerEndpoint.class));
+            client2.connectToServer(new AnnotatedClientEndpoint(sessionCloseLatch),
+                                    getURI(AnnotatedServerEndpoint.class));
             assertFalse(factory2Used.get());
             terminateServer(server, sessionCloseLatch);
 
@@ -211,8 +220,8 @@ public class ThreadPoolTimeoutTest extends TestContainer {
     }
 
     /**
-     * Test that if there is an idle thread pool and a client with a different thread pool config is initiated,
-     * a new thread pool with the new settings will be crated.
+     * Test that if there is an idle thread pool and a client with a different thread pool config is initiated, a new
+     * thread pool with the new settings will be crated.
      */
     @Test
     public void testDifferentConfig() {
@@ -238,7 +247,8 @@ public class ThreadPoolTimeoutTest extends TestContainer {
             client1.getProperties().put(ClientProperties.WORKER_THREAD_POOL_CONFIG, threadPoolConfig1);
 
             CountDownLatch sessionCloseLatch = new CountDownLatch(1);
-            client1.connectToServer(new AnnotatedClientEndpoint(sessionCloseLatch), getURI(AnnotatedServerEndpoint.class));
+            client1.connectToServer(new AnnotatedClientEndpoint(sessionCloseLatch),
+                                    getURI(AnnotatedServerEndpoint.class));
             assertTrue(factory1Used.get());
             terminateServer(server, sessionCloseLatch);
 
@@ -262,7 +272,8 @@ public class ThreadPoolTimeoutTest extends TestContainer {
             client2.getProperties().put(ClientProperties.WORKER_THREAD_POOL_CONFIG, threadPoolConfig2);
 
             sessionCloseLatch = new CountDownLatch(1);
-            client2.connectToServer(new AnnotatedClientEndpoint(sessionCloseLatch), getURI(AnnotatedServerEndpoint.class));
+            client2.connectToServer(new AnnotatedClientEndpoint(sessionCloseLatch),
+                                    getURI(AnnotatedServerEndpoint.class));
             assertTrue(factory2Used.get());
             terminateServer(server, sessionCloseLatch);
 
@@ -275,8 +286,8 @@ public class ThreadPoolTimeoutTest extends TestContainer {
     }
 
     /**
-     * Test that if there is an idle thread pool and a client with the same thread pool config, but different thread pool
-     * timeout is initiated, a new thread pool with the new timeout will be initiated.
+     * Test that if there is an idle thread pool and a client with the same thread pool config, but different thread
+     * pool timeout is initiated, a new thread pool with the new timeout will be initiated.
      */
     @Test
     public void testDifferentThreadPoolTimeout() {
@@ -286,52 +297,58 @@ public class ThreadPoolTimeoutTest extends TestContainer {
 
             ClientManager client1 = ClientManager.createClient(JdkClientContainer.class.getName());
             final AtomicBoolean factory1Used = new AtomicBoolean(false);
-            ThreadPoolConfig threadPoolConfig1 = ThreadPoolConfig.defaultConfig()
-                    .setPoolName("testDifferentThreadPoolTimeout")
-                    .setThreadFactory(new ThreadFactory() {
-                        @Override
-                        public Thread newThread(Runnable r) {
-                            factory1Used.set(true);
-                            return new Thread(r);
-                        }
+            ThreadPoolConfig threadPoolConfig1 =
+                    ThreadPoolConfig.defaultConfig()
+                                    .setPoolName("testDifferentThreadPoolTimeout")
+                                    .setThreadFactory(new ThreadFactory() {
+                                        @Override
+                                        public Thread newThread(Runnable r) {
+                                            factory1Used.set(true);
+                                            return new Thread(r);
+                                        }
 
-                        // this will decide if the two ThreadPoolConfigs equal or not
-                        @Override
-                        public boolean equals(Object obj) {
-                            return true;
-                        }
-                    });
+                                        // this will decide if the two ThreadPoolConfigs
+                                        // equal or not
+                                        @Override
+                                        public boolean equals(Object obj) {
+                                            return true;
+                                        }
+                                    });
             client1.getProperties().put(ClientProperties.WORKER_THREAD_POOL_CONFIG, threadPoolConfig1);
             client1.getProperties().put(ClientProperties.SHARED_CONTAINER_IDLE_TIMEOUT, 1);
 
             CountDownLatch sessionCloseLatch = new CountDownLatch(1);
-            client1.connectToServer(new AnnotatedClientEndpoint(sessionCloseLatch), getURI(AnnotatedServerEndpoint.class));
+            client1.connectToServer(new AnnotatedClientEndpoint(sessionCloseLatch),
+                                    getURI(AnnotatedServerEndpoint.class));
             assertTrue(factory1Used.get());
             terminateServer(server, sessionCloseLatch);
 
             server = startServer(AnnotatedServerEndpoint.class);
             ClientManager client2 = ClientManager.createClient(JdkClientContainer.class.getName());
             final AtomicBoolean factory2Used = new AtomicBoolean(false);
-            ThreadPoolConfig threadPoolConfig2 = ThreadPoolConfig.defaultConfig()
-                    .setPoolName("testDifferentThreadPoolTimeout")
-                    .setThreadFactory(new ThreadFactory() {
-                        @Override
-                        public Thread newThread(Runnable r) {
-                            factory2Used.set(true);
-                            return new Thread(r);
-                        }
+            ThreadPoolConfig threadPoolConfig2 =
+                    ThreadPoolConfig.defaultConfig()
+                                    .setPoolName("testDifferentThreadPoolTimeout")
+                                    .setThreadFactory(new ThreadFactory() {
+                                        @Override
+                                        public Thread newThread(Runnable r) {
+                                            factory2Used.set(true);
+                                            return new Thread(r);
+                                        }
 
-                        // this will decide if the two ThreadPoolConfigs equal or not
-                        @Override
-                        public boolean equals(Object obj) {
-                            return true;
-                        }
-                    });
+                                        // this will decide if the two ThreadPoolConfigs
+                                        // equal or not
+                                        @Override
+                                        public boolean equals(Object obj) {
+                                            return true;
+                                        }
+                                    });
             client2.getProperties().put(ClientProperties.WORKER_THREAD_POOL_CONFIG, threadPoolConfig2);
             client2.getProperties().put(ClientProperties.SHARED_CONTAINER_IDLE_TIMEOUT, 2);
 
             sessionCloseLatch = new CountDownLatch(1);
-            client2.connectToServer(new AnnotatedClientEndpoint(sessionCloseLatch), getURI(AnnotatedServerEndpoint.class));
+            client2.connectToServer(new AnnotatedClientEndpoint(sessionCloseLatch),
+                                    getURI(AnnotatedServerEndpoint.class));
             assertTrue(factory2Used.get());
             terminateServer(server, sessionCloseLatch);
 

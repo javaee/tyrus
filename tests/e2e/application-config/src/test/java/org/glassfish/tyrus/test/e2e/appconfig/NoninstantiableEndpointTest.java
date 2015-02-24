@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -85,15 +85,19 @@ public class NoninstantiableEndpointTest extends TestContainer {
 
     public static class ServerDeployApplicationConfig extends TyrusServerConfiguration {
         public ServerDeployApplicationConfig() {
-            super(new HashSet<Class<?>>() {{
-                add(AnnotatedAllMethodsEndpoint.class);
-                add(AnnotatedOpenMessageCloseMethodEndpoint.class);
-                add(AnnotatedOnOpenMethodEndpoint.class);
-                add(AnnotatedOnMessageMethodEndpoint.class);
-                add(AnnotatedOnCloseMethodEndpoint.class);
-            }}, new HashSet<ServerEndpointConfig>() {{
-                add(TyrusServerEndpointConfig.Builder.create(ProgrammaticEndpoint.class, PROGRAMMATIC).build());
-            }});
+            super(new HashSet<Class<?>>() {
+                {
+                    add(AnnotatedAllMethodsEndpoint.class);
+                    add(AnnotatedOpenMessageCloseMethodEndpoint.class);
+                    add(AnnotatedOnOpenMethodEndpoint.class);
+                    add(AnnotatedOnMessageMethodEndpoint.class);
+                    add(AnnotatedOnCloseMethodEndpoint.class);
+                }
+            }, new HashSet<ServerEndpointConfig>() {
+                {
+                    add(TyrusServerEndpointConfig.Builder.create(ProgrammaticEndpoint.class, PROGRAMMATIC).build());
+                }
+            });
         }
     }
 
@@ -226,7 +230,8 @@ public class NoninstantiableEndpointTest extends TestContainer {
                 }
             }, ClientEndpointConfig.Builder.create().build(), getURI(PROGRAMMATIC));
 
-            assertTrue("Client should receive onClose with reason 1011 - Unexpected Condition", closeUnexpectedlyLatch.await(1, TimeUnit.SECONDS));
+            assertTrue("Client should receive onClose with reason 1011 - Unexpected Condition",
+                       closeUnexpectedlyLatch.await(1, TimeUnit.SECONDS));
         } finally {
             stopServer(server);
         }
@@ -263,7 +268,8 @@ public class NoninstantiableEndpointTest extends TestContainer {
         testNormalClose(AnnotatedOnCloseMethodEndpoint.class);
     }
 
-    public void testUnexpectedConditionClose(final Class<?> endpointClass, boolean sendMessage) throws DeploymentException, InterruptedException, IOException {
+    public void testUnexpectedConditionClose(final Class<?> endpointClass, boolean sendMessage) throws
+            DeploymentException, InterruptedException, IOException {
         final Server server = startServer(ServerDeployApplicationConfig.class);
         final ClientManager client = createClient();
 
@@ -297,13 +303,15 @@ public class NoninstantiableEndpointTest extends TestContainer {
                 session.getBasicRemote().sendText("hello");
             }
 
-            assertTrue("Client should receive onClose with reason 1011 - Unexpected Condition", closeUnexpectedlyLatch.await(1, TimeUnit.SECONDS));
+            assertTrue("Client should receive onClose with reason 1011 - Unexpected Condition",
+                       closeUnexpectedlyLatch.await(1, TimeUnit.SECONDS));
         } finally {
             stopServer(server);
         }
     }
 
-    public void testNormalClose(final Class<?> endpointClass) throws DeploymentException, InterruptedException, IOException {
+    public void testNormalClose(final Class<?> endpointClass) throws DeploymentException, InterruptedException,
+            IOException {
         final Server server = startServer(ServerDeployApplicationConfig.class);
         final ClientManager client = createClient();
 
@@ -335,7 +343,8 @@ public class NoninstantiableEndpointTest extends TestContainer {
 
             session.close();
 
-            assertTrue("Client should receive onClose with reason 1000 - Normal Closure", countDownLatch.await(1, TimeUnit.SECONDS));
+            assertTrue("Client should receive onClose with reason 1000 - Normal Closure",
+                       countDownLatch.await(1, TimeUnit.SECONDS));
         } finally {
             stopServer(server);
         }

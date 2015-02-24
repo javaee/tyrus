@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -49,12 +49,12 @@ import org.glassfish.tyrus.spi.CompletionHandler;
 /**
  * Queues {@link #write(java.nio.ByteBuffer, org.glassfish.tyrus.spi.CompletionHandler)}, {@link #close()}
  * and {@link #startSsl()} method calls and passes them to a downstream filter one at a time. Both
- * {@link org.glassfish.tyrus.container.jdk.client.SslFilter} and {@link org.glassfish.tyrus.container.jdk.client.TransportFilter}
- * allow {@link #write(java.nio.ByteBuffer, org.glassfish.tyrus.spi.CompletionHandler)}
- * method call only after the previous one has completed. Queueing {@link #close()} method calls ensures that
- * {@link #write(java.nio.ByteBuffer, org.glassfish.tyrus.spi.CompletionHandler)} methods called before
- * {@link #close()} will be processed. Including {@link #startSsl()} methods in the queue ensures that no
- * {@link #write(java.nio.ByteBuffer, org.glassfish.tyrus.spi.CompletionHandler)} method will be passed to
+ * {@link org.glassfish.tyrus.container.jdk.client.SslFilter} and {@link
+ * org.glassfish.tyrus.container.jdk.client.TransportFilter} allow {@link #write(java.nio.ByteBuffer,
+ * org.glassfish.tyrus.spi.CompletionHandler)} method call only after the previous one has completed. Queueing {@link
+ * #close()} method calls ensures that {@link #write(java.nio.ByteBuffer, org.glassfish.tyrus.spi.CompletionHandler)}
+ * methods called before {@link #close()} will be processed. Including {@link #startSsl()} methods in the queue ensures
+ * that no {@link #write(java.nio.ByteBuffer, org.glassfish.tyrus.spi.CompletionHandler)} method will be passed to
  * {@link org.glassfish.tyrus.container.jdk.client.SslFilter} while it performs SSL handshake.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)

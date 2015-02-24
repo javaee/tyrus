@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -68,7 +68,8 @@ import static org.junit.Assume.assumeTrue;
 public class HostVerificationTest extends TestContainer {
 
     /**
-     * Test that the client will manage to connect to the server using server IP, when host name verification is disabled.
+     * Test that the client will manage to connect to the server using server IP, when host name verification is
+     * disabled.
      */
     @Test
     public void disabledHostVerificationTest() {
@@ -153,11 +154,13 @@ public class HostVerificationTest extends TestContainer {
     }
 
     /**
-     * The test will be run only if systems properties {@code tyrus.test.host.ip} and {@code tyrus.test.port.ssl} are set.
+     * The test will be run only if systems properties {@code tyrus.test.host.ip} and {@code tyrus.test.port.ssl} are
+     * set.
      */
     @Before
     public void before() {
-        assumeTrue(System.getProperty("tyrus.test.host.ip") != null && System.getProperty("tyrus.test.port.ssl") != null);
+        assumeTrue(
+                System.getProperty("tyrus.test.host.ip") != null && System.getProperty("tyrus.test.port.ssl") != null);
     }
 
     @Override

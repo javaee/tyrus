@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -44,9 +44,9 @@ import java.util.List;
 import org.glassfish.tyrus.core.Beta;
 
 /**
- * A parent MXBean for {@link org.glassfish.tyrus.ext.monitoring.jmx.ApplicationMXBean},
- * {@link org.glassfish.tyrus.ext.monitoring.jmx.EndpointMXBean}
- * and {@link org.glassfish.tyrus.ext.monitoring.jmx.SessionMXBean}.
+ * A parent MXBean for {@link org.glassfish.tyrus.ext.monitoring.jmx.ApplicationMXBean}, {@link
+ * org.glassfish.tyrus.ext.monitoring.jmx.EndpointMXBean} and {@link org.glassfish.tyrus.ext.monitoring.jmx
+ * .SessionMXBean}.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
@@ -56,7 +56,8 @@ public interface BaseMXBean extends MessageStatisticsMXBean {
     /**
      * Get list of Throwable class name - count pairs, which represent errors and number of times they have occurred.
      *
-     * @return list of Throwable class name - count pairs, which represent errors and number of times they have occurred.
+     * @return list of Throwable class name - count pairs, which represent errors and number of times they have
+     * occurred.
      */
     public List<ErrorCount> getErrorCounts();
 

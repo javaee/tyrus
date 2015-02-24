@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -78,7 +78,8 @@ public class MaxSessionsPerRemoteAddrTest extends TestContainer {
 
     private static final int NUMBER_OF_ENDPOINTS = 3;
     private static final int NUMBER_OF_CLIENTS_OVER_LIMIT = 7;
-    private static final int NUMBER_OF_CLIENT_SESSIONS = MaxSessionPerRemoteAddrApplicationConfig.MAX_SESSIONS_PER_REMOTE_ADDR + NUMBER_OF_CLIENTS_OVER_LIMIT;
+    private static final int NUMBER_OF_CLIENT_SESSIONS = MaxSessionPerRemoteAddrApplicationConfig
+            .MAX_SESSIONS_PER_REMOTE_ADDR + NUMBER_OF_CLIENTS_OVER_LIMIT;
 
     public MaxSessionsPerRemoteAddrTest() {
         setContextPath(CONTEXT_PATH);
@@ -86,20 +87,25 @@ public class MaxSessionsPerRemoteAddrTest extends TestContainer {
 
     public static class ServerDeployApplicationConfig extends TyrusServerConfiguration {
         public ServerDeployApplicationConfig() {
-            super(new HashSet<Class<?>>() {{
-                add(ServiceEndpoint.class);
-            }}, new HashSet<ServerEndpointConfig>() {{
-                for (final String path : MaxSessionPerRemoteAddrApplicationConfig.PATHS) {
-                    add(TyrusServerEndpointConfig.Builder.create(EchoEndpoint.class, path).build());
+            super(new HashSet<Class<?>>() {
+                {
+                    add(ServiceEndpoint.class);
                 }
-            }});
+            }, new HashSet<ServerEndpointConfig>() {
+                {
+                    for (final String path : MaxSessionPerRemoteAddrApplicationConfig.PATHS) {
+                        add(TyrusServerEndpointConfig.Builder.create(EchoEndpoint.class, path).build());
+                    }
+                }
+            });
         }
     }
 
     public void maxSessions() throws DeploymentException, InterruptedException, IOException {
         final ClientManager client = createClient();
 
-        final CountDownLatch closeNormalLatch = new CountDownLatch(MaxSessionPerRemoteAddrApplicationConfig.MAX_SESSIONS_PER_REMOTE_ADDR);
+        final CountDownLatch closeNormalLatch = new CountDownLatch(MaxSessionPerRemoteAddrApplicationConfig
+                                                                           .MAX_SESSIONS_PER_REMOTE_ADDR);
         final CountDownLatch closeOverLimitLatch = new CountDownLatch(NUMBER_OF_CLIENTS_OVER_LIMIT);
 
         final Session[] sessions = new Session[NUMBER_OF_CLIENT_SESSIONS];
@@ -128,15 +134,16 @@ public class MaxSessionsPerRemoteAddrTest extends TestContainer {
                     System.out.println("Client-side close reason: " + closeReason);
                     if (closeReason.getCloseCode().getCode() == CloseReason.CloseCodes.NORMAL_CLOSURE.getCode()) {
                         closeNormalLatch.countDown();
-                    } else if (closeReason.getCloseCode().getCode() == CloseReason.CloseCodes.TRY_AGAIN_LATER.getCode()) {
+                    } else if (closeReason.getCloseCode().getCode() == CloseReason.CloseCodes.TRY_AGAIN_LATER.getCode
+                            ()) {
                         closeOverLimitLatch.countDown();
                     }
                 }
             }, ClientEndpointConfig.Builder.create().build(), uri);
         }
 
-        assertTrue(String.format("Session should be closed just %d times with close code 1013 - Try Again Later", NUMBER_OF_CLIENTS_OVER_LIMIT),
-                closeOverLimitLatch.await(3, TimeUnit.SECONDS));
+        assertTrue(String.format("Session should be closed just %d times with close code 1013 - Try Again Later",
+                                 NUMBER_OF_CLIENTS_OVER_LIMIT), closeOverLimitLatch.await(3, TimeUnit.SECONDS));
 
         for (int i = 0; i < NUMBER_OF_CLIENT_SESSIONS; i++) {
             System.out.printf("session[%d] is open? %s\n", i, sessions[i].isOpen());
@@ -148,7 +155,8 @@ public class MaxSessionsPerRemoteAddrTest extends TestContainer {
             }
         }
 
-        Assert.assertTrue("Number of normal closures should be the same as the limit!", closeNormalLatch.await(1, TimeUnit.SECONDS));
+        Assert.assertTrue("Number of normal closures should be the same as the limit!", closeNormalLatch.await(1,
+                                                                                                               TimeUnit.SECONDS));
 
         final CountDownLatch messageReceivedLatch = new CountDownLatch(1);
         Session session = client.connectToServer(new Endpoint() {
@@ -161,7 +169,8 @@ public class MaxSessionsPerRemoteAddrTest extends TestContainer {
                     }
                 });
                 try {
-                    session.getBasicRemote().sendText("New session is available after close all of the opened sessions.");
+                    session.getBasicRemote().sendText("New session is available after close all of the opened " +
+                                                              "sessions.");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -181,7 +190,8 @@ public class MaxSessionsPerRemoteAddrTest extends TestContainer {
 
     @Test
     public void maxSessionsSingle() throws DeploymentException, InterruptedException, IOException {
-        getServerProperties().put(TyrusWebSocketEngine.MAX_SESSIONS_PER_REMOTE_ADDR, MaxSessionPerRemoteAddrApplicationConfig.MAX_SESSIONS_PER_REMOTE_ADDR);
+        getServerProperties().put(TyrusWebSocketEngine.MAX_SESSIONS_PER_REMOTE_ADDR,
+                                  MaxSessionPerRemoteAddrApplicationConfig.MAX_SESSIONS_PER_REMOTE_ADDR);
 
         Server server = startServer(ServerDeployApplicationConfig.class);
         try {
@@ -193,7 +203,8 @@ public class MaxSessionsPerRemoteAddrTest extends TestContainer {
 
     @Test
     public void maxSessionsDurable() throws DeploymentException, InterruptedException, IOException {
-        getServerProperties().put(TyrusWebSocketEngine.MAX_SESSIONS_PER_REMOTE_ADDR, MaxSessionPerRemoteAddrApplicationConfig.MAX_SESSIONS_PER_REMOTE_ADDR);
+        getServerProperties().put(TyrusWebSocketEngine.MAX_SESSIONS_PER_REMOTE_ADDR,
+                                  MaxSessionPerRemoteAddrApplicationConfig.MAX_SESSIONS_PER_REMOTE_ADDR);
 
         Server server = startServer(ServerDeployApplicationConfig.class);
         try {

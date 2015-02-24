@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -67,7 +67,8 @@ public class AuctionTimeBroadcasterTask extends TimerTask {
             owner.switchStateToAuctionFinished();
         } else {
             if (!owner.getRemoteClients().isEmpty()) {
-                AuctionMessage.AuctionTimeBroadcastMessage atbm = new AuctionMessage.AuctionTimeBroadcastMessage(owner.getId(), timeoutCounter);
+                AuctionMessage.AuctionTimeBroadcastMessage atbm =
+                        new AuctionMessage.AuctionTimeBroadcastMessage(owner.getId(), timeoutCounter);
 
                 for (Session arc : owner.getRemoteClients()) {
                     try {

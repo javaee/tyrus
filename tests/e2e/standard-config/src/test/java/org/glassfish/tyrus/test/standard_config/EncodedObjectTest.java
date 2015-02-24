@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -335,7 +335,8 @@ public class EncodedObjectTest extends TestContainer {
 
     @Test
     public void testStringEncoderSendText() throws DeploymentException {
-        final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().encoders(Collections.<Class<? extends Encoder>>singletonList(StringEncoder.class)).build();
+        final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().encoders(
+                Collections.<Class<? extends Encoder>>singletonList(StringEncoder.class)).build();
         Server server = startServer(StringEncoderSendTextEndpoint.class);
 
         try {
@@ -375,7 +376,8 @@ public class EncodedObjectTest extends TestContainer {
 
     @Test
     public void testStringEncoder() throws DeploymentException {
-        final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().encoders(Collections.<Class<? extends Encoder>>singletonList(StringEncoder.class)).build();
+        final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().encoders(
+                Collections.<Class<? extends Encoder>>singletonList(StringEncoder.class)).build();
         Server server = startServer(StringEncoderSendObjectEndpoint.class);
 
         try {
@@ -415,7 +417,9 @@ public class EncodedObjectTest extends TestContainer {
         }
     }
 
-    @ServerEndpoint(value = "/encodedObjectTest-stringEncoder-sendText", encoders = {EncodedObjectTest.StringEncoder.class})
+    @ServerEndpoint(
+            value = "/encodedObjectTest-stringEncoder-sendText",
+            encoders = {EncodedObjectTest.StringEncoder.class})
     public static class StringEncoderSendTextEndpoint {
         @OnMessage
         public void onMessage(Session session, String message) throws IOException {
@@ -423,7 +427,9 @@ public class EncodedObjectTest extends TestContainer {
         }
     }
 
-    @ServerEndpoint(value = "/encodedObjectTest-stringEncoder-sendObject", encoders = {EncodedObjectTest.StringEncoder.class})
+    @ServerEndpoint(
+            value = "/encodedObjectTest-stringEncoder-sendObject",
+            encoders = {EncodedObjectTest.StringEncoder.class})
     public static class StringEncoderSendObjectEndpoint {
         @OnMessage
         public void onMessage(Session session, String message) throws IOException, EncodeException {

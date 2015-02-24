@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -67,7 +67,8 @@ import static org.junit.Assert.fail;
 public class GrizzlyClientThreadPoolConfigPropertiesTest extends TestContainer {
 
     /**
-     * Test that {@link GrizzlyClientProperties#WORKER_THREAD_POOL_CONFIG} is supported with {@link org.glassfish.grizzly.threadpool.ThreadPoolConfig}.
+     * Test that {@link GrizzlyClientProperties#WORKER_THREAD_POOL_CONFIG} is supported with {@link
+     * org.glassfish.grizzly.threadpool.ThreadPoolConfig}.
      */
     @Test
     public void testGrizzlyThreadPoolConfigGrizzlyProperties() {
@@ -75,7 +76,8 @@ public class GrizzlyClientThreadPoolConfigPropertiesTest extends TestContainer {
     }
 
     /**
-     * Test that {@link ClientProperties#WORKER_THREAD_POOL_CONFIG} is supported with {@link org.glassfish.grizzly.threadpool.ThreadPoolConfig}.
+     * Test that {@link ClientProperties#WORKER_THREAD_POOL_CONFIG} is supported with {@link
+     * org.glassfish.grizzly.threadpool.ThreadPoolConfig}.
      */
     @Test
     public void testGrizzlyThreadPoolConfigClientProperties() {
@@ -83,7 +85,8 @@ public class GrizzlyClientThreadPoolConfigPropertiesTest extends TestContainer {
     }
 
     /**
-     * Test that {@link ClientProperties#WORKER_THREAD_POOL_CONFIG} is supported with {@link org.glassfish.tyrus.client.ThreadPoolConfig}.
+     * Test that {@link ClientProperties#WORKER_THREAD_POOL_CONFIG} is supported with {@link
+     * org.glassfish.tyrus.client.ThreadPoolConfig}.
      */
     @Test
     public void testTyrusThreadPoolConfigClientProperties() {
@@ -92,7 +95,8 @@ public class GrizzlyClientThreadPoolConfigPropertiesTest extends TestContainer {
 
     private void testThreadPoolConfigProperties(String workerThreadPoolProperty, boolean useGrizzlyConfig) {
         /*
-            Also setting client.getProperties().put(ClientProperties.SHARED_CONTAINER, ... ) is supported - if a test running
+            Also setting client.getProperties().put(ClientProperties.SHARED_CONTAINER, ... ) is supported - if a test
+             running
             before this test does that, this test might fail.
          */
         if (System.getProperties().getProperty(ClientProperties.SHARED_CONTAINER) != null) {
@@ -108,8 +112,8 @@ public class GrizzlyClientThreadPoolConfigPropertiesTest extends TestContainer {
             ClientManager client = ClientManager.createClient();
 
             if (useGrizzlyConfig) {
-                ThreadPoolConfig workerThreadPoolConfig = ThreadPoolConfig.defaultConfig()
-                        .setThreadFactory(new ThreadFactory() {
+                ThreadPoolConfig workerThreadPoolConfig =
+                        ThreadPoolConfig.defaultConfig().setThreadFactory(new ThreadFactory() {
 
                             @Override
                             public Thread newThread(Runnable r) {
@@ -120,8 +124,8 @@ public class GrizzlyClientThreadPoolConfigPropertiesTest extends TestContainer {
 
                 client.getProperties().put(workerThreadPoolProperty, workerThreadPoolConfig);
             } else {
-                org.glassfish.tyrus.client.ThreadPoolConfig workerThreadPoolConfig = org.glassfish.tyrus.client.ThreadPoolConfig.defaultConfig()
-                        .setThreadFactory(new ThreadFactory() {
+                org.glassfish.tyrus.client.ThreadPoolConfig workerThreadPoolConfig = org.glassfish.tyrus.client
+                        .ThreadPoolConfig.defaultConfig().setThreadFactory(new ThreadFactory() {
 
                             @Override
                             public Thread newThread(Runnable r) {

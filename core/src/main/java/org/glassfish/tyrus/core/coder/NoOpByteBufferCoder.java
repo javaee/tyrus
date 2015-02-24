@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -51,7 +51,8 @@ import javax.websocket.Encoder;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class NoOpByteBufferCoder extends CoderAdapter implements Decoder.Binary<ByteBuffer>, Encoder.Binary<ByteBuffer> {
+public class NoOpByteBufferCoder extends CoderAdapter
+        implements Decoder.Binary<ByteBuffer>, Encoder.Binary<ByteBuffer> {
     @Override
     public boolean willDecode(ByteBuffer bytes) {
         return true;

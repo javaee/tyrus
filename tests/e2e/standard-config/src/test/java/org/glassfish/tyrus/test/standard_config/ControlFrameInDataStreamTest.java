@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -62,8 +62,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
- * Tests that a control frame (in the test represented by pong and close) sent within a stream of partial text or binary
- * messages gets delivered.
+ * Tests that a control frame (in the test represented by pong and close) sent within a stream of partial text or
+ * binary messages gets delivered.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
@@ -82,7 +82,8 @@ public class ControlFrameInDataStreamTest extends TestContainer {
 
             server = startServer(PongInTextServerEndpoint.class);
             ClientManager client = createClient();
-            client.connectToServer(new AnnotatedClientEndpoint(pongLatch, null), getURI(PongInTextServerEndpoint.class));
+            client.connectToServer(new AnnotatedClientEndpoint(pongLatch, null),
+                                   getURI(PongInTextServerEndpoint.class));
 
             assertTrue(pongLatch.await(1, TimeUnit.SECONDS));
         } catch (Exception e) {
@@ -104,7 +105,8 @@ public class ControlFrameInDataStreamTest extends TestContainer {
 
             server = startServer(CloseInTextServerEndpoint.class);
             ClientManager client = createClient();
-            client.connectToServer(new AnnotatedClientEndpoint(null, closeLatch), getURI(CloseInTextServerEndpoint.class));
+            client.connectToServer(new AnnotatedClientEndpoint(null, closeLatch),
+                                   getURI(CloseInTextServerEndpoint.class));
 
             assertTrue(closeLatch.await(1, TimeUnit.SECONDS));
         } catch (Exception e) {
@@ -126,7 +128,8 @@ public class ControlFrameInDataStreamTest extends TestContainer {
 
             server = startServer(PongInBinaryServerEndpoint.class);
             ClientManager client = createClient();
-            client.connectToServer(new AnnotatedClientEndpoint(pongLatch, null), getURI(PongInBinaryServerEndpoint.class));
+            client.connectToServer(new AnnotatedClientEndpoint(pongLatch, null),
+                                   getURI(PongInBinaryServerEndpoint.class));
 
             assertTrue(pongLatch.await(1, TimeUnit.SECONDS));
         } catch (Exception e) {
@@ -148,7 +151,8 @@ public class ControlFrameInDataStreamTest extends TestContainer {
 
             server = startServer(CloseInBinaryServerEndpoint.class);
             ClientManager client = createClient();
-            client.connectToServer(new AnnotatedClientEndpoint(null, closeLatch), getURI(CloseInBinaryServerEndpoint.class));
+            client.connectToServer(new AnnotatedClientEndpoint(null, closeLatch),
+                                   getURI(CloseInBinaryServerEndpoint.class));
 
             assertTrue(closeLatch.await(1, TimeUnit.SECONDS));
         } catch (Exception e) {

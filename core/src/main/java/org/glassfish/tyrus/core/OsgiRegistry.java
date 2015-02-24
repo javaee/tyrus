@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -122,10 +122,12 @@ public final class OsgiRegistry implements SynchronousBundleListener {
 
     private final class OsgiServiceFinder extends ServiceFinder.ServiceIteratorProvider {
 
-        final ServiceFinder.ServiceIteratorProvider defaultIterator = new ServiceFinder.DefaultServiceIteratorProvider();
+        final ServiceFinder.ServiceIteratorProvider defaultIterator =
+                new ServiceFinder.DefaultServiceIteratorProvider();
 
         @Override
-        public <T> Iterator<T> createIterator(final Class<T> serviceClass, final String serviceName, ClassLoader loader, boolean ignoreOnClassNotFound) {
+        public <T> Iterator<T> createIterator(final Class<T> serviceClass, final String serviceName, ClassLoader loader,
+                                              boolean ignoreOnClassNotFound) {
             final List<Class<?>> providerClasses = locateAllProviders(serviceName);
             if (!providerClasses.isEmpty()) {
                 return new Iterator<T>() {
@@ -143,8 +145,10 @@ public final class OsgiRegistry implements SynchronousBundleListener {
                         try {
                             return nextClass.newInstance();
                         } catch (Exception ex) {
-                            ServiceConfigurationError sce = new ServiceConfigurationError(serviceName + ": "
-                                    + LocalizationMessages.PROVIDER_COULD_NOT_BE_CREATED(nextClass.getName(), serviceClass, ex.getLocalizedMessage()));
+                            ServiceConfigurationError sce = new ServiceConfigurationError(
+                                    serviceName + ": " + LocalizationMessages
+                                            .PROVIDER_COULD_NOT_BE_CREATED(nextClass.getName(), serviceClass,
+                                                                           ex.getLocalizedMessage()));
                             sce.initCause(ex);
                             throw sce;
                         }
@@ -160,7 +164,8 @@ public final class OsgiRegistry implements SynchronousBundleListener {
         }
 
         @Override
-        public <T> Iterator<Class<T>> createClassIterator(Class<T> service, String serviceName, ClassLoader loader, boolean ignoreOnClassNotFound) {
+        public <T> Iterator<Class<T>> createClassIterator(Class<T> service, String serviceName, ClassLoader loader,
+                                                          boolean ignoreOnClassNotFound) {
             final List<Class<?>> providerClasses = locateAllProviders(serviceName);
             if (!providerClasses.isEmpty()) {
                 return new Iterator<Class<T>>() {
@@ -206,7 +211,8 @@ public final class OsgiRegistry implements SynchronousBundleListener {
                 if (LOGGER.isLoggable(Level.FINEST)) {
                     LOGGER.log(Level.FINEST, "Loading providers for SPI: {0}", spi);
                 }
-                final BufferedReader br = new BufferedReader(new InputStreamReader(spiRegistryUri.toURL().openStream(), "UTF-8"));
+                final BufferedReader br =
+                        new BufferedReader(new InputStreamReader(spiRegistryUri.toURL().openStream(), "UTF-8"));
                 String providerClassName;
                 final List<Class<?>> providerClasses = new ArrayList<Class<?>>();
                 while ((providerClassName = br.readLine()) != null) {
@@ -279,17 +285,19 @@ public final class OsgiRegistry implements SynchronousBundleListener {
         classToBundleMapping.clear();
 
         for (Bundle bundle : bundleContext.getBundles()) {
-            // Look for resources at the given <packagePath> and at WEB-INF/classes/<packagePath> in case a WAR is being examined.
+            // Look for resources at the given <packagePath> and at WEB-INF/classes/<packagePath> in case a WAR is
+            // being examined.
             for (String bundlePackagePath : new String[]{packagePath, "WEB-INF/classes/" + packagePath}) {
-                final Enumeration<URL> enumeration = (Enumeration<URL>) bundle.findEntries(bundlePackagePath, "*", false);
+                final Enumeration<URL> enumeration =
+                        (Enumeration<URL>) bundle.findEntries(bundlePackagePath, "*", false);
 
                 if (enumeration != null) {
                     while (enumeration.hasMoreElements()) {
                         final URL url = enumeration.nextElement();
                         final String path = url.getPath();
 
-                        final String className = (packagePath + path.substring(path.lastIndexOf('/'))).
-                                replace('/', '.').replace(".class", "");
+                        final String className = (packagePath +
+                                path.substring(path.lastIndexOf('/'))).replace('/', '.').replace(".class", "");
 
                         classToBundleMapping.put(className, bundle);
                         result.add(url);

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2007-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2007-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -62,8 +62,8 @@ import javax.net.ssl.TrustManagerFactory;
 /**
  * Utility class, which helps to configure ssl context.
  * <p/>
- * Used to configure {@link SslEngineConfigurator}, which
- * will be passed to client via configuration properties. Example:
+ * Used to configure {@link SslEngineConfigurator}, which will be passed to client via configuration properties.
+ * Example:
  * <p/>
  * <pre>
  *      SslContextConfigurator sslContextConfigurator = new SslContextConfigurator();
@@ -73,7 +73,8 @@ import javax.net.ssl.TrustManagerFactory;
  *      sslContextConfigurator.setKeyStoreFile("...");
  *      sslContextConfigurator.setKeyStorePassword("...");
  *      sslContextConfigurator.setKeyStoreType("...");
- *      SslEngineConfigurator sslEngineConfigurator = new SslEngineConfigurator(sslContextConfigurator, true, false, false);
+ *      SslEngineConfigurator sslEngineConfigurator = new SslEngineConfigurator(sslContextConfigurator, true, false,
+ * false);
  *      client.getProperties().put(ClientManager.SSL_ENGINE_CONFIGURATOR, sslEngineConfigurator);
  * </pre>
  *
@@ -491,7 +492,8 @@ public class SslContextConfigurator {
             try {
                 KeyStore keyStore;
                 if (keyStoreProvider != null) {
-                    keyStore = KeyStore.getInstance(keyStoreType != null ? keyStoreType : KeyStore.getDefaultType(), keyStoreProvider);
+                    keyStore = KeyStore.getInstance(keyStoreType != null ? keyStoreType : KeyStore.getDefaultType(),
+                                                    keyStoreProvider);
                 } else {
                     keyStore = KeyStore.getInstance(keyStoreType != null ? keyStoreType : KeyStore.getDefaultType());
                 }
@@ -516,7 +518,8 @@ public class SslContextConfigurator {
 
                 String kmfAlgorithm = keyManagerFactoryAlgorithm;
                 if (kmfAlgorithm == null) {
-                    kmfAlgorithm = System.getProperty(KEY_FACTORY_MANAGER_ALGORITHM, KeyManagerFactory.getDefaultAlgorithm());
+                    kmfAlgorithm =
+                            System.getProperty(KEY_FACTORY_MANAGER_ALGORITHM, KeyManagerFactory.getDefaultAlgorithm());
                 }
                 KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(kmfAlgorithm);
                 keyManagerFactory.init(keyStore, keyPassword != null ? keyPassword : keyStorePassword);
@@ -550,9 +553,12 @@ public class SslContextConfigurator {
             try {
                 KeyStore trustStore;
                 if (trustStoreProvider != null) {
-                    trustStore = KeyStore.getInstance(trustStoreType != null ? trustStoreType : KeyStore.getDefaultType(), trustStoreProvider);
+                    trustStore =
+                            KeyStore.getInstance(trustStoreType != null ? trustStoreType : KeyStore.getDefaultType(),
+                                                 trustStoreProvider);
                 } else {
-                    trustStore = KeyStore.getInstance(trustStoreType != null ? trustStoreType : KeyStore.getDefaultType());
+                    trustStore =
+                            KeyStore.getInstance(trustStoreType != null ? trustStoreType : KeyStore.getDefaultType());
                 }
                 InputStream trustStoreInputStream = null;
                 try {
@@ -623,7 +629,8 @@ public class SslContextConfigurator {
                         keyStore = KeyStore.getInstance(
                                 keyStoreType != null ? keyStoreType : KeyStore.getDefaultType(), keyStoreProvider);
                     } else {
-                        keyStore = KeyStore.getInstance(keyStoreType != null ? keyStoreType : KeyStore.getDefaultType());
+                        keyStore =
+                                KeyStore.getInstance(keyStoreType != null ? keyStoreType : KeyStore.getDefaultType());
                     }
                     InputStream keyStoreInputStream = null;
                     try {
@@ -645,7 +652,8 @@ public class SslContextConfigurator {
 
                     String kmfAlgorithm = keyManagerFactoryAlgorithm;
                     if (kmfAlgorithm == null) {
-                        kmfAlgorithm = System.getProperty(KEY_FACTORY_MANAGER_ALGORITHM, KeyManagerFactory.getDefaultAlgorithm());
+                        kmfAlgorithm = System.getProperty(KEY_FACTORY_MANAGER_ALGORITHM,
+                                                          KeyManagerFactory.getDefaultAlgorithm());
                     }
                     keyManagerFactory = KeyManagerFactory.getInstance(kmfAlgorithm);
                     keyManagerFactory.init(keyStore, keyPassword != null ? keyPassword : keyStorePassword);
@@ -670,9 +678,12 @@ public class SslContextConfigurator {
                 try {
                     KeyStore trustStore;
                     if (trustStoreProvider != null) {
-                        trustStore = KeyStore.getInstance(trustStoreType != null ? trustStoreType : KeyStore.getDefaultType(), trustStoreProvider);
+                        trustStore = KeyStore.getInstance(
+                                trustStoreType != null ? trustStoreType : KeyStore.getDefaultType(),
+                                trustStoreProvider);
                     } else {
-                        trustStore = KeyStore.getInstance(trustStoreType != null ? trustStoreType : KeyStore.getDefaultType());
+                        trustStore = KeyStore.getInstance(
+                                trustStoreType != null ? trustStoreType : KeyStore.getDefaultType());
                     }
                     InputStream trustStoreInputStream = null;
                     try {
@@ -694,7 +705,8 @@ public class SslContextConfigurator {
 
                     String tmfAlgorithm = trustManagerFactoryAlgorithm;
                     if (tmfAlgorithm == null) {
-                        tmfAlgorithm = System.getProperty(TRUST_FACTORY_MANAGER_ALGORITHM, TrustManagerFactory.getDefaultAlgorithm());
+                        tmfAlgorithm = System.getProperty(TRUST_FACTORY_MANAGER_ALGORITHM,
+                                                          TrustManagerFactory.getDefaultAlgorithm());
                     }
 
                     trustManagerFactory = TrustManagerFactory.getInstance(tmfAlgorithm);
@@ -719,7 +731,8 @@ public class SslContextConfigurator {
                 secProtocol = securityProtocol;
             }
             sslContext = SSLContext.getInstance(secProtocol);
-            sslContext.init(keyManagerFactory != null ? keyManagerFactory.getKeyManagers() : null, trustManagerFactory != null ? trustManagerFactory.getTrustManagers() : null, null);
+            sslContext.init(keyManagerFactory != null ? keyManagerFactory.getKeyManagers() : null,
+                            trustManagerFactory != null ? trustManagerFactory.getTrustManagers() : null, null);
         } catch (KeyManagementException e) {
             LOGGER.log(Level.FINE, "Key management error.", e);
         } catch (NoSuchAlgorithmException e) {

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -44,11 +44,10 @@ import java.lang.reflect.Method;
 
 /**
  * Provides an instance.
- * </p>
  * <p/>
- * Method {@link #isApplicable(Class)} is called first to check whether the provider is able to provide the given {@link Class}.
- * </p>
- * Method {@link #create(Class)} is called to get the instance.
+ * Method {@link #isApplicable(Class)} is called first to check whether the provider is able to provide the given
+ * {@link
+ * Class}. </p> Method {@link #create(Class)} is called to get the instance.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  * @author Martin Matula (martin.matula at oracle.com)
@@ -74,7 +73,8 @@ public abstract class ComponentProvider {
     /**
      * Get the method which should be invoked instead provided one.
      * <p/>
-     * Useful mainly for EJB container support, where methods from endpoint class cannot be invoked directly - Tyrus needs
+     * Useful mainly for EJB container support, where methods from endpoint class cannot be invoked directly - Tyrus
+     * needs
      * to use method declared on remote interface.
      * <p/>
      * Default implementation returns method provided as parameter.

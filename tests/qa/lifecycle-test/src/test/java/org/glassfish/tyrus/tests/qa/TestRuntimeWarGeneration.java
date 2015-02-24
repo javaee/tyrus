@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -42,27 +42,31 @@ package org.glassfish.tyrus.tests.qa;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.logging.Level;
+
 import org.glassfish.embeddable.archive.ScatteredArchive;
+
 import org.glassfish.tyrus.tests.qa.config.AppConfig;
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.AnnotatedWholeMessageBufferedReaderSession;
 import org.glassfish.tyrus.tests.qa.tools.GlassFishToolkit;
+
 import org.junit.Ignore;
 import org.junit.Test;
 
 /**
- *
  * @author Michal Conos (michal.conos at oracle.com)
  */
 public class TestRuntimeWarGeneration extends AbstractLifeCycleTestBase {
-    
+
     @Ignore
     @Test
-    public void testRuntimeWarGeneration() throws IOException, ClassNotFoundException, InterruptedException, URISyntaxException {
+    public void testRuntimeWarGeneration() throws IOException, ClassNotFoundException, InterruptedException,
+            URISyntaxException {
         GlassFishToolkit glassFish = new GlassFishToolkit(new AppConfig(null, null, null, null, 0, null));
-        ScatteredArchive arch = glassFish.makeWar(AnnotatedWholeMessageBufferedReaderSession.Server.class, LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH);
-        
-       logger.log(Level.INFO, "Archive : {0}", arch.toURI());
+        ScatteredArchive arch = glassFish.makeWar(AnnotatedWholeMessageBufferedReaderSession.Server.class,
+                                                  LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH);
+
+        logger.log(Level.INFO, "Archive : {0}", arch.toURI());
     }
-    
+
 }

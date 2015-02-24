@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -53,6 +53,7 @@ import org.glassfish.tyrus.tests.qa.regression.Issue;
 import org.junit.Test;
 
 import junit.framework.Assert;
+
 import org.glassfish.tyrus.tests.qa.tools.IssueManipulator;
 
 /**
@@ -64,7 +65,8 @@ public class URIMatchProgrammaticTest extends AbstractLifeCycleTestBase {
         boolean exThrown = false;
         try {
             IssueManipulator.disableAll();
-            lifeCycle(ProgrammaticWholeMessageStringSessionConfig.class, ProgrammaticWholeMessageStringSession.class, Collections.EMPTY_SET, new URI("ws://localhost/aaaaa"), null);
+            lifeCycle(ProgrammaticWholeMessageStringSessionConfig.class, ProgrammaticWholeMessageStringSession.class,
+                      Collections.EMPTY_SET, new URI("ws://localhost/aaaaa"), null);
         } catch (Exception ex) {
             exThrown = true;
         }

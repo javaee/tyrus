@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -112,8 +112,11 @@ public class AnnotatedEndpoint extends Endpoint {
      * @param endpointEventListener listener of monitored endpoint events.
      * @return new instance.
      */
-    public static AnnotatedEndpoint fromClass(Class<?> annotatedClass, ComponentProviderService componentProvider, boolean isServerEndpoint, int incomingBufferSize, ErrorCollector collector, EndpointEventListener endpointEventListener) {
-        return new AnnotatedEndpoint(annotatedClass, null, componentProvider, isServerEndpoint, incomingBufferSize, collector, endpointEventListener);
+    public static AnnotatedEndpoint fromClass(Class<?> annotatedClass, ComponentProviderService componentProvider,
+                                              boolean isServerEndpoint, int incomingBufferSize, ErrorCollector
+            collector, EndpointEventListener endpointEventListener) {
+        return new AnnotatedEndpoint(annotatedClass, null, componentProvider, isServerEndpoint, incomingBufferSize,
+                                     collector, endpointEventListener);
     }
 
     /**
@@ -126,14 +129,16 @@ public class AnnotatedEndpoint extends Endpoint {
      * @param collector          error collector.
      * @return new instance.
      */
-    public static AnnotatedEndpoint fromInstance(Object annotatedInstance, ComponentProviderService componentProvider,
-                                                 boolean isServerEndpoint, int incomingBufferSize, ErrorCollector collector) {
-        return new AnnotatedEndpoint(annotatedInstance.getClass(), annotatedInstance, componentProvider, isServerEndpoint,
-                incomingBufferSize, collector, EndpointEventListener.NO_OP);
+    public static AnnotatedEndpoint fromInstance(
+            Object annotatedInstance, ComponentProviderService componentProvider, boolean isServerEndpoint,
+            int incomingBufferSize, ErrorCollector collector) {
+        return new AnnotatedEndpoint(annotatedInstance.getClass(), annotatedInstance, componentProvider,
+                                     isServerEndpoint, incomingBufferSize, collector, EndpointEventListener.NO_OP);
     }
 
     private AnnotatedEndpoint(Class<?> annotatedClass, Object instance, ComponentProviderService componentProvider,
-                              Boolean isServerEndpoint, int incomingBufferSize, ErrorCollector collector, EndpointEventListener endpointEventListener) {
+                              Boolean isServerEndpoint, int incomingBufferSize, ErrorCollector collector,
+                              EndpointEventListener endpointEventListener) {
         this.configuration = createEndpointConfig(annotatedClass, isServerEndpoint, collector);
         this.annotatedInstance = instance;
         this.annotatedClass = annotatedClass;
@@ -153,7 +158,8 @@ public class AnnotatedEndpoint extends Endpoint {
         ParameterExtractor[] onErrorParameters = null;
 
         Map<Integer, Class<?>> unknownParams = new HashMap<Integer, Class<?>>();
-        AnnotatedClassValidityChecker validityChecker = new AnnotatedClassValidityChecker(annotatedClass, configuration.getEncoders(), configuration.getDecoders(), collector);
+        AnnotatedClassValidityChecker validityChecker = new AnnotatedClassValidityChecker(
+                annotatedClass, configuration.getEncoders(), configuration.getDecoders(), collector);
 
         for (Method m : annotatedClass.getMethods()) {
             if (m.isBridge()) {
@@ -170,7 +176,8 @@ public class AnnotatedEndpoint extends Endpoint {
                     } else {
                         collector.addException(new DeploymentException(
                                 LocalizationMessages.ENDPOINT_MULTIPLE_METHODS(
-                                        OnOpen.class.getSimpleName(), annotatedClass.getName(), onOpen.getName(), m.getName()
+                                        OnOpen.class.getSimpleName(), annotatedClass.getName(), onOpen.getName(),
+                                        m.getName()
                                 )
                         ));
                     }
@@ -179,13 +186,15 @@ public class AnnotatedEndpoint extends Endpoint {
                         onClose = m;
                         onCloseParameters = getOnCloseParameterExtractors(m, unknownParams, collector);
                         validityChecker.checkOnCloseParams(m, unknownParams);
-                        if (unknownParams.size() == 1 && unknownParams.values().iterator().next() != CloseReason.class) {
+                        if (unknownParams.size() == 1 && unknownParams.values().iterator().next() != CloseReason
+                                .class) {
                             onCloseParameters[unknownParams.keySet().iterator().next()] = new ParamValue(0);
                         }
                     } else {
                         collector.addException(new DeploymentException(
                                 LocalizationMessages.ENDPOINT_MULTIPLE_METHODS(
-                                        OnClose.class.getSimpleName(), annotatedClass.getName(), onClose.getName(), m.getName()
+                                        OnClose.class.getSimpleName(), annotatedClass.getName(), onClose.getName(),
+                                        m.getName()
                                 )
                         ));
                     }
@@ -198,21 +207,24 @@ public class AnnotatedEndpoint extends Endpoint {
                                 Throwable.class == unknownParams.values().iterator().next()) {
                             onErrorParameters[unknownParams.keySet().iterator().next()] = new ParamValue(0);
                         } else if (!unknownParams.isEmpty()) {
-                            LOGGER.warning(LocalizationMessages.ENDPOINT_UNKNOWN_PARAMS(annotatedClass.getName(), m.getName(), unknownParams));
+                            LOGGER.warning(LocalizationMessages.ENDPOINT_UNKNOWN_PARAMS(annotatedClass.getName(),
+                                                                                        m.getName(), unknownParams));
                             onError = null;
                             onErrorParameters = null;
                         }
                     } else {
                         collector.addException(new DeploymentException(
                                 LocalizationMessages.ENDPOINT_MULTIPLE_METHODS(
-                                        OnError.class.getSimpleName(), annotatedClass.getName(), onError.getName(), m.getName()
+                                        OnError.class.getSimpleName(), annotatedClass.getName(), onError.getName(),
+                                        m.getName()
                                 )
                         ));
                     }
                 } else if (a instanceof OnMessage) {
                     final long maxMessageSize = ((OnMessage) a).maxMessageSize();
                     if (maxMessageSize > incomingBufferSize) {
-                        LOGGER.config(LocalizationMessages.ENDPOINT_MAX_MESSAGE_SIZE_TOO_LONG(maxMessageSize, m.getName(), annotatedClass.getName(), incomingBufferSize));
+                        LOGGER.config(LocalizationMessages.ENDPOINT_MAX_MESSAGE_SIZE_TOO_LONG(
+                                maxMessageSize, m.getName(), annotatedClass.getName(), incomingBufferSize));
                     }
                     final ParameterExtractor[] extractors = getParameterExtractors(m, unknownParams, collector);
                     MessageHandlerFactory handlerFactory;
@@ -220,7 +232,8 @@ public class AnnotatedEndpoint extends Endpoint {
                     if (unknownParams.size() == 1) {
                         Map.Entry<Integer, Class<?>> entry = unknownParams.entrySet().iterator().next();
                         extractors[entry.getKey()] = new ParamValue(0);
-                        handlerFactory = new WholeHandler(componentProvider.getInvocableMethod(m), extractors, entry.getValue(), maxMessageSize);
+                        handlerFactory = new WholeHandler(componentProvider.getInvocableMethod(m), extractors,
+                                                          entry.getValue(), maxMessageSize);
                         messageHandlerFactories.add(handlerFactory);
                         validityChecker.checkOnMessageParams(m, handlerFactory.create(null));
                     } else if (unknownParams.size() == 2) {
@@ -236,14 +249,17 @@ public class AnnotatedEndpoint extends Endpoint {
                         extractors[message.getKey()] = new ParamValue(0);
                         extractors[last.getKey()] = new ParamValue(1);
                         if (last.getValue() == boolean.class || last.getValue() == Boolean.class) {
-                            handlerFactory = new PartialHandler(componentProvider.getInvocableMethod(m), extractors, message.getValue(), maxMessageSize);
+                            handlerFactory = new PartialHandler(componentProvider.getInvocableMethod(m), extractors,
+                                                                message.getValue(), maxMessageSize);
                             messageHandlerFactories.add(handlerFactory);
                             validityChecker.checkOnMessageParams(m, handlerFactory.create(null));
                         } else {
-                            collector.addException(new DeploymentException(LocalizationMessages.ENDPOINT_WRONG_PARAMS(annotatedClass.getName(), m.getName())));
+                            collector.addException(new DeploymentException(LocalizationMessages.ENDPOINT_WRONG_PARAMS
+                                    (annotatedClass.getName(), m.getName())));
                         }
                     } else {
-                        collector.addException(new DeploymentException(LocalizationMessages.ENDPOINT_WRONG_PARAMS(annotatedClass.getName(), m.getName())));
+                        collector.addException(new DeploymentException(LocalizationMessages.ENDPOINT_WRONG_PARAMS
+                                (annotatedClass.getName(), m.getName())));
                     }
                 }
             }
@@ -257,12 +273,14 @@ public class AnnotatedEndpoint extends Endpoint {
         this.onCloseParameters = onCloseParameters;
     }
 
-    private EndpointConfig createEndpointConfig(Class<?> annotatedClass, boolean isServerEndpoint, ErrorCollector collector) {
+    private EndpointConfig createEndpointConfig(Class<?> annotatedClass, boolean isServerEndpoint, ErrorCollector
+            collector) {
         if (isServerEndpoint) {
             final ServerEndpoint wseAnnotation = annotatedClass.getAnnotation(ServerEndpoint.class);
 
             if (wseAnnotation == null) {
-                collector.addException(new DeploymentException(LocalizationMessages.ENDPOINT_ANNOTATION_NOT_FOUND(ServerEndpoint.class.getSimpleName(), annotatedClass.getName())));
+                collector.addException(new DeploymentException(LocalizationMessages.ENDPOINT_ANNOTATION_NOT_FOUND
+                        (ServerEndpoint.class.getSimpleName(), annotatedClass.getName())));
                 return null;
             }
 
@@ -279,18 +297,28 @@ public class AnnotatedEndpoint extends Endpoint {
             final MaxSessions wseMaxSessionsAnnotation = annotatedClass.getAnnotation(MaxSessions.class);
 
             if (wseMaxSessionsAnnotation != null) {
-                TyrusServerEndpointConfig.Builder builder = TyrusServerEndpointConfig.Builder.create(annotatedClass, wseAnnotation.value()).
-                        encoders(encoderClasses).decoders(decoderClasses).subprotocols(Arrays.asList(subProtocols));
+                TyrusServerEndpointConfig.Builder builder =
+                        TyrusServerEndpointConfig.Builder
+                                .create(annotatedClass, wseAnnotation.value())
+                                .encoders(encoderClasses)
+                                .decoders(decoderClasses)
+                                .subprotocols(Arrays.asList(subProtocols));
                 if (!wseAnnotation.configurator().equals(ServerEndpointConfig.Configurator.class)) {
-                    builder = builder.configurator(ReflectionHelper.getInstance(wseAnnotation.configurator(), collector));
+                    builder = builder.configurator(ReflectionHelper.getInstance(wseAnnotation.configurator(),
+                                                                                collector));
                 }
                 builder.maxSessions(wseMaxSessionsAnnotation.value());
                 return builder.build();
             } else {
-                ServerEndpointConfig.Builder builder = ServerEndpointConfig.Builder.create(annotatedClass, wseAnnotation.value()).
-                        encoders(encoderClasses).decoders(decoderClasses).subprotocols(Arrays.asList(subProtocols));
+                ServerEndpointConfig.Builder builder =
+                        ServerEndpointConfig.Builder
+                                .create(annotatedClass, wseAnnotation.value())
+                                .encoders(encoderClasses)
+                                .decoders(decoderClasses)
+                                .subprotocols(Arrays.asList(subProtocols));
                 if (!wseAnnotation.configurator().equals(ServerEndpointConfig.Configurator.class)) {
-                    builder = builder.configurator(ReflectionHelper.getInstance(wseAnnotation.configurator(), collector));
+                    builder = builder.configurator(ReflectionHelper.getInstance(wseAnnotation.configurator(),
+                                                                                collector));
                 }
                 return builder.build();
             }
@@ -300,7 +328,8 @@ public class AnnotatedEndpoint extends Endpoint {
             final ClientEndpoint wscAnnotation = annotatedClass.getAnnotation(ClientEndpoint.class);
 
             if (wscAnnotation == null) {
-                collector.addException(new DeploymentException(LocalizationMessages.ENDPOINT_ANNOTATION_NOT_FOUND(ClientEndpoint.class.getSimpleName(), annotatedClass.getName())));
+                collector.addException(new DeploymentException(LocalizationMessages.ENDPOINT_ANNOTATION_NOT_FOUND
+                        (ClientEndpoint.class.getSimpleName(), annotatedClass.getName())));
                 return null;
             }
 
@@ -314,7 +343,8 @@ public class AnnotatedEndpoint extends Endpoint {
 
             decoderClasses.addAll(TyrusEndpointWrapper.getDefaultDecoders());
 
-            ClientEndpointConfig.Configurator configurator = ReflectionHelper.getInstance(wscAnnotation.configurator(), collector);
+            ClientEndpointConfig.Configurator configurator =
+                    ReflectionHelper.getInstance(wscAnnotation.configurator(), collector);
 
             return ClientEndpointConfig.Builder.create().encoders(encoderClasses).decoders(decoderClasses).
                     preferredSubprotocols(Arrays.asList(subProtocols)).configurator(configurator).build();
@@ -357,15 +387,19 @@ public class AnnotatedEndpoint extends Endpoint {
         return as == null ? Object.class : (as[0] == null ? Object.class : as[0]);
     }
 
-    private ParameterExtractor[] getOnCloseParameterExtractors(final Method method, Map<Integer, Class<?>> unknownParams, ErrorCollector collector) {
-        return getParameterExtractors(method, unknownParams, new HashSet<Class<?>>(Arrays.asList((Class<?>) CloseReason.class)), collector);
+    private ParameterExtractor[] getOnCloseParameterExtractors(final Method method, Map<Integer, Class<?>>
+            unknownParams, ErrorCollector collector) {
+        return getParameterExtractors(
+                method, unknownParams, new HashSet<Class<?>>(Arrays.asList((Class<?>) CloseReason.class)), collector);
     }
 
-    private ParameterExtractor[] getParameterExtractors(final Method method, Map<Integer, Class<?>> unknownParams, ErrorCollector collector) {
+    private ParameterExtractor[] getParameterExtractors(final Method method, Map<Integer, Class<?>> unknownParams,
+                                                        ErrorCollector collector) {
         return getParameterExtractors(method, unknownParams, Collections.<Class<?>>emptySet(), collector);
     }
 
-    private ParameterExtractor[] getParameterExtractors(final Method method, Map<Integer, Class<?>> unknownParams, Set<Class<?>> params, ErrorCollector collector) {
+    private ParameterExtractor[] getParameterExtractors(final Method method, Map<Integer, Class<?>> unknownParams,
+                                                        Set<Class<?>> params, ErrorCollector collector) {
         ParameterExtractor[] result = new ParameterExtractor[method.getParameterTypes().length];
         boolean sessionPresent = false;
         unknownParams.clear();
@@ -374,13 +408,16 @@ public class AnnotatedEndpoint extends Endpoint {
             final Class<?> type = method.getParameterTypes()[i];
             final String pathParamName = getPathParamName(method.getParameterAnnotations()[i]);
             if (pathParamName != null) {
-                if (!(PrimitivesToWrappers.isPrimitiveWrapper(type) || type.isPrimitive() || type.equals(String.class))) {
-                    collector.addException(new DeploymentException(LocalizationMessages.ENDPOINT_WRONG_PATH_PARAM(method.getName(), type.getName())));
+                if (!(PrimitivesToWrappers.isPrimitiveWrapper(type) ||
+                        type.isPrimitive() || type.equals(String.class))) {
+                    collector.addException(new DeploymentException(LocalizationMessages.ENDPOINT_WRONG_PATH_PARAM
+                            (method.getName(), type.getName())));
                 }
 
                 result[i] = new ParameterExtractor() {
 
-                    final Decoder.Text<?> decoder = PrimitiveDecoders.ALL_INSTANCES.get(PrimitivesToWrappers.getPrimitiveWrapper(type));
+                    final Decoder.Text<?> decoder = PrimitiveDecoders.ALL_INSTANCES
+                            .get(PrimitivesToWrappers.getPrimitiveWrapper(type));
 
                     @Override
                     public Object value(Session session, Object... values) throws DecodeException {
@@ -397,7 +434,8 @@ public class AnnotatedEndpoint extends Endpoint {
                 };
             } else if (type == Session.class) {
                 if (sessionPresent) {
-                    collector.addException(new DeploymentException(LocalizationMessages.ENDPOINT_MULTIPLE_SESSION_PARAM(method.getName())));
+                    collector.addException(new DeploymentException(
+                            LocalizationMessages.ENDPOINT_MULTIPLE_SESSION_PARAM(method.getName())));
                 } else {
                     sessionPresent = true;
                 }
@@ -444,7 +482,8 @@ public class AnnotatedEndpoint extends Endpoint {
         return null;
     }
 
-    private Object callMethod(Method method, ParameterExtractor[] extractors, Session session, boolean callOnError, Object... params) {
+    private Object callMethod(Method method, ParameterExtractor[] extractors, Session session, boolean callOnError,
+                              Object... params) {
         ErrorCollector collector = new ErrorCollector();
         Object[] paramValues = new Object[extractors.length];
 
@@ -506,7 +545,8 @@ public class AnnotatedEndpoint extends Endpoint {
         if (onErrorMethod != null) {
             callMethod(onErrorMethod, onErrorParameters, session, false, thr);
         } else {
-            LOGGER.log(Level.INFO, LocalizationMessages.ENDPOINT_UNHANDLED_EXCEPTION(annotatedClass.getCanonicalName()), thr);
+            LOGGER.log(Level.INFO,
+                       LocalizationMessages.ENDPOINT_UNHANDLED_EXCEPTION(annotatedClass.getCanonicalName()), thr);
         }
         endpointEventListener.onError(session.getId(), thr);
     }
@@ -553,7 +593,8 @@ public class AnnotatedEndpoint extends Endpoint {
         MessageHandlerFactory(Method method, ParameterExtractor[] extractors, Class<?> type, long maxMessageSize) {
             this.method = method;
             this.extractors = extractors;
-            this.type = (PrimitivesToWrappers.getPrimitiveWrapper(type) == null) ? type : PrimitivesToWrappers.getPrimitiveWrapper(type);
+            this.type = (PrimitivesToWrappers.getPrimitiveWrapper(type) == null) ? type :
+                    PrimitivesToWrappers.getPrimitiveWrapper(type);
             this.maxMessageSize = maxMessageSize;
         }
 

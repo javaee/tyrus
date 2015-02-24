@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -75,11 +75,12 @@ public class BinaryFrame extends TyrusFrame {
      *
      * @param payload      frame payload.
      * @param continuation {@code true} {@code true} when this frame is continuation frame, {@code false} otherwise.
-     * @param fin          {@code true} when this frame is last in current partial message batch. Standard (non-continuous)
-     *                     frames have this bit set to {@code true}.
+     * @param fin          {@code true} when this frame is last in current partial message batch. Standard
+     *                     (non-continuous) frames have this bit set to {@code true}.
      */
     public BinaryFrame(byte[] payload, boolean continuation, boolean fin) {
-        super(Frame.builder().payloadData(payload).opcode(continuation ? (byte) 0x00 : (byte) 0x02).fin(fin).build(), continuation ? FrameType.BINARY_CONTINUATION : FrameType.BINARY);
+        super(Frame.builder().payloadData(payload).opcode(continuation ? (byte) 0x00 : (byte) 0x02).fin(fin).build(),
+              continuation ? FrameType.BINARY_CONTINUATION : FrameType.BINARY);
         this.continuation = continuation;
     }
 

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -75,7 +75,7 @@ public class DecodedObjectTest extends TestContainer {
     private CountDownLatch messageLatch;
 
     private static String receivedMessage;
-    private final static String receivedTextMessage = null;
+    private static final String receivedTextMessage = null;
     private static final String SENT_MESSAGE = "hello";
 
     @Test
@@ -185,7 +185,8 @@ public class DecodedObjectTest extends TestContainer {
             }, cec, getURI(TestEndpoint.class));
 
             assertTrue(messageLatch.await(5, TimeUnit.SECONDS));
-            assertTrue("The received message is the same as the sent one", receivedMessage.equals("Extended " + SENT_MESSAGE));
+            assertTrue("The received message is the same as the sent one",
+                       receivedMessage.equals("Extended " + SENT_MESSAGE));
             assertNull("The message was not received via the TextMessageHandler", receivedTextMessage);
         } catch (Exception e) {
             e.printStackTrace();
@@ -208,7 +209,8 @@ public class DecodedObjectTest extends TestContainer {
         }
     }
 
-    public static class CustomDecoderThrowingDecodeException extends CoderAdapter implements Decoder.Text<StringContainer> {
+    public static class CustomDecoderThrowingDecodeException extends CoderAdapter
+            implements Decoder.Text<StringContainer> {
 
         @Override
         public StringContainer decode(String s) throws DecodeException {

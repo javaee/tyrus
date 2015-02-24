@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -134,13 +134,15 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      * Sample below demonstrates use of this feature to set preemptive basic proxy authentication:
      * <pre>
      *     final HashMap<String, String> proxyHeaders = new HashMap<String, String>();
-     *     proxyHeaders.put("Proxy-Authorization", "Basic " + Base64Utils.encodeToString("username:password".getBytes(Charset.forName("UTF-8")), false));
+     *     proxyHeaders.put("Proxy-Authorization", "Basic " +
+     *         Base64Utils.encodeToString("username:password".getBytes(Charset.forName("UTF-8")), false));
      *
      *     client.getProperties().put(GrizzlyClientSocket.PROXY_HEADERS, proxyHeaders);
      *     client.connectToServer(...);
      * </pre>
      * Please note that these headers will be used only when establishing proxy connection, for modifying
-     * WebSocket handshake headers, see {@link javax.websocket.ClientEndpointConfig.Configurator#beforeRequest(java.util.Map)}.
+     * WebSocket handshake headers, see {@link
+     * javax.websocket.ClientEndpointConfig.Configurator#beforeRequest(java.util.Map)}.
      *
      * @see javax.websocket.ClientEndpointConfig#getUserProperties()
      * @deprecated please use {@link org.glassfish.tyrus.client.ClientProperties#PROXY_HEADERS}.
@@ -151,10 +153,8 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     /**
      * Property usable in {@link #getProperties()} as a key for SSL configuration.
      * <p/>
-     * Value is expected to be either {@code org.glassfish.grizzly.ssl.SSLEngineConfigurator}
-     * when configuring Grizzly client or
-     * {@link org.glassfish.tyrus.client.SslEngineConfigurator}
-     * when configuring JDK client.
+     * Value is expected to be either {@code org.glassfish.grizzly.ssl.SSLEngineConfigurator} when configuring Grizzly
+     * client or {@link org.glassfish.tyrus.client.SslEngineConfigurator} when configuring JDK client.
      * <p/>
      * Example configuration for JDK client:
      * <pre>
@@ -165,7 +165,9 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      *      sslContextConfigurator.setKeyStoreFile("...");
      *      sslContextConfigurator.setKeyStorePassword("...");
      *      sslContextConfigurator.setKeyStoreType("...");
-     *      SslEngineConfigurator sslEngineConfigurator = new SslEngineConfigurator(sslContextConfigurator, true, false, false);
+     *      SslEngineConfigurator sslEngineConfigurator = new SslEngineConfigurator(sslContextConfigurator, true,
+     * false,
+     * false);
      *      client.getProperties().put(ClientManager.SSL_ENGINE_CONFIGURATOR, sslEngineConfigurator);
      * </pre>
      *
@@ -179,7 +181,8 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      * <p/>
      * Uses Grizzly as transport implementation.
      */
-    private static final String CONTAINER_PROVIDER_CLASSNAME = "org.glassfish.tyrus.container.grizzly.client.GrizzlyClientContainer";
+    private static final String CONTAINER_PROVIDER_CLASSNAME =
+            "org.glassfish.tyrus.container.grizzly.client.GrizzlyClientContainer";
 
     public static final String WLS_PROXY_HOST = "weblogic.websocket.client.PROXY_HOST";
     public static final String WLS_PROXY_PORT = "weblogic.websocket.client.PROXY_PORT";
@@ -207,8 +210,8 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     /**
      * Create new {@link ClientManager} instance.
      * <p/>
-     * Uses {@link ClientManager#CONTAINER_PROVIDER_CLASSNAME} as container implementation, thus relevant module needs to
-     * be on classpath. Setting different container is possible via {@link ClientManager#createClient(String)}.
+     * Uses {@link ClientManager#CONTAINER_PROVIDER_CLASSNAME} as container implementation, thus relevant module needs
+     * to be on classpath. Setting different container is possible via {@link ClientManager#createClient(String)}.
      *
      * @see ClientManager#createClient(String)
      */
@@ -219,8 +222,8 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     /**
      * Create new ClientManager instance on top of provided {@link WebSocketContainer} instance.
      * <p/>
-     * Uses {@link ClientManager#CONTAINER_PROVIDER_CLASSNAME} as container implementation, thus relevant module needs to
-     * be on classpath. Setting different container is possible via {@link ClientManager#createClient(String)}.
+     * Uses {@link ClientManager#CONTAINER_PROVIDER_CLASSNAME} as container implementation, thus relevant module needs
+     * to be on classpath. Setting different container is possible via {@link ClientManager#createClient(String)}.
      *
      * @see ClientManager#createClient(String)
      */
@@ -249,8 +252,8 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     /**
      * Create new {@link ClientManager} instance.
      * <p/>
-     * Uses {@link ClientManager#CONTAINER_PROVIDER_CLASSNAME} as container implementation, thus relevant module needs to
-     * be on classpath. Setting different container is possible via {@link ClientManager#createClient(String)}}.
+     * Uses {@link ClientManager#CONTAINER_PROVIDER_CLASSNAME} as container implementation, thus relevant module needs
+     * to be on classpath. Setting different container is possible via {@link ClientManager#createClient(String)}}.
      *
      * @see ClientManager#createClient(String)
      */
@@ -305,8 +308,9 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     @Override
     public Session connectToServer(Class annotatedEndpointClass, URI path) throws DeploymentException, IOException {
         if (annotatedEndpointClass.getAnnotation(ClientEndpoint.class) == null) {
-            throw new DeploymentException(String.format("Class argument in connectToServer(Class, URI) is to be annotated endpoint class." +
-                    "Class %s does not have @ClientEndpoint", annotatedEndpointClass.getName()));
+            throw new DeploymentException(
+                    String.format("Class argument in connectToServer(Class, URI) is to be annotated endpoint class." +
+                                          "Class %s does not have @ClientEndpoint", annotatedEndpointClass.getName()));
         }
         try {
             return connectToServer(annotatedEndpointClass, null, path.toString(), true).get();
@@ -325,7 +329,8 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     }
 
     @Override
-    public Session connectToServer(Class<? extends Endpoint> endpointClass, ClientEndpointConfig cec, URI path) throws DeploymentException, IOException {
+    public Session connectToServer(Class<? extends Endpoint> endpointClass, ClientEndpointConfig cec, URI path) throws
+            DeploymentException, IOException {
         try {
             return connectToServer(endpointClass, cec, path.toString(), true).get();
         } catch (InterruptedException e) {
@@ -343,7 +348,8 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     }
 
     @Override
-    public Session connectToServer(Endpoint endpointInstance, ClientEndpointConfig cec, URI path) throws DeploymentException, IOException {
+    public Session connectToServer(Endpoint endpointInstance, ClientEndpointConfig cec, URI path) throws
+            DeploymentException, IOException {
         try {
             return connectToServer(endpointInstance, cec, path.toString(), true).get();
         } catch (InterruptedException e) {
@@ -391,14 +397,16 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      */
     public Future<Session> asyncConnectToServer(Class<?> annotatedEndpointClass, URI path) throws DeploymentException {
         if (annotatedEndpointClass.getAnnotation(ClientEndpoint.class) == null) {
-            throw new DeploymentException(String.format("Class argument in connectToServer(Class, URI) is to be annotated endpoint class." +
-                    "Class %s does not have @ClientEndpoint", annotatedEndpointClass.getName()));
+            throw new DeploymentException(
+                    String.format("Class argument in connectToServer(Class, URI) is to be annotated endpoint class." +
+                                          "Class %s does not have @ClientEndpoint", annotatedEndpointClass.getName()));
         }
         return connectToServer(annotatedEndpointClass, null, path.toString(), false);
     }
 
     /**
-     * Non-blocking version of {@link WebSocketContainer#connectToServer(Class, javax.websocket.ClientEndpointConfig, java.net.URI)}.
+     * Non-blocking version of {@link WebSocketContainer#connectToServer(Class, javax.websocket.ClientEndpointConfig,
+     * java.net.URI)}.
      * <p/>
      * Only simple checks are performed in the main thread; client container is created in different thread, same
      * applies to connecting etc.
@@ -410,12 +418,14 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      * @throws DeploymentException if the configuration is not valid
      * @see WebSocketContainer#connectToServer(Class, javax.websocket.ClientEndpointConfig, java.net.URI)
      */
-    public Future<Session> asyncConnectToServer(Class<? extends Endpoint> endpointClass, ClientEndpointConfig cec, URI path) throws DeploymentException {
+    public Future<Session> asyncConnectToServer(Class<? extends Endpoint> endpointClass, ClientEndpointConfig cec,
+                                                URI path) throws DeploymentException {
         return connectToServer(endpointClass, cec, path.toString(), false);
     }
 
     /**
-     * Non-blocking version of {@link WebSocketContainer#connectToServer(javax.websocket.Endpoint, javax.websocket.ClientEndpointConfig, java.net.URI)}.
+     * Non-blocking version of {@link WebSocketContainer#connectToServer(javax.websocket.Endpoint,
+     * javax.websocket.ClientEndpointConfig, java.net.URI)}.
      * <p/>
      * Only simple checks are performed in the main thread; client container is created in different thread, same
      * applies to connecting etc.
@@ -425,9 +435,11 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      * @param cec              the configuration used to configure the programmatic endpoint.
      * @return the Session created if the connection is successful.
      * @throws DeploymentException if the configuration is not valid
-     * @see WebSocketContainer#connectToServer(javax.websocket.Endpoint, javax.websocket.ClientEndpointConfig, java.net.URI)
+     * @see WebSocketContainer#connectToServer(javax.websocket.Endpoint, javax.websocket.ClientEndpointConfig,
+     * java.net.URI)
      */
-    public Future<Session> asyncConnectToServer(Endpoint endpointInstance, ClientEndpointConfig cec, URI path) throws DeploymentException {
+    public Future<Session> asyncConnectToServer(Endpoint endpointInstance, ClientEndpointConfig cec, URI path) throws
+            DeploymentException {
         return connectToServer(endpointInstance, cec, path.toString(), false);
     }
 
@@ -437,8 +449,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      * Only simple checks are performed in the main thread; client container is created in different thread, same
      * applies to connecting etc.
      *
-     * @param obj  the annotated websocket client endpoint
-     *             instance.
+     * @param obj  the annotated websocket client endpoint instance.
      * @param path the complete path to the server endpoint.
      * @return the Session created if the connection is successful.
      * @throws DeploymentException if the annotated endpoint instance is not valid.
@@ -454,11 +465,13 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      * @param o             the endpoint.
      * @param configuration of the endpoint.
      * @param url           to which the client will connect.
-     * @param synchronous   if {@code true} connect will be executed synchronously, if {@code false} connect will be executed asynchronously.
+     * @param synchronous   if {@code true} connect will be executed synchronously, if {@code false} connect will be
+     *                      executed asynchronously.
      * @return Future which will return {@link Session} instance when available.
      * @throws DeploymentException if the endpoint or provided URL is not valid.
      */
-    Future<Session> connectToServer(final Object o, final ClientEndpointConfig configuration, final String url, boolean synchronous) throws DeploymentException {
+    Future<Session> connectToServer(final Object o, final ClientEndpointConfig configuration, final String url,
+                                    boolean synchronous) throws DeploymentException {
         final Map<String, Object> copiedProperties = new HashMap<String, Object>(properties);
 
         /* Client activity listener must be called before an executor service is obtained from the container, otherwise
@@ -502,8 +515,11 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                 final Endpoint endpoint;
 
                 // incoming buffer size - max frame size possible to receive.
-                Integer tyrusIncomingBufferSize = Utils.getProperty(copiedProperties, ClientProperties.INCOMING_BUFFER_SIZE, Integer.class);
-                Integer wlsIncomingBufferSize = configuration == null ? null : Utils.getProperty(configuration.getUserProperties(), ClientContainer.WLS_INCOMING_BUFFER_SIZE, Integer.class);
+                Integer tyrusIncomingBufferSize =
+                        Utils.getProperty(copiedProperties, ClientProperties.INCOMING_BUFFER_SIZE, Integer.class);
+                Integer wlsIncomingBufferSize = configuration == null ? null :
+                        Utils.getProperty(configuration.getUserProperties(), ClientContainer.WLS_INCOMING_BUFFER_SIZE,
+                                          Integer.class);
                 final int incomingBufferSize;
                 if (tyrusIncomingBufferSize == null && wlsIncomingBufferSize == null) {
                     incomingBufferSize = TyrusClientEngine.DEFAULT_INCOMING_BUFFER_SIZE;
@@ -521,17 +537,23 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                         if (Endpoint.class.isAssignableFrom((Class<?>) o)) {
                             //noinspection unchecked
                             endpoint = ReflectionHelper.getInstance(((Class<Endpoint>) o), collector);
-                            config = configuration == null ? ClientEndpointConfig.Builder.create().build() : configuration;
+                            config = configuration == null ? ClientEndpointConfig.Builder.create().build() :
+                                    configuration;
                         } else if ((((Class<?>) o).getAnnotation(ClientEndpoint.class) != null)) {
-                            endpoint = AnnotatedEndpoint.fromClass((Class) o, componentProvider, false, incomingBufferSize, collector, EndpointEventListener.NO_OP);
+                            endpoint = AnnotatedEndpoint
+                                    .fromClass((Class) o, componentProvider, false, incomingBufferSize, collector,
+                                               EndpointEventListener.NO_OP);
                             config = (ClientEndpointConfig) ((AnnotatedEndpoint) endpoint).getEndpointConfig();
                         } else {
-                            collector.addException(new DeploymentException(String.format("Class %s in not Endpoint descendant and does not have @ClientEndpoint", ((Class<?>) o).getName())));
+                            collector.addException(new DeploymentException(String.format(
+                                    "Class %s in not Endpoint descendant and does not have @ClientEndpoint",
+                                    ((Class<?>) o).getName())));
                             endpoint = null;
                             config = null;
                         }
                     } else {
-                        endpoint = AnnotatedEndpoint.fromInstance(o, componentProvider, false, incomingBufferSize, collector);
+                        endpoint = AnnotatedEndpoint
+                                .fromInstance(o, componentProvider, false, incomingBufferSize, collector);
                         config = (ClientEndpointConfig) ((AnnotatedEndpoint) endpoint).getEndpointConfig();
                     }
 
@@ -545,8 +567,11 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                     return;
                 }
 
-                final boolean retryAfterEnabled = Utils.getProperty(copiedProperties, ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE, Boolean.class, false);
-                final ReconnectHandler userReconnectHandler = Utils.getProperty(copiedProperties, ClientProperties.RECONNECT_HANDLER, ReconnectHandler.class);
+                final boolean retryAfterEnabled =
+                        Utils.getProperty(copiedProperties, ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE,
+                                          Boolean.class, false);
+                final ReconnectHandler userReconnectHandler =
+                        Utils.getProperty(copiedProperties, ClientProperties.RECONNECT_HANDLER, ReconnectHandler.class);
 
                 final Runnable connector = new Runnable() {
 
@@ -595,24 +620,34 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                             try {
                                 final Runnable that = this;
 
-                                TyrusEndpointWrapper clientEndpoint = new TyrusEndpointWrapper(endpoint, config, componentProvider,
-                                        webSocketContainer == null ? ClientManager.this : webSocketContainer, url, null, new TyrusEndpointWrapper.SessionListener() {
+                                TyrusEndpointWrapper clientEndpoint =
+                                        new TyrusEndpointWrapper(
+                                                endpoint, config, componentProvider,
+                                                webSocketContainer == null ? ClientManager.this :
+                                                        webSocketContainer, url, null,
+                                                new TyrusEndpointWrapper.SessionListener() {
 
-                                    @Override
-                                    public void onClose(TyrusSession session, CloseReason closeReason) {
-                                        if (reconnectHandler != null && reconnectHandler.onDisconnect(closeReason)) {
-                                            long delay = reconnectHandler.getDelay();
-                                            if (delay <= 0) {
-                                                run();
-                                            } else {
-                                                getScheduledExecutorService().schedule(that, delay, TimeUnit.SECONDS);
-                                            }
-                                        } else {
-                                            clientActivityListener.onConnectionTerminated();
-                                        }
-                                    }
-                                }, null, null, null
-                                );
+                                                    @Override
+                                                    public void onClose(TyrusSession session,
+                                                                        CloseReason closeReason) {
+                                                        if (reconnectHandler != null &&
+                                                                reconnectHandler
+                                                                        .onDisconnect(closeReason)) {
+                                                            long delay = reconnectHandler.getDelay();
+                                                            if (delay <= 0) {
+                                                                run();
+                                                            } else {
+                                                                getScheduledExecutorService()
+                                                                        .schedule(that, delay,
+                                                                                  TimeUnit.SECONDS);
+                                                            }
+                                                        } else {
+                                                            clientActivityListener
+                                                                    .onConnectionTerminated();
+                                                        }
+                                                    }
+                                                }, null, null, null
+                                        );
 
                                 final URI uri;
                                 try {
@@ -621,12 +656,15 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                                     throw new DeploymentException("Invalid URI.", e);
                                 }
 
-                                TyrusClientEngine clientEngine = new TyrusClientEngine(clientEndpoint, listener, copiedProperties, uri, debugContext);
+                                TyrusClientEngine clientEngine =
+                                        new TyrusClientEngine(clientEndpoint, listener, copiedProperties, uri,
+                                                              debugContext);
 
                                 container.openClientSocket(config, copiedProperties, clientEngine);
 
                                 try {
-                                    final boolean countedDown = responseLatch.await(handshakeTimeout, TimeUnit.MILLISECONDS);
+                                    final boolean countedDown =
+                                            responseLatch.await(handshakeTimeout, TimeUnit.MILLISECONDS);
                                     if (countedDown) {
                                         final Throwable exception = listener.getThrowable();
                                         if (exception != null) {
@@ -641,7 +679,8 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                                         return;
                                     } else {
                                         // timeout!
-                                        final ClientEngine.TimeoutHandler timeoutHandler = clientEngine.getTimeoutHandler();
+                                        final ClientEngine.TimeoutHandler timeoutHandler =
+                                                clientEngine.getTimeoutHandler();
                                         if (timeoutHandler != null) {
                                             timeoutHandler.handleTimeout();
                                         }
@@ -780,9 +819,10 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      * Container properties.
      * <p/>
      * Used to set container specific configuration as SSL truststore and keystore, HTTP Proxy configuration and
-     * maximum incoming buffer size. These properties cannot be shared among various containers due to constraints in
-     * WebSocket API, so if you need to have multiple configurations, you will need to create multiple ClientManager
-     * instances or synchronize connectToServer method invocations.
+     * maximum
+     * incoming buffer size. These properties cannot be shared among various containers due to constraints in WebSocket
+     * API, so if you need to have multiple configurations, you will need to create multiple ClientManager instances or
+     * synchronize connectToServer method invocations.
      *
      * @return map containing container properties.
      * @see ClientProperties
@@ -830,16 +870,16 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     /**
      * Reconnect handler.
      * <p/>
-     * When implementing, be sure that you do have enough logic behind cancelling reconnect feature - even {@link javax.websocket.Session#close()}
-     * call will be treated just like any other disconnect resulting in reconnect.
+     * When implementing, be sure that you do have enough logic behind cancelling reconnect feature - even {@link
+     * javax.websocket.Session#close()} call will be treated just like any other disconnect resulting in reconnect.
      */
     public static class ReconnectHandler {
 
-        private final static long RECONNECT_DELAY = 5L;
+        private static final long RECONNECT_DELAY = 5L;
 
         /**
-         * Called after {@link javax.websocket.OnClose} annotated method (or {@link Endpoint#onClose(javax.websocket.Session, javax.websocket.CloseReason)}
-         * is invoked.
+         * Called after {@link javax.websocket.OnClose} annotated method (or {@link
+         * Endpoint#onClose(javax.websocket.Session, javax.websocket.CloseReason)} is invoked.
          *
          * @param closeReason close reason passed to onClose method.
          * @return When {@code true} is returned, client container will reconnect.
@@ -865,7 +905,8 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
          * Get reconnect delay.
          * <p/>
          * Called after {@link #onDisconnect(CloseReason)} or {@link #onConnectFailure(Exception)} when {@code true} is
-         * returned. When positive value is returned, next connection attempt will be made after that number of seconds.
+         * returned. When positive value is returned, next connection attempt will be made after that number of
+         * seconds.
          * <p/>
          * Default implementation returns {@value #RECONNECT_DELAY}.
          *
@@ -923,8 +964,8 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     }
 
     /**
-     * A listener listening for events that indicate when a client has started to be active and when it stopped to be active.
-     * It is used to determine the number of active clients.
+     * A listener listening for events that indicate when a client has started to be active and when it stopped to be
+     * active. It is used to determine the number of active clients.
      */
     private static interface ClientActivityListener {
 

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -65,7 +65,8 @@ public class NoTimeoutEndpointResultByHandler {
             @Override
             public void onResult(SendResult sendResult) {
                 if (!sendResult.isOK()) {
-                    Logger.getLogger(NoTimeoutEndpointResultByHandler.class.getName()).log(Level.SEVERE, "Result is not OK.");
+                    Logger.getLogger(NoTimeoutEndpointResultByHandler.class.getName())
+                          .log(Level.SEVERE, "Result is not OK.");
                     timeoutRaised = true;
                 }
             }

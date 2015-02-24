@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -73,26 +73,28 @@ public class TyrusExtensionTest {
 
     @Test
     public void params() {
-        final List<Extension.Parameter> parameters = new ArrayList<Extension.Parameter>() {{
-            add(new Extension.Parameter() {
-                @Override
-                public String getName() {
-                    return "Quote";
-                }
+        final List<Extension.Parameter> parameters = new ArrayList<Extension.Parameter>() {
+            {
+                add(new Extension.Parameter() {
+                    @Override
+                    public String getName() {
+                        return "Quote";
+                    }
 
-                @Override
-                public String getValue() {
-                    return "Mmm. Lost a planet, Master Obi-Wan has. How embarrassing. How embarrassing.";
-                }
+                    @Override
+                    public String getValue() {
+                        return "Mmm. Lost a planet, Master Obi-Wan has. How embarrassing. How embarrassing.";
+                    }
+                });
             }
-            );
-        }};
+        };
         final TyrusExtension test = new TyrusExtension("test", parameters);
 
         assertNotNull(test.getParameters());
 
         assertEquals("Quote", test.getParameters().get(0).getName());
-        assertEquals("Mmm. Lost a planet, Master Obi-Wan has. How embarrassing. How embarrassing.", test.getParameters().get(0).getValue());
+        assertEquals("Mmm. Lost a planet, Master Obi-Wan has. How embarrassing. How embarrassing.", test
+                .getParameters().get(0).getValue());
     }
 
     @Test
@@ -118,7 +120,8 @@ public class TyrusExtensionTest {
 
     @Test
     public void error4() {
-        final List<Extension> extensions = TyrusExtension.fromHeaders(Arrays.asList("ext1,param=value,ext2;param=value"));
+        final List<Extension> extensions = TyrusExtension.fromHeaders(
+                Arrays.asList("ext1,param=value,ext2;param=value"));
 
         assertEquals(2, extensions.size());
         assertEquals("ext1", extensions.get(0).getName());
@@ -141,7 +144,8 @@ public class TyrusExtensionTest {
 
     @Test
     public void testParseHeaders2() {
-        final List<Extension> extensions = TyrusExtension.fromHeaders(Arrays.asList("ext1;param=value,ext2;param=value"));
+        final List<Extension> extensions = TyrusExtension.fromHeaders(
+                Arrays.asList("ext1;param=value,ext2;param=value"));
 
         assertEquals(2, extensions.size());
         assertEquals("ext1", extensions.get(0).getName());
@@ -157,7 +161,8 @@ public class TyrusExtensionTest {
 
     @Test
     public void testParseHeaders3() {
-        final List<Extension> extensions = TyrusExtension.fromHeaders(Arrays.asList("ext1;param=value", "ext2;param=value"));
+        final List<Extension> extensions = TyrusExtension.fromHeaders(
+                Arrays.asList("ext1;param=value", "ext2;param=value"));
 
         assertEquals(2, extensions.size());
         assertEquals("ext1", extensions.get(0).getName());
@@ -183,7 +188,8 @@ public class TyrusExtensionTest {
 
     @Test
     public void testParseHeadersQuoted2() {
-        final List<Extension> extensions = TyrusExtension.fromHeaders(Arrays.asList("ext1;param=\"  value  \",ext2;param=\"  value \\\" \""));
+        final List<Extension> extensions = TyrusExtension.fromHeaders(
+                Arrays.asList("ext1;param=\"  value  \",ext2;param=\"  value \\\" \""));
 
         assertEquals(2, extensions.size());
         assertEquals("ext1", extensions.get(0).getName());
@@ -198,7 +204,8 @@ public class TyrusExtensionTest {
 
     @Test
     public void testParseHeadersQuoted3() {
-        final List<Extension> extensions = TyrusExtension.fromHeaders(Arrays.asList("ext1;param=\"  value  \"", "ext2;param=\"  value \\\\ \""));
+        final List<Extension> extensions = TyrusExtension.fromHeaders(
+                Arrays.asList("ext1;param=\"  value  \"", "ext2;param=\"  value \\\\ \""));
 
         assertEquals(2, extensions.size());
         assertEquals("ext1", extensions.get(0).getName());

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -118,24 +118,26 @@ public class DynamicDeployTest extends TestContainer {
         final CountDownLatch messageLatch = new CountDownLatch(1);
 
         final ClientManager client = createClient();
-        client.connectToServer(new Endpoint() {
-            @Override
-            public void onOpen(Session session, EndpointConfig EndpointConfig) {
-                try {
-                    session.addMessageHandler(new MessageHandler.Whole<String>() {
-                        @Override
-                        public void onMessage(String message) {
-                            assertEquals(message, "Do or do not, there is no try.");
-                            messageLatch.countDown();
-                        }
-                    });
+        client.connectToServer(
+                new Endpoint() {
+                    @Override
+                    public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                        try {
+                            session.addMessageHandler(new MessageHandler.Whole<String>() {
+                                @Override
+                                public void onMessage(String message) {
+                                    assertEquals(message, "Do or do not, there is no try.");
+                                    messageLatch.countDown();
+                                }
+                            });
 
-                    session.getBasicRemote().sendText("Do or do not, there is no try.");
-                } catch (IOException e) {
-                    // do nothing
-                }
-            }
-        }, ClientEndpointConfig.Builder.create().build(), getURI(MyServletContextListenerAnnotated.class.getAnnotation(ServerEndpoint.class).value()));
+                            session.getBasicRemote().sendText("Do or do not, there is no try.");
+                        } catch (IOException e) {
+                            // do nothing
+                        }
+                    }
+                }, ClientEndpointConfig.Builder.create().build(),
+                getURI(MyServletContextListenerAnnotated.class.getAnnotation(ServerEndpoint.class).value()));
 
         messageLatch.await(1, TimeUnit.SECONDS);
         assertEquals(0, messageLatch.getCount());
@@ -151,31 +153,32 @@ public class DynamicDeployTest extends TestContainer {
         final CountDownLatch messageLatch = new CountDownLatch(1);
 
         final ClientManager client = createClient();
-        client.connectToServer(new Endpoint() {
-            @Override
-            public void onOpen(Session session, EndpointConfig EndpointConfig) {
-                try {
-                    session.addMessageHandler(new MessageHandler.Whole<String>() {
-                        @Override
-                        public void onMessage(String message) {
-                            assertEquals(message, "Do or do not, there is no try.");
-                            messageLatch.countDown();
+        client.connectToServer(
+                new Endpoint() {
+                    @Override
+                    public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                        try {
+                            session.addMessageHandler(new MessageHandler.Whole<String>() {
+                                @Override
+                                public void onMessage(String message) {
+                                    assertEquals(message, "Do or do not, there is no try.");
+                                    messageLatch.countDown();
+                                }
+                            });
+
+                            // TODO: remove when TYRUS-108 is resolved.
+                            try {
+                                Thread.sleep(100);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+
+                            session.getBasicRemote().sendText("Do or do not, there is no try.");
+                        } catch (IOException e) {
+                            // do nothing
                         }
-                    });
-
-                    // TODO: remove when TYRUS-108 is resolved.
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
                     }
-
-                    session.getBasicRemote().sendText("Do or do not, there is no try.");
-                } catch (IOException e) {
-                    // do nothing
-                }
-            }
-        }, ClientEndpointConfig.Builder.create().build(), getURI("/programmatic"));
+                }, ClientEndpointConfig.Builder.create().build(), getURI("/programmatic"));
 
         messageLatch.await(100, TimeUnit.SECONDS);
         assertEquals(0, messageLatch.getCount());

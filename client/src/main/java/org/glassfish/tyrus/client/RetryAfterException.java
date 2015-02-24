@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -47,8 +47,9 @@ import org.glassfish.tyrus.core.HandshakeException;
 import org.glassfish.tyrus.spi.UpgradeResponse;
 
 /**
- * This exception is set as a cause of {@link DeploymentException} thrown from {@link WebSocketContainer}.connectToServer(...)
- * when HTTP response status code {@code 503 - Service Unavailable} is received.
+ * This exception is set as a cause of {@link DeploymentException} thrown from {@link
+ * WebSocketContainer}.connectToServer(...) when HTTP response status code {@code 503 - Service Unavailable} is
+ * received.
  *
  * @author Ondrej Kosatka (ondrej.kosatka at oracle.com)
  * @see ClientManager.ReconnectHandler
@@ -61,7 +62,8 @@ public class RetryAfterException extends HandshakeException {
     /**
      * Constructor.
      *
-     * @param message the detail message. The detail message is saved for later retrieval by the {@link #getMessage()} method.
+     * @param message the detail message. The detail message is saved for later retrieval by the {@link #getMessage()}
+     *                method.
      * @param delay   a delay to the time received handshake response in  header.
      */
     public RetryAfterException(String message, Long delay) {

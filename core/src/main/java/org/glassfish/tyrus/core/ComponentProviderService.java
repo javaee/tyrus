@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -57,7 +57,8 @@ import javax.websocket.Session;
 import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 
 /**
- * Provides an instance of component. Searches for registered {@link ComponentProvider}s which are used to provide instances.
+ * Provides an instance of component. Searches for registered {@link ComponentProvider}s which are used to provide
+ * instances.
  *
  * @author Martin Matula (martin.matula at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
@@ -100,7 +101,8 @@ public class ComponentProviderService {
      * @return initialized {@link ComponentProviderService}.
      */
     public static ComponentProviderService createClient() {
-        return new ComponentProviderService(Collections.unmodifiableList(Arrays.<ComponentProvider>asList(new DefaultComponentProvider())));
+        return new ComponentProviderService(
+                Collections.unmodifiableList(Arrays.<ComponentProvider>asList(new DefaultComponentProvider())));
     }
 
     private ComponentProviderService(List<ComponentProvider> providers) {
@@ -152,16 +154,19 @@ public class ComponentProviderService {
                 sessionToObject.put(session, hashMap);
             }
         } catch (Exception e) {
-            collector.addException(new DeploymentException(LocalizationMessages.COMPONENT_PROVIDER_THREW_EXCEPTION(c.getName()), e));
+            collector.addException(
+                    new DeploymentException(LocalizationMessages.COMPONENT_PROVIDER_THREW_EXCEPTION(c.getName()), e));
         }
 
         return loaded;
     }
 
     /**
-     * Provide an instance of {@link javax.websocket.Encoder} or {@link javax.websocket.Decoder} descendant which is coupled to {@link Session}.
+     * Provide an instance of {@link javax.websocket.Encoder} or {@link javax.websocket.Decoder} descendant which is
+     * coupled to {@link Session}.
      * </p>
-     * The first time the method is called the provider creates an instance, calls {@link javax.websocket.Encoder#init(javax.websocket.EndpointConfig)}
+     * The first time the method is called the provider creates an instance, calls {@link
+     * javax.websocket.Encoder#init(javax.websocket.EndpointConfig)}
      * or {@link javax.websocket.Decoder#init(javax.websocket.EndpointConfig)} and caches it.
      * Next time the method is called the cached instance is returned.
      *
@@ -173,7 +178,8 @@ public class ComponentProviderService {
      * @param <T>            type of the provided instance.
      * @return instance
      */
-    public <T> Object getCoderInstance(Class<T> c, Session session, EndpointConfig endpointConfig, ErrorCollector collector) {
+    public <T> Object getCoderInstance(Class<T> c, Session session, EndpointConfig endpointConfig,
+                                       ErrorCollector collector) {
         Object loaded = null;
 
         final Map<Class<?>, Object> classObjectMap = sessionToObject.get(session);
@@ -210,7 +216,8 @@ public class ComponentProviderService {
                 }
             }
         } catch (InstantiationException e) {
-            collector.addException(new DeploymentException(LocalizationMessages.COMPONENT_PROVIDER_THREW_EXCEPTION(c.getName()), e));
+            collector.addException(
+                    new DeploymentException(LocalizationMessages.COMPONENT_PROVIDER_THREW_EXCEPTION(c.getName()), e));
         }
 
         return loaded;

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -49,19 +49,24 @@ import javax.websocket.server.ServerEndpointConfig;
  */
 public class SingletonConfigurator extends ServerEndpointConfig.Configurator {
 
-    private static final NoTimeoutEndpointResultByFuture NO_TIMEOUT_ENDPOINT_RESULT_BY_FUTURE = new NoTimeoutEndpointResultByFuture();
-    private static final NoTimeoutEndpointResultByHandler NO_TIMEOUT_ENDPOINT_RESULT_BY_HANDLER = new NoTimeoutEndpointResultByHandler();
-    private static final TimeoutEndpointResultByFuture TIMEOUT_ENDPOINT_RESULT_BY_FUTURE = new TimeoutEndpointResultByFuture();
-    private static final TimeoutEndpointResultByHandler TIMEOUT_ENDPOINT_RESULT_BY_HANDLER = new TimeoutEndpointResultByHandler();
+    private static final NoTimeoutEndpointResultByFuture NO_TIMEOUT_ENDPOINT_RESULT_BY_FUTURE =
+            new NoTimeoutEndpointResultByFuture();
+    private static final NoTimeoutEndpointResultByHandler NO_TIMEOUT_ENDPOINT_RESULT_BY_HANDLER =
+            new NoTimeoutEndpointResultByHandler();
+    private static final TimeoutEndpointResultByFuture TIMEOUT_ENDPOINT_RESULT_BY_FUTURE =
+            new TimeoutEndpointResultByFuture();
+    private static final TimeoutEndpointResultByHandler TIMEOUT_ENDPOINT_RESULT_BY_HANDLER =
+            new TimeoutEndpointResultByHandler();
 
 
-    private static final Map<Class<?>, Object> instanceMap = new HashMap<Class<?>, Object>() {{
-
-        put(NoTimeoutEndpointResultByFuture.class, NO_TIMEOUT_ENDPOINT_RESULT_BY_FUTURE);
-        put(NoTimeoutEndpointResultByHandler.class, NO_TIMEOUT_ENDPOINT_RESULT_BY_HANDLER);
-        put(TimeoutEndpointResultByFuture.class, TIMEOUT_ENDPOINT_RESULT_BY_FUTURE);
-        put(TimeoutEndpointResultByHandler.class, TIMEOUT_ENDPOINT_RESULT_BY_HANDLER);
-    }};
+    private static final Map<Class<?>, Object> instanceMap = new HashMap<Class<?>, Object>() {
+        {
+            put(NoTimeoutEndpointResultByFuture.class, NO_TIMEOUT_ENDPOINT_RESULT_BY_FUTURE);
+            put(NoTimeoutEndpointResultByHandler.class, NO_TIMEOUT_ENDPOINT_RESULT_BY_HANDLER);
+            put(TimeoutEndpointResultByFuture.class, TIMEOUT_ENDPOINT_RESULT_BY_FUTURE);
+            put(TimeoutEndpointResultByHandler.class, TIMEOUT_ENDPOINT_RESULT_BY_HANDLER);
+        }
+    };
 
     @Override
     public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
@@ -69,6 +74,7 @@ public class SingletonConfigurator extends ServerEndpointConfig.Configurator {
     }
 
     public static <T> T getEndpoint(Class<T> endpointClass) {
+        //noinspection unchecked
         return (T) instanceMap.get(endpointClass);
     }
 }

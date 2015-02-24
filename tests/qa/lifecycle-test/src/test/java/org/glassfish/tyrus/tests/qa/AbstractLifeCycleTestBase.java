@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -105,7 +105,8 @@ public abstract class AbstractLifeCycleTestBase {
         return deployClient(client, connectURI, ClientEndpointConfig.Builder.create().build());
     }
 
-    protected Session deployClient(Class client, URI connectURI, ClientEndpointConfig cec) throws DeploymentException, IOException {
+    protected Session deployClient(Class client, URI connectURI, ClientEndpointConfig cec) throws DeploymentException,
+            IOException {
         WebSocketContainer wsc = ContainerProvider.getWebSocketContainer();
         logger.log(Level.INFO, "deployClient: registering client: {0}", client);
         logger.log(Level.INFO, "deployClient: connectTo: {0}", connectURI);
@@ -134,20 +135,25 @@ public abstract class AbstractLifeCycleTestBase {
     }
 
     protected void lifeCycle(Class serverHandler, Class clientHandler) throws DeploymentException, IOException {
-        lifeCycle(serverHandler, clientHandler, SessionController.SessionState.FINISHED_SERVER.getMessage(), testConf.getURI(), null);
+        lifeCycle(serverHandler, clientHandler, SessionController.SessionState.FINISHED_SERVER.getMessage(),
+                  testConf.getURI(), null);
     }
 
-    protected void lifeCycle(Class serverHandler, Class clientHandler, ClientEndpointConfig cec) throws DeploymentException, IOException {
-        lifeCycle(serverHandler, clientHandler, SessionController.SessionState.FINISHED_SERVER.getMessage(), testConf.getURI(), cec);
+    protected void lifeCycle(Class serverHandler, Class clientHandler, ClientEndpointConfig cec) throws
+            DeploymentException, IOException {
+        lifeCycle(serverHandler, clientHandler, SessionController.SessionState.FINISHED_SERVER.getMessage(),
+                  testConf.getURI(), cec);
     }
 
-    protected void lifeCycle(Class serverHandler, Class clientHandler, String state, URI clientUri, ClientEndpointConfig cec) throws DeploymentException, IOException {
+    protected void lifeCycle(Class serverHandler, Class clientHandler, String state, URI clientUri,
+                             ClientEndpointConfig cec) throws DeploymentException, IOException {
         Set<String> states = new HashSet<String>();
         states.add(state);
         lifeCycle(serverHandler, clientHandler, states, clientUri, cec);
     }
 
-    protected void lifeCycle(Class serverHandler, Class clientHandler, Set state, URI clientUri, ClientEndpointConfig cec) throws DeploymentException, IOException {
+    protected void lifeCycle(Class serverHandler, Class clientHandler, Set state, URI clientUri,
+                             ClientEndpointConfig cec) throws DeploymentException, IOException {
         final CountDownLatch stopConversation = new CountDownLatch(1);
         try {
             deployServer(serverHandler);
@@ -187,10 +193,9 @@ public abstract class AbstractLifeCycleTestBase {
         }
 
         /*
-         private void lifeCycleAnnotated(Class serverHandler, Class clientHandler) throws DeploymentException, InterruptedException, IOException {
+         private void lifeCycleAnnotated(Class serverHandler, Class clientHandler) throws DeploymentException,
+         InterruptedException, IOException {
     
-    
-
          ServerAnnotatedConfiguration.registerServer("annotatedLifeCycle", serverHandler);
          ServerAnnotatedConfiguration.registerSessionController("annotatedSessionController", sc);
          tyrus.registerEndpoint(ServerAnnotatedConfiguration.class);
@@ -202,7 +207,8 @@ public abstract class AbstractLifeCycleTestBase {
          testConf.getURI());
          Thread.sleep(10000);
          tyrus.stopServer(tyrusServer);
-         Assert.assertEquals(sessionName + ": session lifecycle finished", SessionController.SessionState.FINISHED_SERVER.getMessage(), sc.getState());
+         Assert.assertEquals(sessionName + ": session lifecycle finished", SessionController.SessionState
+         .FINISHED_SERVER.getMessage(), sc.getState());
          }
          */
     }
@@ -225,7 +231,7 @@ public abstract class AbstractLifeCycleTestBase {
             e.printStackTrace();
         }
         if (AppConfig.isGlassFishContainer()) {
-            if(exThrown instanceof DeploymentException) {
+            if (exThrown instanceof DeploymentException) {
                 logger.log(Level.INFO, "The DeploymentExcetion looks good here");
             }
         } else {

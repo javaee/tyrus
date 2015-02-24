@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -49,8 +49,10 @@ import org.glassfish.tyrus.core.HandshakeException;
 import org.glassfish.tyrus.spi.UpgradeResponse;
 
 /**
- * This exception is set as a cause of {@link DeploymentException} thrown from {@link WebSocketContainer}.connectToServer(...)
- * when any of the Redirect HTTP response status codes (300, 301, 302, 303, 307, 308) is received as a handshake response and:
+ * This exception is set as a cause of {@link DeploymentException} thrown from {@link
+ * WebSocketContainer}.connectToServer(...)
+ * when any of the Redirect HTTP response status codes (300, 301, 302, 303, 307, 308) is received as a handshake
+ * response and:
  * <ul>
  * <li>
  * {@link ClientProperties#REDIRECT_ENABLED} is not enabled
@@ -78,8 +80,8 @@ public class RedirectException extends HandshakeException {
      * Constructor.
      *
      * @param httpStatusCode http status code to be set to response.
-     * @param message        the detail message. The detail message is saved for
-     *                       later retrieval by the {@link #getMessage()} method.
+     * @param message        the detail message. The detail message is saved for later retrieval by the {@link
+     *                       #getMessage()} method.
      */
     public RedirectException(int httpStatusCode, String message) {
         super(httpStatusCode, message);

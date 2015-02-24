@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -56,6 +56,7 @@ public class MaxMessageSizeOnClientTest extends AbstractLifeCycleTestBase {
     @Test
     public void testMaxMessageSizeOnClient() throws DeploymentException, IOException {
         IssueManipulator.disableAll();
-        lifeCycle(MaxMessageSizeOnClient.Server.class, MaxMessageSizeOnClient.Client.class, SessionController.SessionState.MESSAGE.getMessage(), testConf.getURI(), null);
+        lifeCycle(MaxMessageSizeOnClient.Server.class, MaxMessageSizeOnClient.Client.class,
+                  SessionController.SessionState.MESSAGE.getMessage(), testConf.getURI(), null);
     }
 }

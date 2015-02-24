@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -63,8 +63,8 @@ public class HandshakeException extends Exception {
      * Constructor.
      *
      * @param httpStatusCode http status code to be set to response.
-     * @param message        the detail message. The detail message is saved for
-     *                       later retrieval by the {@link #getMessage()} method.
+     * @param message        the detail message. The detail message is saved for later retrieval by the {@link
+     *                       #getMessage()} method.
      */
     public HandshakeException(int httpStatusCode, String message) {
         super(message);

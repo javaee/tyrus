@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -78,7 +78,8 @@ public final class Handshake {
 
     /**
      * @see #createClientHandshake(org.glassfish.tyrus.core.RequestContext)
-     * @see #createServerHandshake(org.glassfish.tyrus.spi.UpgradeRequest, org.glassfish.tyrus.core.extension.ExtendedExtension.ExtensionContext)
+     * @see #createServerHandshake(org.glassfish.tyrus.spi.UpgradeRequest,
+     * org.glassfish.tyrus.core.extension.ExtendedExtension.ExtensionContext)
      */
     private Handshake() {
     }
@@ -143,17 +144,18 @@ public final class Handshake {
 
         if (!subProtocols.isEmpty()) {
             requestHeaders.put(HandshakeRequest.SEC_WEBSOCKET_PROTOCOL,
-                    Collections.singletonList(Utils.getHeaderFromList(subProtocols, null)));
+                               Collections.singletonList(Utils.getHeaderFromList(subProtocols, null)));
         }
 
         if (!extensions.isEmpty()) {
             requestHeaders.put(HandshakeRequest.SEC_WEBSOCKET_EXTENSIONS,
-                    Collections.singletonList(Utils.getHeaderFromList(extensions, new Utils.Stringifier<Extension>() {
-                        @Override
-                        String toString(Extension extension) {
-                            return TyrusExtension.toString(extension);
-                        }
-                    }))
+                               Collections.singletonList(
+                                       Utils.getHeaderFromList(extensions, new Utils.Stringifier<Extension>() {
+                                           @Override
+                                           String toString(Extension extension) {
+                                               return TyrusExtension.toString(extension);
+                                           }
+                                       }))
             );
         }
 
@@ -168,14 +170,18 @@ public final class Handshake {
      */
     public void validateServerResponse(UpgradeResponse response) throws HandshakeException {
         if (RESPONSE_CODE_VALUE != response.getStatus()) {
-            throw new HandshakeException(response.getStatus(), LocalizationMessages.INVALID_RESPONSE_CODE(RESPONSE_CODE_VALUE, response.getStatus()));
+            throw new HandshakeException(response.getStatus(), LocalizationMessages
+                    .INVALID_RESPONSE_CODE(RESPONSE_CODE_VALUE, response.getStatus()));
         }
 
-        checkForHeader(response.getFirstHeaderValue(UpgradeRequest.UPGRADE), UpgradeRequest.UPGRADE, UpgradeRequest.WEBSOCKET);
-        checkForHeader(response.getFirstHeaderValue(UpgradeRequest.CONNECTION), UpgradeRequest.CONNECTION, UpgradeRequest.UPGRADE);
+        checkForHeader(response.getFirstHeaderValue(UpgradeRequest.UPGRADE), UpgradeRequest.UPGRADE,
+                       UpgradeRequest.WEBSOCKET);
+        checkForHeader(response.getFirstHeaderValue(UpgradeRequest.CONNECTION), UpgradeRequest.CONNECTION,
+                       UpgradeRequest.UPGRADE);
 
 //        if (!getSubProtocols().isEmpty()) {
-//            checkForHeader(response.getHeaders(), WebSocketEngine.SEC_WS_PROTOCOL_HEADER, WebSocketEngine.SEC_WS_PROTOCOL_HEADER);
+//            checkForHeader(response.getHeaders(), WebSocketEngine.SEC_WS_PROTOCOL_HEADER,
+//                           WebSocketEngine.SEC_WS_PROTOCOL_HEADER);
 //        }
 
         secKey.validateServerKey(response.getFirstHeaderValue(HandshakeResponse.SEC_WEBSOCKET_ACCEPT));
@@ -214,7 +220,9 @@ public final class Handshake {
      * @return created handshake.
      * @throws HandshakeException when there is problem with received {@link UpgradeRequest}.
      */
-    static Handshake createServerHandshake(UpgradeRequest request, ExtendedExtension.ExtensionContext extensionContext) throws HandshakeException {
+    static Handshake createServerHandshake(UpgradeRequest request,
+                                           ExtendedExtension.ExtensionContext extensionContext) throws
+            HandshakeException {
         final Handshake handshake = new Handshake();
 
         handshake.incomingRequest = request;
@@ -224,7 +232,8 @@ public final class Handshake {
 
         // TODO - trim?
         final String protocolHeader = request.getHeader(HandshakeRequest.SEC_WEBSOCKET_PROTOCOL);
-        handshake.subProtocols = (protocolHeader == null ? Collections.<String>emptyList() : Arrays.asList(protocolHeader.split(",")));
+        handshake.subProtocols =
+                (protocolHeader == null ? Collections.<String>emptyList() : Arrays.asList(protocolHeader.split(",")));
 
         if (request.getHeader(UpgradeRequest.HOST) == null) {
             throw new HandshakeException(LocalizationMessages.HEADERS_MISSING());
@@ -251,7 +260,8 @@ public final class Handshake {
         return handshake;
     }
 
-    private static void checkForHeader(String currentValue, String header, String validValue) throws HandshakeException {
+    private static void checkForHeader(String currentValue, String header, String validValue) throws
+            HandshakeException {
         validate(header, validValue, currentValue);
     }
 
@@ -270,7 +280,8 @@ public final class Handshake {
     }
 
     // server side
-    List<Extension> respond(UpgradeRequest request, UpgradeResponse response, TyrusEndpointWrapper endpointWrapper/*, TyrusUpgradeResponse response*/) {
+    List<Extension> respond(UpgradeRequest request, UpgradeResponse response, TyrusEndpointWrapper endpointWrapper
+    /*,TyrusUpgradeResponse response*/) {
         response.setStatus(101);
 
         response.getHeaders().put(UpgradeRequest.UPGRADE, Arrays.asList(UpgradeRequest.WEBSOCKET));
@@ -279,7 +290,8 @@ public final class Handshake {
         response.getHeaders().put(HandshakeResponse.SEC_WEBSOCKET_ACCEPT, Arrays.asList(secKey.getSecKey()));
 
         final List<String> protocols = request.getHeaders().get(HandshakeRequest.SEC_WEBSOCKET_PROTOCOL);
-        final List<Extension> extensions = TyrusExtension.fromString(request.getHeaders().get(HandshakeRequest.SEC_WEBSOCKET_EXTENSIONS));
+        final List<Extension> extensions =
+                TyrusExtension.fromString(request.getHeaders().get(HandshakeRequest.SEC_WEBSOCKET_EXTENSIONS));
 
         if (subProtocols != null && !subProtocols.isEmpty()) {
             String protocol = endpointWrapper.getNegotiatedProtocol(protocols);
@@ -290,29 +302,33 @@ public final class Handshake {
 
         final List<Extension> negotiatedExtensions = endpointWrapper.getNegotiatedExtensions(extensions);
         if (!negotiatedExtensions.isEmpty()) {
-            response.getHeaders().put(HandshakeRequest.SEC_WEBSOCKET_EXTENSIONS, Utils.getStringList(negotiatedExtensions, new Utils.Stringifier<Extension>() {
-                @Override
-                String toString(final Extension extension) {
-                    if (extension instanceof ExtendedExtension) {
-                        return TyrusExtension.toString(new Extension() {
-                            @Override
-                            public String getName() {
-                                return extension.getName();
-                            }
+            response.getHeaders().put(
+                    HandshakeRequest.SEC_WEBSOCKET_EXTENSIONS,
+                    Utils.getStringList(negotiatedExtensions, new Utils.Stringifier<Extension>() {
+                        @Override
+                        String toString(final Extension extension) {
+                            if (extension instanceof ExtendedExtension) {
+                                return TyrusExtension.toString(new Extension() {
+                                    @Override
+                                    public String getName() {
+                                        return extension.getName();
+                                    }
 
-                            @Override
-                            public List<Parameter> getParameters() {
-                                // TODO! XXX FIXME
-                                // null is there because extension is wrapped and the original parameters are stored
-                                // in the wrapped instance.
-                                return ((ExtendedExtension) extension).onExtensionNegotiation(extensionContext, null);
+                                    @Override
+                                    public List<Parameter> getParameters() {
+                                        // TODO! XXX FIXME
+                                        // null is there because extension is wrapped and the
+                                        // original parameters are stored
+                                        // in the wrapped instance.
+                                        return ((ExtendedExtension) extension)
+                                                .onExtensionNegotiation(extensionContext, null);
+                                    }
+                                });
+                            } else {
+                                return TyrusExtension.toString(extension);
                             }
-                        });
-                    } else {
-                        return TyrusExtension.toString(extension);
-                    }
-                }
-            }));
+                        }
+                    }));
         }
         endpointWrapper.onHandShakeResponse(incomingRequest, response);
 

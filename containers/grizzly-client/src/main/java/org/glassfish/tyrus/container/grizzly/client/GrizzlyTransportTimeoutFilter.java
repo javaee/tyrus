@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -63,19 +63,20 @@ class GrizzlyTransportTimeoutFilter extends BaseFilter {
 
     private static final Logger LOGGER = Logger.getLogger(GrizzlyTransportTimeoutFilter.class.getName());
     private static final AtomicInteger connectionCounter = new AtomicInteger(0);
-    private static final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
-        @Override
-        public Thread newThread(Runnable r) {
-            Thread thread = new Thread(r);
-            thread.setName("tyrus-grizzly-container-idle-timeout");
-            thread.setDaemon(true);
-            return thread;
-        }
-    });
+    private static final ScheduledExecutorService executorService =
+            Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
+                @Override
+                public Thread newThread(Runnable r) {
+                    Thread thread = new Thread(r);
+                    thread.setName("tyrus-grizzly-container-idle-timeout");
+                    thread.setDaemon(true);
+                    return thread;
+                }
+            });
 
     /**
-     * Should be updated whenever you don't want to the container to be stopped. (lastAccessed + timeout) is used
-     * for evaluating timeout condition when there are no ongoing connections.
+     * Should be updated whenever you don't want to the container to be stopped. (lastAccessed + timeout) is used for
+     * evaluating timeout condition when there are no ongoing connections.
      */
     private static volatile long lastAccessed;
     private static volatile boolean closed;
@@ -109,7 +110,8 @@ class GrizzlyTransportTimeoutFilter extends BaseFilter {
 
         if (connectionCount == 0 && timeoutTask == null) {
             LOGGER.log(Level.FINER, "Scheduling IdleTimeoutTransportTask: " + timeout + " seconds.");
-            timeoutTask = executorService.schedule(new IdleTimeoutTransportTask(connectionCounter), timeout, TimeUnit.SECONDS);
+            timeoutTask = executorService
+                    .schedule(new IdleTimeoutTransportTask(connectionCounter), timeout, TimeUnit.SECONDS);
         }
 
         return super.handleClose(ctx);
@@ -135,7 +137,8 @@ class GrizzlyTransportTimeoutFilter extends BaseFilter {
                     final long delay = (lastAccessed + (timeout * 1000)) - currentTime;
                     LOGGER.log(Level.FINER, "Scheduling IdleTimeoutTransportTask: " + delay / 1000 + " seconds.");
 
-                    timeoutTask = executorService.schedule(new IdleTimeoutTransportTask(connectionCounter), delay, TimeUnit.MILLISECONDS);
+                    timeoutTask = executorService
+                            .schedule(new IdleTimeoutTransportTask(connectionCounter), delay, TimeUnit.MILLISECONDS);
                 }
             }
         }

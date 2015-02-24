@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -66,7 +66,8 @@ import static junit.framework.Assert.fail;
 /**
  * Tests that the JDK client thread pool is limited properly.
  * <p/>
- * It blocks client thread in @OnMessage and tests that the number of delivered messages equals maximal thread pool size.
+ * It blocks client thread in @OnMessage and tests that the number of delivered messages equals maximal thread pool
+ * size.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
@@ -102,7 +103,8 @@ public class ThreadPoolSizeTest extends TestContainer {
             server = startServer(AnnotatedServerEndpoint.class);
 
             client.getProperties().put(ClientProperties.SHARED_CONTAINER_IDLE_TIMEOUT, 1);
-            BlockingClientEndpoint clientEndpoint = new BlockingClientEndpoint(messagesCounter, messagesLatch, blockingLatch, sessionCloseLatch);
+            BlockingClientEndpoint clientEndpoint =
+                    new BlockingClientEndpoint(messagesCounter, messagesLatch, blockingLatch, sessionCloseLatch);
 
             for (int i = 0; i < maxThreadPoolSize + 10; i++) {
                 Session session = client.connectToServer(clientEndpoint, getURI(AnnotatedServerEndpoint.class));
@@ -154,7 +156,8 @@ public class ThreadPoolSizeTest extends TestContainer {
         private final CountDownLatch blockingLatch;
         private final CountDownLatch sessionCloseLatch;
 
-        BlockingClientEndpoint(AtomicInteger messagesCounter, CountDownLatch messagesLatch, CountDownLatch blockingLatch, CountDownLatch sessionCloseLatch) {
+        BlockingClientEndpoint(AtomicInteger messagesCounter, CountDownLatch messagesLatch,
+                               CountDownLatch blockingLatch, CountDownLatch sessionCloseLatch) {
             this.messagesCounter = messagesCounter;
             this.messagesLatch = messagesLatch;
             this.blockingLatch = blockingLatch;

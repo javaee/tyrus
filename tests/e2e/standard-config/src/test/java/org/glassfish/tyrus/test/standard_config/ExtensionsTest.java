@@ -1,7 +1,7 @@
 /*
 * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
 *
-* Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+* Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
 *
 * The contents of this file are subject to the terms of either the GNU
 * General Public License Version 2 only ("GPL") or the Common Development
@@ -108,29 +108,33 @@ public class ExtensionsTest extends TestContainer {
         Server server = startServer(ExtensionsTestEndpoint.class);
 
         try {
-            final List<Extension.Parameter> list1 = new ArrayList<Extension.Parameter>() {{
-                add(new TyrusExtension.TyrusParameter("prop1", "val1"));
-                add(new TyrusExtension.TyrusParameter("prop2", "val2"));
-                add(new TyrusExtension.TyrusParameter("prop3", "val3"));
-            }};
+            final List<Extension.Parameter> list1 = new ArrayList<Extension.Parameter>() {
+                {
+                    add(new TyrusExtension.TyrusParameter("prop1", "val1"));
+                    add(new TyrusExtension.TyrusParameter("prop2", "val2"));
+                    add(new TyrusExtension.TyrusParameter("prop3", "val3"));
+                }
+            };
 
-            final List<Extension.Parameter> list2 = new ArrayList<Extension.Parameter>() {{
-                add(new TyrusExtension.TyrusParameter("prop1", "val1"));
-                add(new TyrusExtension.TyrusParameter("prop2", "val2"));
-                add(new TyrusExtension.TyrusParameter("prop3", "val3"));
-            }};
+            final List<Extension.Parameter> list2 = new ArrayList<Extension.Parameter>() {
+                {
+                    add(new TyrusExtension.TyrusParameter("prop1", "val1"));
+                    add(new TyrusExtension.TyrusParameter("prop2", "val2"));
+                    add(new TyrusExtension.TyrusParameter("prop3", "val3"));
+                }
+            };
 
             ArrayList<Extension> extensions = new ArrayList<Extension>();
             extensions.add(new TyrusExtension("ext1", list1));
             extensions.add(new TyrusExtension("ext2", list2));
 
-            final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create().extensions(extensions).build();
+            final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create().extensions
+                    (extensions).build();
 
             final CountDownLatch messageLatch = new CountDownLatch(4);
             ClientManager client = createClient();
             ExtensionsClientEndpoint clientEndpoint = new ExtensionsClientEndpoint(messageLatch);
-            client.connectToServer(clientEndpoint, clientConfiguration,
-                    getURI(ExtensionsTestEndpoint.class));
+            client.connectToServer(clientEndpoint, clientConfiguration, getURI(ExtensionsTestEndpoint.class));
 
             messageLatch.await(1, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
@@ -178,12 +182,14 @@ public class ExtensionsTest extends TestContainer {
         }
     }
 
-    @ServerEndpoint(value = "/multipleRequestExtensionsTest", configurator = MultipleRequestExtensionsConfigurator.class)
+    @ServerEndpoint(value = "/multipleRequestExtensionsTest", configurator = MultipleRequestExtensionsConfigurator
+            .class)
     public static class MultipleRequestExtensionsTestEndpoint {
         @OnOpen
         public void onOpen(Session s) {
             final List<Extension> negotiatedExtensions = s.getNegotiatedExtensions();
-            if (negotiatedExtensions.size() == 1 && negotiatedExtensions.get(0).getName().equals(MULTIPLE_REQUEST_EXTENSION_NAME)) {
+            if (negotiatedExtensions.size() == 1 && negotiatedExtensions.get(0).getName().equals
+                    (MULTIPLE_REQUEST_EXTENSION_NAME)) {
                 try {
                     s.getBasicRemote().sendText(SENT_MESSAGE);
                 } catch (IOException e) {
@@ -200,9 +206,11 @@ public class ExtensionsTest extends TestContainer {
 
     public static class MultipleRequestExtensionsConfigurator extends ServerEndpointConfig.Configurator {
 
-        private static final List<Extension> installedExtensions = new ArrayList<Extension>() {{
-            add(new TyrusExtension(MULTIPLE_REQUEST_EXTENSION_NAME));
-        }};
+        private static final List<Extension> installedExtensions = new ArrayList<Extension>() {
+            {
+                add(new TyrusExtension(MULTIPLE_REQUEST_EXTENSION_NAME));
+            }
+        };
 
         @Override
         public List<Extension> getNegotiatedExtensions(List<Extension> installed, List<Extension> requested) {
@@ -215,25 +223,28 @@ public class ExtensionsTest extends TestContainer {
         Server server = startServer(MultipleRequestExtensionsTestEndpoint.class);
 
         // parameter list is not relevant for this testcase
-        final List<Extension.Parameter> parameterList = new ArrayList<Extension.Parameter>() {{
-            add(new TyrusExtension.TyrusParameter("prop1", "val1"));
-            add(new TyrusExtension.TyrusParameter("prop2", "val2"));
-            add(new TyrusExtension.TyrusParameter("prop3", "val3"));
-        }};
+        final List<Extension.Parameter> parameterList = new ArrayList<Extension.Parameter>() {
+            {
+                add(new TyrusExtension.TyrusParameter("prop1", "val1"));
+                add(new TyrusExtension.TyrusParameter("prop2", "val2"));
+                add(new TyrusExtension.TyrusParameter("prop3", "val3"));
+            }
+        };
 
         try {
             ArrayList<Extension> extensions = new ArrayList<Extension>();
             extensions.add(new TyrusExtension(MULTIPLE_REQUEST_EXTENSION_NAME, null));
             extensions.add(new TyrusExtension(MULTIPLE_REQUEST_EXTENSION_NAME, parameterList));
 
-            final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create().extensions(extensions).build();
+            final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create().extensions
+                    (extensions).build();
 
             ClientManager client = createClient();
             final CountDownLatch clientLatch = new CountDownLatch(2);
-            MultipleRequestExtensionsClientEndpoint clientEndpoint =
-                    new MultipleRequestExtensionsClientEndpoint(clientLatch);
-            client.connectToServer(clientEndpoint, clientConfiguration,
-                    getURI(MultipleRequestExtensionsTestEndpoint.class));
+            MultipleRequestExtensionsClientEndpoint clientEndpoint = new MultipleRequestExtensionsClientEndpoint
+                    (clientLatch);
+            client.connectToServer(clientEndpoint, clientConfiguration, getURI(MultipleRequestExtensionsTestEndpoint
+                                                                                       .class));
 
             clientLatch.await(1, TimeUnit.SECONDS);
             assertEquals(0, clientLatch.getCount());
@@ -263,7 +274,8 @@ public class ExtensionsTest extends TestContainer {
                     public void onMessage(String message) {
                         receivedMessage = message;
                         final List<Extension> negotiatedExtensions = session.getNegotiatedExtensions();
-                        if (negotiatedExtensions.size() == 1 && negotiatedExtensions.get(0).getName().equals(MULTIPLE_REQUEST_EXTENSION_NAME)) {
+                        if (negotiatedExtensions.size() == 1 && negotiatedExtensions.get(0).getName().equals
+                                (MULTIPLE_REQUEST_EXTENSION_NAME)) {
                             messageLatch.countDown();
                         }
                     }

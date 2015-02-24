@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 - 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -70,50 +70,60 @@ public class RemoteTest extends TestContainer {
 
     @Test
     public void testBooleanFAIL() throws DeploymentException {
-        testPojo(org.glassfish.tyrus.test.standard_config.bean.stin.BooleanBean.class, "/standardInputTypes/boolean", "String", "FAIL");
+        testPojo(org.glassfish.tyrus.test.standard_config.bean.stin.BooleanBean.class, "/standardInputTypes/boolean",
+                 "String", "FAIL");
     }
 
     @Test
     public void testBooleanPASS() throws DeploymentException {
-        testPojo(org.glassfish.tyrus.test.standard_config.bean.stin.BooleanBean.class, "/standardInputTypes/boolean", "true", "PASS");
+        testPojo(org.glassfish.tyrus.test.standard_config.bean.stin.BooleanBean.class, "/standardInputTypes/boolean",
+                 "true", "PASS");
     }
 
     @Test
     public void testCharFAIL() throws DeploymentException {
-        testPojo(org.glassfish.tyrus.test.standard_config.bean.stin.CharBean.class, "/standardInputTypes/char", "fasd", "FAIL");
+        testPojo(org.glassfish.tyrus.test.standard_config.bean.stin.CharBean.class, "/standardInputTypes/char", "fasd",
+                 "FAIL");
     }
 
     @Test
     public void testCharPASS() throws DeploymentException {
-        testPojo(org.glassfish.tyrus.test.standard_config.bean.stin.CharBean.class, "/standardInputTypes/char", "c", "PASS");
+        testPojo(org.glassfish.tyrus.test.standard_config.bean.stin.CharBean.class, "/standardInputTypes/char", "c",
+                 "PASS");
     }
 
     @Test
     public void testDouble() throws DeploymentException {
-        testPojo(org.glassfish.tyrus.test.standard_config.bean.stin.DoubleBean.class, "/standardInputTypes/double", "42.0", "PASS");
+        testPojo(org.glassfish.tyrus.test.standard_config.bean.stin.DoubleBean.class, "/standardInputTypes/double",
+                 "42.0", "PASS");
     }
 
     @Test
     public void testFloat() throws DeploymentException {
-        testPojo(org.glassfish.tyrus.test.standard_config.bean.stin.FloatBean.class, "/standardInputTypes/float", "42.0", "PASS");
+        testPojo(org.glassfish.tyrus.test.standard_config.bean.stin.FloatBean.class, "/standardInputTypes/float",
+                 "42.0", "PASS");
     }
 
     @Test
     public void testInt() throws DeploymentException {
-        testPojo(org.glassfish.tyrus.test.standard_config.bean.stin.IntBean.class, "/standardInputTypes/int", "42", "PASS");
+        testPojo(org.glassfish.tyrus.test.standard_config.bean.stin.IntBean.class, "/standardInputTypes/int", "42",
+                 "PASS");
     }
 
     @Test
     public void testLong() throws DeploymentException {
-        testPojo(org.glassfish.tyrus.test.standard_config.bean.stin.LongBean.class, "/standardInputTypes/long", "42", "PASS");
+        testPojo(org.glassfish.tyrus.test.standard_config.bean.stin.LongBean.class, "/standardInputTypes/long", "42",
+                 "PASS");
     }
 
     @Test
     public void testShort() throws DeploymentException {
-        testPojo(org.glassfish.tyrus.test.standard_config.bean.stin.ShortBean.class, "/standardInputTypes/short", "42", "PASS");
+        testPojo(org.glassfish.tyrus.test.standard_config.bean.stin.ShortBean.class, "/standardInputTypes/short", "42",
+                 "PASS");
     }
 
-    public void testPojo(Class<?> bean, String segmentPath, final String message, String response) throws DeploymentException {
+    public void testPojo(Class<?> bean, String segmentPath, final String message, String response) throws
+            DeploymentException {
         final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
         Server server = startServer(bean);
 

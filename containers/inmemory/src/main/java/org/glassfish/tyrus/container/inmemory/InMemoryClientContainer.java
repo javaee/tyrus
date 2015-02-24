@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -81,7 +81,8 @@ public class InMemoryClientContainer implements ClientContainer {
     public static final String SERVER_CONFIG = "org.glassfish.tyrus.container.inmemory.ServerConfig";
 
     @Override
-    public void openClientSocket(ClientEndpointConfig cec, Map<String, Object> properties, final ClientEngine clientEngine) throws DeploymentException, IOException {
+    public void openClientSocket(ClientEndpointConfig cec, Map<String, Object> properties,
+                                 final ClientEngine clientEngine) throws DeploymentException, IOException {
         final UpgradeRequest upgradeRequest = clientEngine.createUpgradeRequest(null);
 
         final ServerApplicationConfig serverApplicationConfig = getServerApplicationConfig(cec);
@@ -131,10 +132,12 @@ public class InMemoryClientContainer implements ClientContainer {
             sb.append('/');
         }
 
-        final RequestContext requestContext = new RequestContext.Builder().requestURI(URI.create(sb.toString())).build();
+        final RequestContext requestContext =
+                new RequestContext.Builder().requestURI(URI.create(sb.toString())).build();
         requestContext.getHeaders().putAll(upgradeRequest.getHeaders());
 
-        final WebSocketEngine.UpgradeInfo upgradeInfo = tyrusServerContainer.getWebSocketEngine().upgrade(requestContext, upgradeResponse);
+        final WebSocketEngine.UpgradeInfo upgradeInfo =
+                tyrusServerContainer.getWebSocketEngine().upgrade(requestContext, upgradeResponse);
         switch (upgradeInfo.getStatus()) {
             case HANDSHAKE_FAILED:
                 tyrusServerContainer.shutdown();
@@ -158,7 +161,8 @@ public class InMemoryClientContainer implements ClientContainer {
                 };
 
                 final Connection serverConnection = upgradeInfo.createConnection(serverWriter, null);
-                final ClientEngine.ClientUpgradeInfo clientClientUpgradeInfo = clientEngine.processResponse(upgradeResponse, clientWriter, null);
+                final ClientEngine.ClientUpgradeInfo clientClientUpgradeInfo =
+                        clientEngine.processResponse(upgradeResponse, clientWriter, null);
                 final Connection clientConnection = clientClientUpgradeInfo.createConnection();
 
                 if (clientConnection == null) {
@@ -170,7 +174,8 @@ public class InMemoryClientContainer implements ClientContainer {
         }
     }
 
-    private ServerApplicationConfig getServerApplicationConfig(ClientEndpointConfig clientEndpointConfig) throws DeploymentException {
+    private ServerApplicationConfig getServerApplicationConfig(ClientEndpointConfig clientEndpointConfig) throws
+            DeploymentException {
         final Object o = clientEndpointConfig.getUserProperties().get(SERVER_CONFIG);
         if (o != null && o instanceof ServerApplicationConfig) {
             return (ServerApplicationConfig) o;
@@ -179,7 +184,7 @@ public class InMemoryClientContainer implements ClientContainer {
         throw new DeploymentException("ServerApplicationConfig not present.");
     }
 
-    private static abstract class InMemoryWriter extends Writer {
+    private abstract static class InMemoryWriter extends Writer {
 
         private final List<ByteBuffer> cache = new ArrayList<ByteBuffer>();
         private volatile ReadHandler readHandler = null;

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -78,15 +78,16 @@ import org.glassfish.tyrus.spi.Writer;
 /**
  * Filter used for Servlet integration.
  * <p/>
- * Consumes only requests with {@link HandshakeRequest#SEC_WEBSOCKET_KEY} headers present, all others are
- * passed back to {@link FilterChain}.
+ * Consumes only requests with {@link HandshakeRequest#SEC_WEBSOCKET_KEY} headers present, all others are passed back
+ * to
+ * {@link FilterChain}.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 class TyrusServletFilter implements Filter, HttpSessionListener {
 
-    private final static Logger LOGGER = Logger.getLogger(TyrusServletFilter.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(TyrusServletFilter.class.getName());
     private final TyrusWebSocketEngine engine;
     private final boolean wsadlEnabled;
 
@@ -95,8 +96,8 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
     // initialization.
     // I could create List of listeners and send a create something like sessionDestroyed(HttpSession s)
     // but that would take more time (statistically higher number of comparisons).
-    private final Map<HttpSession, TyrusHttpUpgradeHandler> sessionToHandler =
-            new ConcurrentHashMap<HttpSession, TyrusHttpUpgradeHandler>();
+    private final Map<HttpSession, TyrusHttpUpgradeHandler> sessionToHandler = new ConcurrentHashMap<HttpSession,
+            TyrusHttpUpgradeHandler>();
 
     private org.glassfish.tyrus.server.TyrusServerContainer serverContainer = null;
     private JAXBContext wsadlJaxbContext;
@@ -115,7 +116,8 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
     public void init(FilterConfig filterConfig) throws ServletException {
 
         ServletContext servletContext = filterConfig.getServletContext();
-        this.serverContainer = (org.glassfish.tyrus.server.TyrusServerContainer) servletContext.getAttribute(ServerContainer.class.getName());
+        this.serverContainer = (org.glassfish.tyrus.server.TyrusServerContainer) servletContext.getAttribute
+                (ServerContainer.class.getName());
 
         try {
             // TODO? - port/contextPath .. is it really relevant here?
@@ -196,7 +198,8 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
     }
 
     @Override
-    public void doFilter(final ServletRequest request, final ServletResponse response, FilterChain filterChain) throws IOException, ServletException {
+    public void doFilter(final ServletRequest request, final ServletResponse response, FilterChain filterChain)
+            throws IOException, ServletException {
         final HttpServletRequest httpServletRequest = (HttpServletRequest) request;
         HttpServletResponse httpServletResponse = (HttpServletResponse) response;
 
@@ -209,7 +212,8 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
 
             final TyrusServletWriter webSocketConnection = new TyrusServletWriter(handler);
 
-            final RequestContext requestContext = RequestContext.Builder.create()
+            final RequestContext requestContext = RequestContext.Builder
+                    .create()
                     .requestURI(URI.create(httpServletRequest.getRequestURI()))
                     .queryString(httpServletRequest.getQueryString())
                     .httpSession(httpServletRequest.getSession(false))
@@ -218,11 +222,11 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
                     .isUserInRoleDelegate(new RequestContext.Builder.IsUserInRoleDelegate() {
                         @Override
                         public boolean isUserInRole(String role) {
-                            return httpServletRequest.isUserInRole(role);
+                            return httpServletRequest
+                                    .isUserInRole(role);
                         }
-                    })
-                    .parameterMap(httpServletRequest.getParameterMap())
-                    .remoteAddr(httpServletRequest.getRemoteAddr())
+                    }).parameterMap(
+                            httpServletRequest.getParameterMap()).remoteAddr(httpServletRequest.getRemoteAddr())
                     .build();
 
             Enumeration<String> headerNames = httpServletRequest.getHeaderNames();
@@ -236,7 +240,8 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
 
                     final List<String> values = requestContext.getHeaders().get(name);
                     if (values == null) {
-                        requestContext.getHeaders().put(name, Utils.parseHeaderValue(headerValues.nextElement().trim()));
+                        requestContext.getHeaders().put(name, Utils.parseHeaderValue(
+                                headerValues.nextElement().trim()));
                     } else {
                         values.addAll(Utils.parseHeaderValue(headerValues.nextElement().trim()));
                     }
@@ -258,7 +263,8 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
                     LOGGER.fine("Upgrading Servlet request");
 
                     handler.setHandler(httpServletRequest.upgrade(TyrusHttpUpgradeHandler.class));
-                    final String frameBufferSize = request.getServletContext().getInitParameter(TyrusHttpUpgradeHandler.FRAME_BUFFER_SIZE);
+                    final String frameBufferSize = request.getServletContext().getInitParameter
+                            (TyrusHttpUpgradeHandler.FRAME_BUFFER_SIZE);
                     if (frameBufferSize != null) {
                         handler.setIncomingBufferSize(Integer.parseInt(frameBufferSize));
                     }
@@ -279,12 +285,13 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
                     break;
             }
         } else {
-            if (wsadlEnabled) {// wsadl
-                if (((HttpServletRequest) request).getMethod().equals("GET") &&
-                        ((HttpServletRequest) request).getRequestURI().endsWith("application.wsadl")) {
+            if (wsadlEnabled) { // wsadl
+                if (((HttpServletRequest) request).getMethod().equals("GET") && ((HttpServletRequest) request)
+                        .getRequestURI().endsWith("application.wsadl")) {
 
                     try {
-                        getWsadlJaxbContext().createMarshaller().marshal(engine.getWsadlApplication(), response.getWriter());
+                        getWsadlJaxbContext().createMarshaller().marshal(engine.getWsadlApplication(), response
+                                .getWriter());
                     } catch (JAXBException e) {
                         throw new ServletException(e);
                     }
@@ -299,7 +306,8 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
         }
     }
 
-    private void appendTraceHeaders(HttpServletResponse httpServletResponse, TyrusUpgradeResponse tyrusUpgradeResponse) {
+    private void appendTraceHeaders(HttpServletResponse httpServletResponse, TyrusUpgradeResponse
+            tyrusUpgradeResponse) {
         for (Map.Entry<String, List<String>> entry : tyrusUpgradeResponse.getHeaders().entrySet()) {
             if (entry.getKey().contains(UpgradeResponse.TRACING_HEADER_PREFIX)) {
                 httpServletResponse.addHeader(entry.getKey(), Utils.getHeaderFromList(entry.getValue()));

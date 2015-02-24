@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2008-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2008-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -49,8 +49,8 @@ import javax.net.ssl.SSLEngine;
 /**
  * SSLEngineConfigurator class from Grizzly project.
  * <p/>
- * Utility class, which helps to configure {@link SSLEngine}.
- * Should be passed to client via configuration properties. Example:
+ * Utility class, which helps to configure {@link SSLEngine}. Should be passed to client via configuration properties.
+ * Example:
  * <pre>
  *      SslContextConfigurator sslContextConfigurator = new SslContextConfigurator();
  *      sslContextConfigurator.setTrustStoreFile("...");
@@ -59,7 +59,8 @@ import javax.net.ssl.SSLEngine;
  *      sslContextConfigurator.setKeyStoreFile("...");
  *      sslContextConfigurator.setKeyStorePassword("...");
  *      sslContextConfigurator.setKeyStoreType("...");
- *      SslEngineConfigurator sslEngineConfigurator = new SslEngineConfigurator(sslContextConfigurator, true, false, false);
+ *      SslEngineConfigurator sslEngineConfigurator = new SslEngineConfigurator(sslContextConfigurator, true, false,
+ * false);
  *      client.getProperties().put(ClientManager.SSL_ENGINE_CONFIGURATOR, sslEngineConfigurator);
  * </pre>
  *
@@ -120,7 +121,8 @@ public class SslEngineConfigurator {
      * @param needClientAuth client authentication is required.
      * @param wantClientAuth client should authenticate.
      */
-    public SslEngineConfigurator(final SSLContext sslContext, final boolean clientMode, final boolean needClientAuth, final boolean wantClientAuth) {
+    public SslEngineConfigurator(final SSLContext sslContext, final boolean clientMode, final boolean needClientAuth,
+                                 final boolean wantClientAuth) {
         if (sslContext == null) {
             throw new IllegalArgumentException("SSLContext can not be null");
         }
@@ -153,7 +155,8 @@ public class SslEngineConfigurator {
      * @param needClientAuth          client authentication is required.
      * @param wantClientAuth          client should authenticate.
      */
-    public SslEngineConfigurator(SslContextConfigurator sslContextConfiguration, boolean clientMode, boolean needClientAuth, boolean wantClientAuth) {
+    public SslEngineConfigurator(SslContextConfigurator sslContextConfiguration, boolean clientMode,
+                                 boolean needClientAuth, boolean wantClientAuth) {
         if (sslContextConfiguration == null) {
             throw new IllegalArgumentException("SSLContextConfigurator can not be null");
         }
@@ -365,7 +368,7 @@ public class SslEngineConfigurator {
      * Determines the SSL cipher suites to be enabled.
      *
      * @return Array of SSL cipher suites to be enabled, or null if none of the
-     * requested ciphers are supported
+     * requested ciphers are supported.
      */
     private static String[] configureEnabledCiphers(SSLEngine sslEngine, String[] requestedCiphers) {
 
@@ -402,9 +405,9 @@ public class SslEngineConfigurator {
         sb.append("SSLEngineConfigurator");
         sb.append("{clientMode=").append(clientMode);
         sb.append(", enabledCipherSuites=")
-                .append(enabledCipherSuites == null ? "null" : Arrays.asList(enabledCipherSuites).toString());
+          .append(enabledCipherSuites == null ? "null" : Arrays.asList(enabledCipherSuites).toString());
         sb.append(", enabledProtocols=")
-                .append(enabledProtocols == null ? "null" : Arrays.asList(enabledProtocols).toString());
+          .append(enabledProtocols == null ? "null" : Arrays.asList(enabledProtocols).toString());
         sb.append(", needClientAuth=").append(needClientAuth);
         sb.append(", wantClientAuth=").append(wantClientAuth);
         sb.append(", isProtocolConfigured=").append(isProtocolConfigured);

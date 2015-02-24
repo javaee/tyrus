@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -70,7 +70,9 @@ public class TyrusSessionTest {
 
     public TyrusSessionTest() {
         try {
-            endpointWrapper = new TyrusEndpointWrapper(EchoEndpoint.class, null, ComponentProviderService.create(), null, null, null, null, null, null, null);
+            endpointWrapper =
+                    new TyrusEndpointWrapper(EchoEndpoint.class, null, ComponentProviderService.create(), null, null,
+                                             null, null, null, null, null);
         } catch (DeploymentException e) {
             // do nothing.
         }
@@ -470,7 +472,8 @@ public class TyrusSessionTest {
     }
 
     private TyrusSession createSession(TyrusEndpointWrapper endpointWrapper) {
-        return new TyrusSession(null, new TestRemoteEndpoint(), endpointWrapper, null, null, false, null, null, null, null, new HashMap<String, List<String>>(), null, null, null, new DebugContext());
+        return new TyrusSession(null, new TestRemoteEndpoint(), endpointWrapper, null, null, false, null, null, null,
+                                null, new HashMap<String, List<String>>(), null, null, null, new DebugContext());
     }
 
     private static class TestRemoteEndpoint extends TyrusWebSocket {

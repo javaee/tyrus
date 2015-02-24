@@ -62,9 +62,10 @@ import javax.json.JsonObjectBuilder;
 @ServerEndpoint("/ws/collection")
 public class SharedCollectionEndpoint {
 
-    private static final Deque<Tuple<Session, JsonObject>> broadcastQueue = new ConcurrentLinkedDeque<Tuple<Session, JsonObject>>();
-    private static volatile Session session = null;
-    private static volatile boolean broadcasting = false;
+    private static final Deque<Tuple<Session, JsonObject>> broadcastQueue =
+            new ConcurrentLinkedDeque<Tuple<Session, JsonObject>>();
+    private static volatile Session session;
+    private static volatile boolean broadcasting;
 
     @OnOpen
     public void onOpen(Session s) {

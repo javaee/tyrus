@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -69,9 +69,9 @@ import static junit.framework.Assert.fail;
 /**
  * Test that broadcasted messages are included in monitoring statistics.
  * <p/>
- * 3 clients connect to a server and one of the clients sends a message that will cause the server to broadcast
- * 2 text messages and one binary message. Then it is checked that sending of those 3 x (2 + 1) messages has been
- * included in server monitoring statistics.
+ * 3 clients connect to a server and one of the clients sends a message that will cause the server to broadcast 2 text
+ * messages and one binary message. Then it is checked that sending of those 3 x (2 + 1) messages has been included in
+ * server monitoring statistics.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
@@ -108,7 +108,8 @@ public class BroadcastTest extends TestContainer {
             // each sessions gets 3 messages - 2 text messages and 1 binary
             CountDownLatch sentMessagesLatch = new CountDownLatch(sessionsCount * 3);
 
-            ApplicationEventListener applicationEventListener = new TestApplicationEventListener(applicationMonitor, null, null, sentMessagesLatch, null, null);
+            ApplicationEventListener applicationEventListener =
+                    new TestApplicationEventListener(applicationMonitor, null, null, sentMessagesLatch, null, null);
             getServerProperties().put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, applicationEventListener);
             server = startServer(AnnotatedServerEndpoint.class);
 
@@ -118,22 +119,26 @@ public class BroadcastTest extends TestContainer {
                 session = client.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
             }
 
-            // send different number of messages of each type so that it can be verified that a correct MXBean is accessed
+            // send different number of messages of each type so that it can be verified that a correct MXBean is
+            // accessed
             session.getBasicRemote().sendText("Broadcast request");
 
             assertTrue(sentMessagesLatch.await(5, TimeUnit.SECONDS));
 
             String applicationMxBeanName = "org.glassfish.tyrus:type=/monitoringBroadcastApp";
             MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-            ApplicationMXBean applicationMXBean = JMX.newMXBeanProxy(mBeanServer, new ObjectName(applicationMxBeanName), ApplicationMXBean.class);
+            ApplicationMXBean applicationMXBean =
+                    JMX.newMXBeanProxy(mBeanServer, new ObjectName(applicationMxBeanName), ApplicationMXBean.class);
 
             assertEquals(9, applicationMXBean.getSentMessagesCount());
             assertEquals(3, applicationMXBean.getBinaryMessageStatisticsMXBean().getSentMessagesCount());
             assertEquals(6, applicationMXBean.getTextMessageStatisticsMXBean().getSentMessagesCount());
 
             // check message sizes get monitored properly
-            assertEquals((TEXT_MESSAGE_1.length() + TEXT_MESSAGE_2.length()) / 2, applicationMXBean.getTextMessageStatisticsMXBean().getAverageSentMessageSize());
-            assertEquals(BINARY_MESSAGE.limit(), applicationMXBean.getBinaryMessageStatisticsMXBean().getAverageSentMessageSize());
+            assertEquals((TEXT_MESSAGE_1.length() + TEXT_MESSAGE_2.length()) / 2,
+                         applicationMXBean.getTextMessageStatisticsMXBean().getAverageSentMessageSize());
+            assertEquals(BINARY_MESSAGE.limit(),
+                         applicationMXBean.getBinaryMessageStatisticsMXBean().getAverageSentMessageSize());
 
             List<EndpointMXBean> endpointMXBeans = applicationMXBean.getEndpointMXBeans();
             assertEquals(1, endpointMXBeans.size());
@@ -144,8 +149,10 @@ public class BroadcastTest extends TestContainer {
             assertEquals(3, endpointMXBean.getBinaryMessageStatisticsMXBean().getSentMessagesCount());
             assertEquals(6, endpointMXBean.getTextMessageStatisticsMXBean().getSentMessagesCount());
 
-            assertEquals((TEXT_MESSAGE_1.length() + TEXT_MESSAGE_2.length()) / 2, endpointMXBean.getTextMessageStatisticsMXBean().getAverageSentMessageSize());
-            assertEquals(BINARY_MESSAGE.limit(), endpointMXBean.getBinaryMessageStatisticsMXBean().getAverageSentMessageSize());
+            assertEquals((TEXT_MESSAGE_1.length() + TEXT_MESSAGE_2.length()) / 2,
+                         endpointMXBean.getTextMessageStatisticsMXBean().getAverageSentMessageSize());
+            assertEquals(BINARY_MESSAGE.limit(),
+                         endpointMXBean.getBinaryMessageStatisticsMXBean().getAverageSentMessageSize());
 
             List<SessionMXBean> sessionMXBeans = endpointMXBean.getSessionMXBeans();
             if (!monitorOnSessionLevel) {
@@ -159,8 +166,10 @@ public class BroadcastTest extends TestContainer {
                 assertEquals(1, sessionMXBean.getBinaryMessageStatisticsMXBean().getSentMessagesCount());
                 assertEquals(2, sessionMXBean.getTextMessageStatisticsMXBean().getSentMessagesCount());
 
-                assertEquals((TEXT_MESSAGE_1.length() + TEXT_MESSAGE_2.length()) / 2, sessionMXBean.getTextMessageStatisticsMXBean().getAverageSentMessageSize());
-                assertEquals(BINARY_MESSAGE.limit(), sessionMXBean.getBinaryMessageStatisticsMXBean().getAverageSentMessageSize());
+                assertEquals((TEXT_MESSAGE_1.length() + TEXT_MESSAGE_2.length()) / 2,
+                             sessionMXBean.getTextMessageStatisticsMXBean().getAverageSentMessageSize());
+                assertEquals(BINARY_MESSAGE.limit(),
+                             sessionMXBean.getBinaryMessageStatisticsMXBean().getAverageSentMessageSize());
             }
 
         } catch (Exception e) {

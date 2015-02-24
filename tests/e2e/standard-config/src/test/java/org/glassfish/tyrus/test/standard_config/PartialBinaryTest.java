@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -117,7 +117,8 @@ public class PartialBinaryTest extends TestContainer {
                 }
             }, cec, getURI(WSByteArrayPartialAndSessionServer.class));
             messageLatch.await(2, TimeUnit.SECONDS);
-            Assert.assertEquals("The received message is the same as the sent one", new String(BINARY_MESSAGE_1) + new String(BINARY_MESSAGE_2), receivedMessage);
+            Assert.assertEquals("The received message is the same as the sent one",
+                                new String(BINARY_MESSAGE_1) + new String(BINARY_MESSAGE_2), receivedMessage);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -170,7 +171,8 @@ public class PartialBinaryTest extends TestContainer {
                 }
             }, cec, getURI(WSByteBufferPartialAndSessionServer.class));
             messageLatch.await(2, TimeUnit.SECONDS);
-            Assert.assertEquals("The received message is the same as the sent one", new String(BINARY_MESSAGE_1) + new String(BINARY_MESSAGE_2), receivedMessage);
+            Assert.assertEquals("The received message is the same as the sent one",
+                                new String(BINARY_MESSAGE_1) + new String(BINARY_MESSAGE_2), receivedMessage);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

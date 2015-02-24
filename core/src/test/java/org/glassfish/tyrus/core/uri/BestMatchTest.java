@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -70,7 +70,8 @@ public class BestMatchTest {
     @Test
     public void testBasicExactMatch() {
         try {
-            List<TestWebSocketEndpoint> endpoints = Arrays.asList(new TestWebSocketEndpoint("/a"), new TestWebSocketEndpoint("/a/b"), new TestWebSocketEndpoint("/a/b/c"));
+            List<TestWebSocketEndpoint> endpoints = Arrays.asList(new TestWebSocketEndpoint("/a"), new
+                    TestWebSocketEndpoint("/a/b"), new TestWebSocketEndpoint("/a/b/c"));
 
             verifyResult(endpoints, "/a", "/a");
             verifyResult(endpoints, "/a/b", "/a/b");
@@ -104,7 +105,8 @@ public class BestMatchTest {
     @Test
     public void testMultipleVariableTemplates() {
         try {
-            List<TestWebSocketEndpoint> endpoints = Arrays.asList(new TestWebSocketEndpoint("/{var1}"), new TestWebSocketEndpoint("/{var1}/{var2}"), new TestWebSocketEndpoint("/{var1}/{var2}/{var3}"));
+            List<TestWebSocketEndpoint> endpoints = Arrays.asList(new TestWebSocketEndpoint("/{var1}"), new
+                    TestWebSocketEndpoint("/{var1}/{var2}"), new TestWebSocketEndpoint("/{var1}/{var2}/{var3}"));
 
             verifyResult(endpoints, "/a", "/{var1}");
             verifyResult(endpoints, "/a/b", "/{var1}/{var2}");
@@ -120,7 +122,8 @@ public class BestMatchTest {
     @Test
     public void testExactMatchWinsOverVariableMatch() {
         try {
-            List<TestWebSocketEndpoint> endpoints = Arrays.asList(new TestWebSocketEndpoint("/a/b/c"), new TestWebSocketEndpoint("/a/{var2}/{var3}"), new TestWebSocketEndpoint("/a/{var2}/c"));
+            List<TestWebSocketEndpoint> endpoints = Arrays.asList(new TestWebSocketEndpoint("/a/b/c"), new
+                    TestWebSocketEndpoint("/a/{var2}/{var3}"), new TestWebSocketEndpoint("/a/{var2}/c"));
 
             verifyResult(endpoints, "/a/b/c", "/a/b/c");
             verifyResult(endpoints, "/a/d/c", "/a/{var2}/c");
@@ -135,7 +138,8 @@ public class BestMatchTest {
     @Test
     public void testLeftRightMatchPrecedence() {
         try {
-            List<TestWebSocketEndpoint> endpoints = Arrays.asList(new TestWebSocketEndpoint("/{var1}/d"), new TestWebSocketEndpoint("/b/{var2}"));
+            List<TestWebSocketEndpoint> endpoints = Arrays.asList(new TestWebSocketEndpoint("/{var1}/d"), new
+                    TestWebSocketEndpoint("/b/{var2}"));
 
             verifyResult(endpoints, "/b/d", "/b/{var2}");
 
@@ -148,7 +152,10 @@ public class BestMatchTest {
     @Test
     public void testMoreLeftRightPrecedenceMatch() {
         try {
-            List<TestWebSocketEndpoint> endpoints = Arrays.asList(new TestWebSocketEndpoint("/a"), new TestWebSocketEndpoint("/{var1}"), new TestWebSocketEndpoint("/a/b"), new TestWebSocketEndpoint("/{var1}/b"), new TestWebSocketEndpoint("/a/{var2}"));
+            List<TestWebSocketEndpoint> endpoints = Arrays.asList(
+                    new TestWebSocketEndpoint("/a"), new TestWebSocketEndpoint("/{var1}"),
+                    new TestWebSocketEndpoint("/a/b"), new TestWebSocketEndpoint("/{var1}/b"),
+                    new TestWebSocketEndpoint("/a/{var2}"));
 
             verifyResult(endpoints, "/a", "/a");
             verifyResult(endpoints, "/x", "/{var1}");
@@ -171,7 +178,7 @@ public class BestMatchTest {
         if (expectedMatchedPath != null) {
             assertNotNull("Was expecting a match on " + expectedMatchedPath + ", but didn't get one.", m);
             assertEquals("Wrong path matched.", expectedMatchedPath, m.getEndpointWrapper().getEndpointPath());
-        } else {// shouldn't be a match
+        } else { // shouldn't be a match
             assertNull("Wasn't expecting a match, but got one.", m);
         }
     }
@@ -190,7 +197,8 @@ public class BestMatchTest {
         private final String path;
 
         private TestWebSocketEndpoint(String path) throws DeploymentException {
-            super(TestEndpoint.class, null, ComponentProviderService.createClient(), null, null, null, null, null, null, null);
+            super(TestEndpoint.class, null, ComponentProviderService.createClient(), null, null, null, null, null,
+                  null, null);
             this.path = path;
         }
 

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -78,6 +78,7 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * Redirect tests.
+ * <p/>
  * Cannot be moved to standard tests due the need of programmatic configuration of HTTP Redirect response.
  *
  * @author Ondrej Kosatka (ondrej.kosatka at oracle.com)
@@ -87,14 +88,10 @@ public class RedirectTest extends TestContainer {
     private static final int REDIRECTION_PORT = 8026;
     private static final String REDIRECTION_URI = "ws://localhost:" + REDIRECTION_PORT;
     private static final String REDIRECTION_PATH = "/redirect";
-    private static final List<HttpStatus> statuses = Arrays.asList(
-            HttpStatus.MULTIPLE_CHOICES_300,
-            HttpStatus.MOVED_PERMANENTLY_301,
-            HttpStatus.FOUND_302,
-            HttpStatus.SEE_OTHER_303,
-            HttpStatus.TEMPORARY_REDIRECT_307,
-            HttpStatus.PERMANENT_REDIRECT_308
-    );
+    private static final List<HttpStatus> statuses =
+            Arrays.asList(HttpStatus.MULTIPLE_CHOICES_300, HttpStatus.MOVED_PERMANENTLY_301, HttpStatus.FOUND_302,
+                          HttpStatus.SEE_OTHER_303, HttpStatus.TEMPORARY_REDIRECT_307,
+                          HttpStatus.PERMANENT_REDIRECT_308);
 
     private static final HttpStatus UNSUPPORTED_HTTP_STATUS = HttpStatus.NOT_MODIFIED_304;
 
@@ -118,11 +115,13 @@ public class RedirectTest extends TestContainer {
         }
     }
 
-    private void testRedirect(HttpStatus httpStatus) throws DeploymentException, InterruptedException, IOException, AuthenticationException {
+    private void testRedirect(HttpStatus httpStatus) throws DeploymentException, InterruptedException, IOException,
+            AuthenticationException {
         HttpServer httpServer = null;
         try {
 
-            httpServer = startHttpRedirectionServer(REDIRECTION_PORT, httpStatus, "ws://localhost:8025/redirect-echo/echo");
+            httpServer = startHttpRedirectionServer(REDIRECTION_PORT, httpStatus,
+                                                    "ws://localhost:8025/redirect-echo/echo");
 
             final ClientManager client = ClientManager.createClient();
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
@@ -161,7 +160,8 @@ public class RedirectTest extends TestContainer {
     }
 
     @Test
-    public void testRelativePath() throws InterruptedException, DeploymentException, AuthenticationException, IOException {
+    public void testRelativePath() throws InterruptedException, DeploymentException, AuthenticationException,
+            IOException {
         Server server = null;
         try {
             server = startServer(RedirectedEchoEndpoint.class);
@@ -176,15 +176,22 @@ public class RedirectTest extends TestContainer {
         }
     }
 
-    private void testRelativePath(HttpStatus httpStatus) throws InterruptedException, IOException, AuthenticationException, DeploymentException {
+    private void testRelativePath(HttpStatus httpStatus) throws InterruptedException, IOException,
+            AuthenticationException, DeploymentException {
         HttpServer httpServer = null;
         try {
             httpServer = createHttpServer(REDIRECTION_PORT);
-            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_PATH + 1), REDIRECTION_PATH + 0);
-            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI + REDIRECTION_PATH + 2), REDIRECTION_PATH + 1);
-            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, "/la/la/la/.././../.." + REDIRECTION_PATH + 3), REDIRECTION_PATH + 2);
-            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, "http://127.0.0.1:8026" + REDIRECTION_PATH + 4), REDIRECTION_PATH + 3);
-            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, "ws://localhost:8025/redirect-echo/echo"), REDIRECTION_PATH + 4);
+            httpServer.getServerConfiguration().addHttpHandler(
+                    new RedirectHandler(httpStatus, REDIRECTION_PATH + 1), REDIRECTION_PATH + 0);
+            httpServer.getServerConfiguration().addHttpHandler(
+                    new RedirectHandler(httpStatus, REDIRECTION_URI + REDIRECTION_PATH + 2), REDIRECTION_PATH + 1);
+            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, "/la/la/la/.././../.."
+                    + REDIRECTION_PATH + 3), REDIRECTION_PATH + 2);
+            httpServer.getServerConfiguration().addHttpHandler(
+                    new RedirectHandler(httpStatus, "http://127.0.0.1:8026" + REDIRECTION_PATH + 4),
+                    REDIRECTION_PATH + 3);
+            httpServer.getServerConfiguration().addHttpHandler(
+                    new RedirectHandler(httpStatus, "ws://localhost:8025/redirect-echo/echo"), REDIRECTION_PATH + 4);
             httpServer.start();
 
             final ClientManager client = createClient();
@@ -223,7 +230,8 @@ public class RedirectTest extends TestContainer {
     }
 
     @Test
-    public void testRedirectUnsupported3xx() throws InterruptedException, DeploymentException, AuthenticationException, IOException {
+    public void testRedirectUnsupported3xx() throws InterruptedException, DeploymentException,
+            AuthenticationException, IOException {
         Server server = null;
         try {
             server = startServer(RedirectedEchoEndpoint.class);
@@ -236,10 +244,12 @@ public class RedirectTest extends TestContainer {
         }
     }
 
-    private void testRedirectUnsupported3xx(HttpStatus httpStatus) throws InterruptedException, IOException, AuthenticationException {
+    private void testRedirectUnsupported3xx(HttpStatus httpStatus) throws InterruptedException, IOException,
+            AuthenticationException {
         HttpServer httpServer = null;
         try {
-            httpServer = startHttpRedirectionServer(REDIRECTION_PORT, httpStatus, "ws://localhost:8025/redirect-echo/echo");
+            httpServer = startHttpRedirectionServer(REDIRECTION_PORT, httpStatus,
+                                                    "ws://localhost:8025/redirect-echo/echo");
 
             final CountDownLatch messageLatch = new CountDownLatch(1);
 
@@ -271,7 +281,8 @@ public class RedirectTest extends TestContainer {
             messageLatch.await(1, TimeUnit.SECONDS);
             assertTrue("Redirect for this 3xx code is not supported. HandshakeException must be thrown.", false);
         } catch (DeploymentException e) {
-            assertTrue("Redirect for this 3xx code is not supported. HandshakeException must be thrown.", e.getCause() instanceof HandshakeException);
+            assertTrue("Redirect for this 3xx code is not supported. HandshakeException must be thrown.", e.getCause
+                    () instanceof HandshakeException);
         } finally {
             if (httpServer != null) {
                 httpServer.shutdownNow();
@@ -280,7 +291,8 @@ public class RedirectTest extends TestContainer {
     }
 
     @Test
-    public void testRedirectNotAllowed() throws InterruptedException, DeploymentException, AuthenticationException, IOException {
+    public void testRedirectNotAllowed() throws InterruptedException, DeploymentException, AuthenticationException,
+            IOException {
         Server server = null;
         try {
             server = startServer(RedirectedEchoEndpoint.class);
@@ -295,10 +307,12 @@ public class RedirectTest extends TestContainer {
         }
     }
 
-    private void testRedirectNotAllowed(HttpStatus httpStatus) throws InterruptedException, IOException, AuthenticationException {
+    private void testRedirectNotAllowed(HttpStatus httpStatus) throws InterruptedException, IOException,
+            AuthenticationException {
         HttpServer httpServer = null;
         try {
-            httpServer = startHttpRedirectionServer(REDIRECTION_PORT, httpStatus, "ws://localhost:8025/redirect-echo/echo");
+            httpServer = startHttpRedirectionServer(REDIRECTION_PORT, httpStatus,
+                                                    "ws://localhost:8025/redirect-echo/echo");
 
             final CountDownLatch messageLatch = new CountDownLatch(1);
 
@@ -330,7 +344,8 @@ public class RedirectTest extends TestContainer {
             messageLatch.await(1, TimeUnit.SECONDS);
             assertTrue("Redirect is not allowed. RedirectException must be thrown.", false);
         } catch (DeploymentException e) {
-            assertTrue("Redirect is not allowed. RedirectException must be thrown.", e.getCause() instanceof RedirectException);
+            assertTrue("Redirect is not allowed. RedirectException must be thrown.", e.getCause() instanceof
+                    RedirectException);
         } finally {
             if (httpServer != null) {
                 httpServer.shutdownNow();
@@ -339,7 +354,8 @@ public class RedirectTest extends TestContainer {
     }
 
     @Test
-    public void testRedirectNotAllowedByDefault() throws InterruptedException, DeploymentException, AuthenticationException, IOException {
+    public void testRedirectNotAllowedByDefault() throws InterruptedException, DeploymentException,
+            AuthenticationException, IOException {
         Server server = null;
         try {
             server = startServer(RedirectedEchoEndpoint.class);
@@ -354,11 +370,13 @@ public class RedirectTest extends TestContainer {
         }
     }
 
-    private void testRedirectNotAllowedByDefault(HttpStatus httpStatus) throws InterruptedException, IOException, AuthenticationException {
+    private void testRedirectNotAllowedByDefault(HttpStatus httpStatus) throws InterruptedException, IOException,
+            AuthenticationException {
         HttpServer httpServer = null;
         try {
 
-            httpServer = startHttpRedirectionServer(REDIRECTION_PORT, httpStatus, "ws://localhost:8025/redirect-echo/echo");
+            httpServer = startHttpRedirectionServer(REDIRECTION_PORT, httpStatus,
+                                                    "ws://localhost:8025/redirect-echo/echo");
 
             final CountDownLatch messageLatch = new CountDownLatch(1);
 
@@ -388,7 +406,8 @@ public class RedirectTest extends TestContainer {
             messageLatch.await(1, TimeUnit.SECONDS);
             assertTrue("Redirect is not allowed. RedirectException must be thrown.", false);
         } catch (DeploymentException e) {
-            assertTrue("Redirect is not allowed. RedirectException must be thrown.", e.getCause() instanceof RedirectException);
+            assertTrue("Redirect is not allowed. RedirectException must be thrown.", e.getCause() instanceof
+                    RedirectException);
         } finally {
             if (httpServer != null) {
                 httpServer.shutdownNow();
@@ -397,7 +416,8 @@ public class RedirectTest extends TestContainer {
     }
 
     @Test
-    public void testRedirectLoop() throws InterruptedException, DeploymentException, AuthenticationException, IOException {
+    public void testRedirectLoop() throws InterruptedException, DeploymentException, AuthenticationException,
+            IOException {
         Server server = null;
         try {
             server = startServer(RedirectedEchoEndpoint.class);
@@ -412,7 +432,8 @@ public class RedirectTest extends TestContainer {
         }
     }
 
-    private void testRedirectLoop(HttpStatus httpStatus) throws InterruptedException, IOException, AuthenticationException {
+    private void testRedirectLoop(HttpStatus httpStatus) throws InterruptedException, IOException,
+            AuthenticationException {
         HttpServer httpServer = null;
         try {
             httpServer = startHttpRedirectionServer(REDIRECTION_PORT, httpStatus, REDIRECTION_URI + REDIRECTION_PATH);
@@ -455,7 +476,8 @@ public class RedirectTest extends TestContainer {
     }
 
     @Test
-    public void testMaxRedirectionExceed() throws InterruptedException, DeploymentException, AuthenticationException, IOException {
+    public void testMaxRedirectionExceed() throws InterruptedException, DeploymentException, AuthenticationException,
+            IOException {
         Server server = null;
         try {
             server = startServer(RedirectedEchoEndpoint.class);
@@ -470,16 +492,23 @@ public class RedirectTest extends TestContainer {
         }
     }
 
-    private void testMaxRedirectionExceed(HttpStatus httpStatus) throws InterruptedException, IOException, AuthenticationException {
+    private void testMaxRedirectionExceed(HttpStatus httpStatus) throws InterruptedException, IOException,
+            AuthenticationException {
         HttpServer httpServer = null;
         try {
             httpServer = createHttpServer(REDIRECTION_PORT);
-            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI + REDIRECTION_PATH + 1), REDIRECTION_PATH + 0);
-            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI + REDIRECTION_PATH + 2), REDIRECTION_PATH + 1);
-            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI + REDIRECTION_PATH + 3), REDIRECTION_PATH + 2);
-            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI + REDIRECTION_PATH + 4), REDIRECTION_PATH + 3);
-            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI + REDIRECTION_PATH + 5), REDIRECTION_PATH + 4);
-            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI + REDIRECTION_PATH + 6), REDIRECTION_PATH + 5);
+            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI +
+                    REDIRECTION_PATH + 1), REDIRECTION_PATH + 0);
+            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI +
+                    REDIRECTION_PATH + 2), REDIRECTION_PATH + 1);
+            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI +
+                    REDIRECTION_PATH + 3), REDIRECTION_PATH + 2);
+            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI +
+                    REDIRECTION_PATH + 4), REDIRECTION_PATH + 3);
+            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI +
+                    REDIRECTION_PATH + 5), REDIRECTION_PATH + 4);
+            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI +
+                    REDIRECTION_PATH + 6), REDIRECTION_PATH + 5);
             httpServer.start();
 
             final ClientManager client = createClient();
@@ -516,7 +545,8 @@ public class RedirectTest extends TestContainer {
     }
 
     @Test
-    public void testMaxRedirectionConfig() throws InterruptedException, DeploymentException, AuthenticationException, IOException {
+    public void testMaxRedirectionConfig() throws InterruptedException, DeploymentException, AuthenticationException,
+            IOException {
         Server server = null;
         try {
             server = startServer(RedirectedEchoEndpoint.class);
@@ -531,13 +561,17 @@ public class RedirectTest extends TestContainer {
         }
     }
 
-    private void testMaxRedirectionConfig(HttpStatus httpStatus) throws InterruptedException, IOException, AuthenticationException {
+    private void testMaxRedirectionConfig(HttpStatus httpStatus) throws InterruptedException, IOException,
+            AuthenticationException {
         HttpServer httpServer = null;
         try {
             httpServer = createHttpServer(REDIRECTION_PORT);
-            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI + REDIRECTION_PATH + 1), REDIRECTION_PATH + 0);
-            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI + REDIRECTION_PATH + 2), REDIRECTION_PATH + 1);
-            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI + REDIRECTION_PATH + 3), REDIRECTION_PATH + 2);
+            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI +
+                    REDIRECTION_PATH + 1), REDIRECTION_PATH + 0);
+            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI +
+                    REDIRECTION_PATH + 2), REDIRECTION_PATH + 1);
+            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI +
+                    REDIRECTION_PATH + 3), REDIRECTION_PATH + 2);
             httpServer.start();
 
             final ClientManager client = createClient();
@@ -576,7 +610,8 @@ public class RedirectTest extends TestContainer {
     }
 
     @Test
-    public void testMaxRedirectionConfigNeg() throws InterruptedException, DeploymentException, AuthenticationException, IOException {
+    public void testMaxRedirectionConfigNeg() throws InterruptedException, DeploymentException,
+            AuthenticationException, IOException {
         Server server = null;
         try {
             server = startServer(RedirectedEchoEndpoint.class);
@@ -594,13 +629,15 @@ public class RedirectTest extends TestContainer {
         }
     }
 
-    private void testMaxRedirectionConfigNeg(HttpStatus httpStatus) throws InterruptedException, IOException, AuthenticationException {
+    private void testMaxRedirectionConfigNeg(HttpStatus httpStatus) throws InterruptedException, IOException,
+            AuthenticationException {
 
         HttpServer httpServer = null;
         try {
 
             httpServer = createHttpServer(REDIRECTION_PORT);
-            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI + REDIRECTION_PATH + 1), REDIRECTION_PATH + 0);
+            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI +
+                    REDIRECTION_PATH + 1), REDIRECTION_PATH + 0);
             httpServer.start();
 
             final ClientManager client = createClient();
@@ -639,7 +676,8 @@ public class RedirectTest extends TestContainer {
     }
 
     @Test
-    public void testRedirectMissingLocation() throws InterruptedException, DeploymentException, AuthenticationException, IOException {
+    public void testRedirectMissingLocation() throws InterruptedException, DeploymentException,
+            AuthenticationException, IOException {
         Server server = null;
         try {
             server = startServer(RedirectedEchoEndpoint.class);
@@ -654,7 +692,8 @@ public class RedirectTest extends TestContainer {
         }
     }
 
-    private void testRedirectMissingLocation(HttpStatus httpStatus) throws InterruptedException, IOException, AuthenticationException {
+    private void testRedirectMissingLocation(HttpStatus httpStatus) throws InterruptedException, IOException,
+            AuthenticationException {
 
         HttpServer httpServer = null;
         try {
@@ -698,7 +737,8 @@ public class RedirectTest extends TestContainer {
     }
 
     @Test
-    public void testRedirectEmptyLocation() throws InterruptedException, DeploymentException, AuthenticationException, IOException {
+    public void testRedirectEmptyLocation() throws InterruptedException, DeploymentException,
+            AuthenticationException, IOException {
         Server server = null;
         try {
             server = startServer(RedirectedEchoEndpoint.class);
@@ -713,7 +753,8 @@ public class RedirectTest extends TestContainer {
         }
     }
 
-    private void testRedirectEmptyLocation(HttpStatus httpStatus) throws InterruptedException, IOException, AuthenticationException {
+    private void testRedirectEmptyLocation(HttpStatus httpStatus) throws InterruptedException, IOException,
+            AuthenticationException {
 
         HttpServer httpServer = null;
         try {
@@ -769,10 +810,7 @@ public class RedirectTest extends TestContainer {
     private HttpServer createHttpServer(int port) throws IOException {
         HttpServer httpServer = new HttpServer();
 
-        final NetworkListener listener =
-                new NetworkListener("grizzly",
-                        "0.0.0.0",
-                        port);
+        final NetworkListener listener = new NetworkListener("grizzly", "0.0.0.0", port);
         httpServer.addListener(listener);
 
         return httpServer;

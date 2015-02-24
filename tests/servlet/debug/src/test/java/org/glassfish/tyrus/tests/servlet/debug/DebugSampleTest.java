@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -86,13 +86,15 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
- * Does not automatically test anything, it only servers as a sample use of the debug mode or for manual testing of the debug mode.
+ * Does not automatically test anything, it only servers as a sample use of the debug mode or for manual testing of the
+ * debug mode.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
 public class DebugSampleTest extends TestContainer {
 
-    String loggingConfigPath = new File(DebugSampleTest.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getPath();
+    String loggingConfigPath =
+            new File(DebugSampleTest.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getPath();
 
     public DebugSampleTest() {
         setContextPath("/samples-debug");
@@ -103,7 +105,9 @@ public class DebugSampleTest extends TestContainer {
     @Test
     public void testMatch() throws DeploymentException, InterruptedException, IOException {
 
-        final Server server = startServer(Endpoint1.class, Endpoint2.class, Endpoint3.class, Endpoint4.class, Endpoint5.class, Endpoint6.class);
+        final Server server =
+                startServer(Endpoint1.class, Endpoint2.class, Endpoint3.class, Endpoint4.class, Endpoint5.class,
+                            Endpoint6.class);
         final CountDownLatch onOpenLatch = new CountDownLatch(1);
 
         try {
@@ -131,7 +135,9 @@ public class DebugSampleTest extends TestContainer {
     @Test
     public void test404() throws DeploymentException, InterruptedException, IOException {
 
-        final Server server = startServer(Endpoint1.class, Endpoint2.class, Endpoint3.class, Endpoint4.class, Endpoint5.class, Endpoint6.class);
+        final Server server =
+                startServer(Endpoint1.class, Endpoint2.class, Endpoint3.class, Endpoint4.class, Endpoint5.class,
+                            Endpoint6.class);
         final CountDownLatch onOpenLatch = new CountDownLatch(1);
 
         try {
@@ -159,7 +165,9 @@ public class DebugSampleTest extends TestContainer {
     @Test
     public void testDeploy() throws DeploymentException, InterruptedException, IOException {
 
-        final Server server = startServer(Endpoint1.class, Endpoint2.class, Endpoint3.class, Endpoint4.class, Endpoint5.class, Endpoint6.class);
+        final Server server =
+                startServer(Endpoint1.class, Endpoint2.class, Endpoint3.class, Endpoint4.class, Endpoint5.class,
+                            Endpoint6.class);
         final CountDownLatch onOpenLatch = new CountDownLatch(1);
 
         try {
@@ -190,7 +198,9 @@ public class DebugSampleTest extends TestContainer {
         LogManager.getLogManager().readConfiguration();
 
 
-        final Server server = startServer(Endpoint1.class, Endpoint2.class, Endpoint3.class, Endpoint4.class, Endpoint5.class, Endpoint6.class);
+        final Server server =
+                startServer(Endpoint1.class, Endpoint2.class, Endpoint3.class, Endpoint4.class, Endpoint5.class,
+                            Endpoint6.class);
         final CountDownLatch onOpenLatch = new CountDownLatch(1);
 
         try {
@@ -301,7 +311,9 @@ public class DebugSampleTest extends TestContainer {
     public void test404Trace() throws DeploymentException, InterruptedException, IOException {
 
         getServerProperties().put(TyrusWebSocketEngine.TRACING_TYPE, "ON_DEMAND");
-        final Server server = startServer(Endpoint1.class, Endpoint2.class, Endpoint3.class, Endpoint4.class, Endpoint5.class, Endpoint6.class);
+        final Server server =
+                startServer(Endpoint1.class, Endpoint2.class, Endpoint3.class, Endpoint4.class, Endpoint5.class,
+                            Endpoint6.class);
 
         try {
             final ClientManager client = createClient();
@@ -326,7 +338,9 @@ public class DebugSampleTest extends TestContainer {
     public void testMatchTrace() throws DeploymentException, InterruptedException, IOException {
 
         getServerProperties().put(TyrusWebSocketEngine.TRACING_TYPE, "on_demand");
-        final Server server = startServer(Endpoint1.class, Endpoint2.class, Endpoint3.class, Endpoint4.class, Endpoint5.class, Endpoint6.class);
+        final Server server =
+                startServer(Endpoint1.class, Endpoint2.class, Endpoint3.class, Endpoint4.class, Endpoint5.class,
+                            Endpoint6.class);
 
         CountDownLatch traceHeaderLatch = new CountDownLatch(1);
         try {
@@ -354,7 +368,8 @@ public class DebugSampleTest extends TestContainer {
     public void testMatchTraceAll() throws DeploymentException, InterruptedException, IOException {
 
         getServerProperties().put(TyrusWebSocketEngine.TRACING_TYPE, "ALL");
-        final Server server = startServer(Endpoint1.class, Endpoint2.class, Endpoint3.class, Endpoint4.class, Endpoint5.class, Endpoint6.class);
+        final Server server = startServer(
+                Endpoint1.class, Endpoint2.class, Endpoint3.class, Endpoint4.class, Endpoint5.class, Endpoint6.class);
 
         try {
             final ClientManager client = createClient();
@@ -382,7 +397,8 @@ public class DebugSampleTest extends TestContainer {
     public void testErrorTrace() throws DeploymentException, InterruptedException, IOException {
 
         getServerProperties().put(TyrusWebSocketEngine.TRACING_TYPE, "all");
-        final Server server = startServer(Endpoint1.class, Endpoint2.class, Endpoint3.class, Endpoint4.class, Endpoint5.class, Endpoint6.class);
+        final Server server = startServer(
+                Endpoint1.class, Endpoint2.class, Endpoint3.class, Endpoint4.class, Endpoint5.class, Endpoint6.class);
 
         try {
             final ClientManager client = createClient();
@@ -503,7 +519,8 @@ public class DebugSampleTest extends TestContainer {
             @Override
             public void afterResponse(HandshakeResponse hr) {
                 for (Map.Entry<String, List<String>> header : hr.getHeaders().entrySet()) {
-                    if (header.getKey().toLowerCase(Locale.US).contains(UpgradeResponse.TRACING_HEADER_PREFIX.toLowerCase(Locale.US))) {
+                    if (header.getKey().toLowerCase(Locale.US)
+                              .contains(UpgradeResponse.TRACING_HEADER_PREFIX.toLowerCase(Locale.US))) {
                         traceHeaderLatch.countDown();
                     }
                 }

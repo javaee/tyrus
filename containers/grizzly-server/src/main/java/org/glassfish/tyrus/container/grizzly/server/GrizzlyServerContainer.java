@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -89,14 +89,16 @@ public class GrizzlyServerContainer extends ServerContainerFactory {
      * <p/>
      * Value is expected to be instance of {@link ThreadPoolConfig}, can be {@code null} (it won't be used).
      */
-    public static final String WORKER_THREAD_POOL_CONFIG = "org.glassfish.tyrus.container.grizzly.server.workerThreadPoolConfig";
+    public static final String WORKER_THREAD_POOL_CONFIG =
+            "org.glassfish.tyrus.container.grizzly.server.workerThreadPoolConfig";
 
     /**
      * Server-side property to set custom selector {@link ThreadPoolConfig}.
      * <p/>
      * Value is expected to be instance of {@link ThreadPoolConfig}, can be {@code null} (it won't be used).
      */
-    public static final String SELECTOR_THREAD_POOL_CONFIG = "org.glassfish.tyrus.container.grizzly.server.selectorThreadPoolConfig";
+    public static final String SELECTOR_THREAD_POOL_CONFIG =
+            "org.glassfish.tyrus.container.grizzly.server.selectorThreadPoolConfig";
 
     @Override
     public ServerContainer createContainer(Map<String, Object> properties) {
@@ -109,27 +111,39 @@ public class GrizzlyServerContainer extends ServerContainerFactory {
             localProperties = new HashMap<String, Object>(properties);
         }
 
-        final Integer incomingBufferSize = Utils.getProperty(localProperties, TyrusWebSocketEngine.INCOMING_BUFFER_SIZE, Integer.class);
-        final ClusterContext clusterContext = Utils.getProperty(localProperties, ClusterContext.CLUSTER_CONTEXT, ClusterContext.class);
-        final ApplicationEventListener applicationEventListener = Utils.getProperty(localProperties, ApplicationEventListener.APPLICATION_EVENT_LISTENER, ApplicationEventListener.class);
-        final Integer maxSessionsPerApp = Utils.getProperty(localProperties, TyrusWebSocketEngine.MAX_SESSIONS_PER_APP, Integer.class);
-        final Integer maxSessionsPerRemoteAddr = Utils.getProperty(localProperties, TyrusWebSocketEngine.MAX_SESSIONS_PER_REMOTE_ADDR, Integer.class);
-        final Boolean parallelBroadcastEnabled = Utils.getProperty(localProperties, TyrusWebSocketEngine.PARALLEL_BROADCAST_ENABLED, Boolean.class);
-        final DebugContext.TracingType tracingType = Utils.getProperty(localProperties, TyrusWebSocketEngine.TRACING_TYPE, DebugContext.TracingType.class, DebugContext.TracingType.OFF);
-        final DebugContext.TracingThreshold tracingThreshold = Utils.getProperty(localProperties, TyrusWebSocketEngine.TRACING_THRESHOLD, DebugContext.TracingThreshold.class, DebugContext.TracingThreshold.TRACE);
+        final Integer incomingBufferSize =
+                Utils.getProperty(localProperties, TyrusWebSocketEngine.INCOMING_BUFFER_SIZE, Integer.class);
+        final ClusterContext clusterContext =
+                Utils.getProperty(localProperties, ClusterContext.CLUSTER_CONTEXT, ClusterContext.class);
+        final ApplicationEventListener applicationEventListener =
+                Utils.getProperty(localProperties, ApplicationEventListener.APPLICATION_EVENT_LISTENER,
+                                  ApplicationEventListener.class);
+        final Integer maxSessionsPerApp =
+                Utils.getProperty(localProperties, TyrusWebSocketEngine.MAX_SESSIONS_PER_APP, Integer.class);
+        final Integer maxSessionsPerRemoteAddr =
+                Utils.getProperty(localProperties, TyrusWebSocketEngine.MAX_SESSIONS_PER_REMOTE_ADDR, Integer.class);
+        final Boolean parallelBroadcastEnabled =
+                Utils.getProperty(localProperties, TyrusWebSocketEngine.PARALLEL_BROADCAST_ENABLED, Boolean.class);
+        final DebugContext.TracingType tracingType =
+                Utils.getProperty(localProperties, TyrusWebSocketEngine.TRACING_TYPE, DebugContext.TracingType.class,
+                                  DebugContext.TracingType.OFF);
+        final DebugContext.TracingThreshold tracingThreshold =
+                Utils.getProperty(localProperties, TyrusWebSocketEngine.TRACING_THRESHOLD,
+                                  DebugContext.TracingThreshold.class, DebugContext.TracingThreshold.TRACE);
 
         return new TyrusServerContainer((Set<Class<?>>) null) {
 
-            private final WebSocketEngine engine = TyrusWebSocketEngine.builder(this)
-                    .incomingBufferSize(incomingBufferSize)
-                    .clusterContext(clusterContext)
-                    .applicationEventListener(applicationEventListener)
-                    .maxSessionsPerApp(maxSessionsPerApp)
-                    .maxSessionsPerRemoteAddr(maxSessionsPerRemoteAddr)
-                    .parallelBroadcastEnabled(parallelBroadcastEnabled)
-                    .tracingType(tracingType)
-                    .tracingThreshold(tracingThreshold)
-                    .build();
+            private final WebSocketEngine engine =
+                    TyrusWebSocketEngine.builder(this)
+                                        .incomingBufferSize(incomingBufferSize)
+                                        .clusterContext(clusterContext)
+                                        .applicationEventListener(applicationEventListener)
+                                        .maxSessionsPerApp(maxSessionsPerApp)
+                                        .maxSessionsPerRemoteAddr(maxSessionsPerRemoteAddr)
+                                        .parallelBroadcastEnabled(parallelBroadcastEnabled)
+                                        .tracingType(tracingType)
+                                        .tracingThreshold(tracingThreshold)
+                                        .build();
 
             private HttpServer server;
             private String contextPath;
@@ -155,15 +169,14 @@ public class GrizzlyServerContainer extends ServerContainerFactory {
                 server = new HttpServer();
                 final ServerConfiguration config = server.getServerConfiguration();
 
-                final NetworkListener listener =
-                        new NetworkListener("grizzly",
-                                "0.0.0.0",
-                                port);
+                final NetworkListener listener = new NetworkListener("grizzly", "0.0.0.0", port);
                 server.addListener(listener);
 
                 // server = HttpServer.createSimpleServer(rootPath, port);
-                ThreadPoolConfig workerThreadPoolConfig = Utils.getProperty(localProperties, WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.class);
-                ThreadPoolConfig selectorThreadPoolConfig = Utils.getProperty(localProperties, SELECTOR_THREAD_POOL_CONFIG, ThreadPoolConfig.class);
+                ThreadPoolConfig workerThreadPoolConfig =
+                        Utils.getProperty(localProperties, WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.class);
+                ThreadPoolConfig selectorThreadPoolConfig =
+                        Utils.getProperty(localProperties, SELECTOR_THREAD_POOL_CONFIG, ThreadPoolConfig.class);
 
                 // TYRUS-287: configurable server thread pools
                 if (workerThreadPoolConfig != null || selectorThreadPoolConfig != null) {

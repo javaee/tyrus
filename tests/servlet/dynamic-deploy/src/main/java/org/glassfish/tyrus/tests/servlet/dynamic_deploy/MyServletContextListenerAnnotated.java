@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -49,8 +49,9 @@ import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
 /**
- * Calls {@link javax.websocket.server.ServerContainer#addEndpoint(Class)} with MyServletContextListener.class (which is also an endpoint). It will
- * be picked up by scanning mechanism but ignored because MyApplication class filters it out.
+ * Calls {@link javax.websocket.server.ServerContainer#addEndpoint(Class)} with MyServletContextListener.class (which is
+ * also an endpoint). It will be picked up by scanning mechanism but ignored because MyApplication class filters it
+ * out.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
@@ -60,7 +61,8 @@ public class MyServletContextListenerAnnotated implements ServletContextListener
 
     @Override
     public void contextInitialized(ServletContextEvent servletContextEvent) {
-        final ServerContainer serverContainer = (ServerContainer) servletContextEvent.getServletContext().getAttribute("javax.websocket.server.ServerContainer");
+        final ServerContainer serverContainer = (ServerContainer) servletContextEvent.getServletContext().getAttribute(
+                "javax.websocket.server.ServerContainer");
 
         try {
             // this is the important call

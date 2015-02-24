@@ -122,7 +122,8 @@ final class CharacterIterator {
      */
     public void setPosition(int newPosition) {
         if (newPosition > this.s.length() - 1) {
-            throw new IndexOutOfBoundsException("Given position " + newPosition + " is outside the input string range.");
+            throw new IndexOutOfBoundsException(
+                    "Given position " + newPosition + " is outside the input string range.");
         }
         this.pos = newPosition;
     }

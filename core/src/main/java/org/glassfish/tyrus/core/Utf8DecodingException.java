@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -49,7 +49,8 @@ import org.glassfish.tyrus.core.l10n.LocalizationMessages;
  */
 public class Utf8DecodingException extends WebSocketException {
 
-    private static final CloseReason CLOSE_REASON = new CloseReason(CloseReason.CloseCodes.NOT_CONSISTENT, LocalizationMessages.ILLEGAL_UTF_8_SEQUENCE());
+    private static final CloseReason CLOSE_REASON =
+            new CloseReason(CloseReason.CloseCodes.NOT_CONSISTENT, LocalizationMessages.ILLEGAL_UTF_8_SEQUENCE());
     private static final long serialVersionUID = 7766051445796057L;
 
     /**

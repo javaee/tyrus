@@ -81,10 +81,9 @@ public class MarketEndpoint implements Market.MarketListener {
 
     @OnOpen
     public void onOpen(final Session session) throws IOException {
-        session.getBasicRemote().sendText(
-                Json.createObjectBuilder()
-                        .add("type", "name")
-                        .build().toString()
+        session.getBasicRemote().sendText(Json.createObjectBuilder()
+                                              .add("type", "name")
+                                              .build().toString()
         );
 
         this.session = session;
@@ -95,9 +94,9 @@ public class MarketEndpoint implements Market.MarketListener {
             public void run() {
                 try {
                     session.getBasicRemote().sendText(Json.createObjectBuilder()
-                            .add("type", "price-update")
-                            .add("price", market.getCurrentPrice())
-                            .build().toString());
+                                                          .add("type", "price-update")
+                                                          .add("price", market.getCurrentPrice())
+                                                          .build().toString());
                 } catch (IOException ignored) {
                 }
             }
@@ -134,11 +133,11 @@ public class MarketEndpoint implements Market.MarketListener {
 
             try {
                 session.getBasicRemote().sendText(Json.createObjectBuilder()
-                        .add("id", offer.id)
-                        .add("type", offer.type)
-                        .add("amount", offer.amount)
-                        .add("price", offer.price)
-                        .build().toString());
+                                                      .add("id", offer.id)
+                                                      .add("type", offer.type)
+                                                      .add("amount", offer.amount)
+                                                      .add("price", offer.price)
+                                                      .build().toString());
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -153,9 +152,9 @@ public class MarketEndpoint implements Market.MarketListener {
     public void onRemoved(Long id) {
         try {
             session.getBasicRemote().sendText(Json.createObjectBuilder()
-                    .add("id", id)
-                    .add("type", "invalidate")
-                    .build().toString());
+                                                  .add("id", id)
+                                                  .add("type", "invalidate")
+                                                  .build().toString());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -171,12 +170,12 @@ public class MarketEndpoint implements Market.MarketListener {
 
         try {
             session.getBasicRemote().sendText(Json.createObjectBuilder()
-                    .add("type", "balance")
-                    .add("btc", this.btc)
-                    .add("usd", this.usd)
-                    .add("btcDelta", btc)
-                    .add("usdDelta", usd)
-                    .build().toString());
+                                                  .add("type", "balance")
+                                                  .add("btc", this.btc)
+                                                  .add("usd", this.usd)
+                                                  .add("btcDelta", btc)
+                                                  .add("usdDelta", usd)
+                                                  .build().toString());
         } catch (IOException e) {
             e.printStackTrace();
         }

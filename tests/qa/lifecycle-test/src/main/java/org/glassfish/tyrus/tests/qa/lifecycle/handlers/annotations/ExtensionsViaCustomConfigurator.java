@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -64,7 +64,9 @@ import org.glassfish.tyrus.tests.qa.tools.SessionController;
  * @author Michal Čonos (michal.conos at oracle.com)
  */
 public class ExtensionsViaCustomConfigurator {
-    @ServerEndpoint(value = LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH, configurator = CustomConfiguratorProtocols.class)
+
+    @ServerEndpoint(value = LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH,
+            configurator = CustomConfiguratorProtocols.class)
     static public class Server extends AnnotatedEndpoint {
 
         @Override
@@ -76,7 +78,8 @@ public class ExtensionsViaCustomConfigurator {
             logger.log(Level.INFO, "checkExtensions:{0}", s.getNegotiatedExtensions());
 
             if (s.getNegotiatedExtensions().size() != 100) {
-                throw new RuntimeException("checkSubProtocols: bad ext size! Got:" + s.getNegotiatedExtensions().size());
+                throw new RuntimeException(
+                        "checkSubProtocols: bad ext size! Got:" + s.getNegotiatedExtensions().size());
             }
 
 

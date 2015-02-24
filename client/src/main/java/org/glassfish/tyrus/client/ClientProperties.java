@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -41,15 +41,11 @@ package org.glassfish.tyrus.client;
 
 
 import java.net.URI;
-import java.util.Map;
-
-import javax.websocket.ClientEndpointConfig;
 
 import org.glassfish.tyrus.client.auth.AuthConfig;
 import org.glassfish.tyrus.client.auth.AuthenticationException;
 import org.glassfish.tyrus.client.auth.Authenticator;
 import org.glassfish.tyrus.client.auth.Credentials;
-import org.glassfish.tyrus.spi.ClientEngine;
 import org.glassfish.tyrus.spi.UpgradeResponse;
 
 /**
@@ -101,13 +97,15 @@ public final class ClientProperties {
      * Sample below demonstrates use of this feature to set preemptive basic proxy authentication:
      * <pre>
      *     final HashMap<String, String> proxyHeaders = new HashMap<String, String>();
-     *     proxyHeaders.put("Proxy-Authorization", "Basic " + Base64Utils.encodeToString("username:password".getBytes(Charset.forName("UTF-8")), false));
+     *     proxyHeaders.put("Proxy-Authorization", "Basic " +
+     *         Base64Utils.encodeToString("username:password".getBytes(Charset.forName("UTF-8")), false));
      *
      *     client.getProperties().put(ClientProperties.PROXY_HEADERS, proxyHeaders);
      *     client.connectToServer(...);
      * </pre>
      * Please note that these headers will be used only when establishing proxy connection, for modifying
-     * WebSocket handshake headers, see {@link javax.websocket.ClientEndpointConfig.Configurator#beforeRequest(java.util.Map)}.
+     * WebSocket handshake headers, see
+     * {@link javax.websocket.ClientEndpointConfig.Configurator#beforeRequest(java.util.Map)}.
      *
      * @see javax.websocket.ClientEndpointConfig#getUserProperties()
      */
@@ -133,7 +131,8 @@ public final class ClientProperties {
      *      sslContextConfigurator.setKeyStoreFile("...");
      *      sslContextConfigurator.setKeyStorePassword("...");
      *      sslContextConfigurator.setKeyStoreType("...");
-     *      SslEngineConfigurator sslEngineConfigurator = new SslEngineConfigurator(sslContextConfigurator, true, false, false);
+     *      SslEngineConfigurator sslEngineConfigurator = new SslEngineConfigurator(sslContextConfigurator, true,
+     *          false, false);
      *      client.getProperties().put(ClientProperties.SSL_ENGINE_CONFIGURATOR, sslEngineConfigurator);
      * </pre>
      */
@@ -142,7 +141,9 @@ public final class ClientProperties {
     /**
      * Property name for maximal incoming buffer size.
      * <p/>
-     * Can be set in properties map (see {@link org.glassfish.tyrus.spi.ClientContainer#openClientSocket(ClientEndpointConfig, Map, ClientEngine)}).
+     * Can be set in properties map (see {@link
+     * org.glassfish.tyrus.spi.ClientContainer#openClientSocket(javax.websocket.ClientEndpointConfig, java.util.Map,
+     * org.glassfish.tyrus.spi.ClientEngine)}.
      */
     public static final String INCOMING_BUFFER_SIZE = "org.glassfish.tyrus.incomingBufferSize";
 
@@ -188,7 +189,8 @@ public final class ClientProperties {
      * <p/>
      * Sample below demonstrates how to use this property:
      * <pre>
-     *     client.getProperties().put(ClientProperties.AUTH_CONFIG, AuthConfig.builder().enableProvidedBasicAuth().build());
+     *     client.getProperties().put(ClientProperties.AUTH_CONFIG, AuthConfig.builder().enableProvidedBasicAuth()
+     *     .build());
      * </pre>
      *
      * @see AuthConfig
@@ -222,10 +224,10 @@ public final class ClientProperties {
      * <p/>
      * Value is expected to be {@code boolean}. Default value is {@code false}.
      * <p/>
-     * When set to {@code true} and one of the following redirection HTTP response status code (3xx) is received
-     * during a handshake, client will attempt to connect to the {@link URI} contained in
-     * {@value UpgradeResponse#LOCATION} header from handshake response. Number of redirection is limited by property
-     * {@link #REDIRECT_THRESHOLD} (integer value), while default value is {@value TyrusClientEngine#DEFAULT_REDIRECT_THRESHOLD}.
+     * When set to {@code true} and one of the following redirection HTTP response status code (3xx) is received during
+     * a handshake, client will attempt to connect to the {@link URI} contained in {@value UpgradeResponse#LOCATION}
+     * header from handshake response. Number of redirection is limited by property {@link #REDIRECT_THRESHOLD} (integer
+     * value), while default value is {@value TyrusClientEngine#DEFAULT_REDIRECT_THRESHOLD}.
      * <p/>
      * List of supported HTTP status codes:
      * <ul>
@@ -244,9 +246,11 @@ public final class ClientProperties {
     /**
      * The maximal number of redirects during single handshake.
      * <p/>
-     * Value is expected to be positive {@link Integer}. Default value is {@value TyrusClientEngine#DEFAULT_REDIRECT_THRESHOLD}.
+     * Value is expected to be positive {@link Integer}. Default value is {@value
+     * TyrusClientEngine#DEFAULT_REDIRECT_THRESHOLD}.
      * <p/>
-     * HTTP redirection must be enabled by property {@link #REDIRECT_ENABLED}, otherwise {@code REDIRECT_THRESHOLD} is not applied.
+     * HTTP redirection must be enabled by property {@link #REDIRECT_ENABLED}, otherwise {@code REDIRECT_THRESHOLD} is
+     * not applied.
      *
      * @see #REDIRECT_ENABLED
      * @see RedirectException
@@ -258,9 +262,10 @@ public final class ClientProperties {
      * <p/>
      * Value is expected to be {@code boolean}. Default value is {@code false}.
      * <p/>
-     * When set to {@code true} and HTTP response code {@code 503 - Service Unavailable} is received, client will attempt
-     * to reconnect after delay specified in {@value UpgradeResponse#RETRY_AFTER} header from handshake response. According to
-     * RFC 2616 the value must be decimal integer (representing delay in seconds) or {@code http-date}.
+     * When set to {@code true} and HTTP response code {@code 503 - Service Unavailable} is received, client will
+     * attempt to reconnect after delay specified in {@value UpgradeResponse#RETRY_AFTER} header from handshake
+     * response. According to RFC 2616 the value must be decimal integer (representing delay in seconds) or {@code
+     * http-date}.
      * <p/>
      * Tyrus client will try to reconnect after this delay if:
      * <ul>

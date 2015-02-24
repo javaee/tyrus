@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -43,8 +43,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.websocket.CloseReason;
 import javax.websocket.Session;
+
 import org.glassfish.tyrus.tests.qa.lifecycle.MyException;
 import org.glassfish.tyrus.tests.qa.tools.Misc;
 import org.glassfish.tyrus.tests.qa.tools.SerializationToolkit;
@@ -53,9 +55,8 @@ import org.glassfish.tyrus.tests.qa.tools.SerializationToolkit;
  * @author Michal Čonos (michal.conos at oracle.com)
  */
 public class Issue implements java.io.Serializable {
-    
-    public enum IssueId { TYRUS_101, TYRUS_104, TYRUS_94, TYRUS_93 };
 
+    public enum IssueId {TYRUS_101, TYRUS_104, TYRUS_94, TYRUS_93}
 
     private static final Logger logger = Logger.getLogger(Issue.class.getCanonicalName());
     private IssueId id;
@@ -100,10 +101,9 @@ public class Issue implements java.io.Serializable {
         this.description = description;
         this.enabled = true;
     }
-    
+
     public IssueId getIssueId() {
         return id;
     }
 
-    
 }

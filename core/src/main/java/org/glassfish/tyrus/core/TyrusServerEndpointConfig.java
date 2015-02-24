@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -75,7 +75,8 @@ public interface TyrusServerEndpointConfig extends ServerEndpointConfig {
      * <p/>
      * Building a plain configuration for an endpoint with just a path.
      * <p/>
-     * {@code ServerEndpointConfig config = TyrusServerEndpointConfig.Builder.create(ProgrammaticEndpoint.class, "/foo").build();}
+     * {@code ServerEndpointConfig config = TyrusServerEndpointConfig.Builder.create(ProgrammaticEndpoint.class,
+     * "/foo").build();}
      * <p/>
      * Building a configuration with no subprotocols, limited number of sessions (100) and a custom configurator.
      * <pre><code>
@@ -126,7 +127,10 @@ public interface TyrusServerEndpointConfig extends ServerEndpointConfig {
          */
         public TyrusServerEndpointConfig build() {
 
-            final ServerEndpointConfig serverEndpointConfig = ServerEndpointConfig.Builder.create(endpointClass, path).subprotocols(subprotocols).extensions(extensions).encoders(encoders).decoders(decoders).configurator(serverEndpointConfigurator).build();
+            final ServerEndpointConfig serverEndpointConfig =
+                    ServerEndpointConfig.Builder.create(endpointClass, path).subprotocols(subprotocols)
+                                                .extensions(extensions).encoders(encoders).decoders(decoders)
+                                                .configurator(serverEndpointConfigurator).build();
 
             return new DefaultTyrusServerEndpointConfig(
                     serverEndpointConfig,

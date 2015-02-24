@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -97,7 +97,9 @@ public final class ThreadPoolConfig {
     private ClassLoader initialClassLoader;
 
 
-    private ThreadPoolConfig(String poolName, int corePoolSize, int maxPoolSize, Queue<Runnable> queue, int queueLimit, long keepAliveTime, TimeUnit timeUnit, ThreadFactory threadFactory, int priority, boolean isDaemon, ClassLoader initialClassLoader) {
+    private ThreadPoolConfig(String poolName, int corePoolSize, int maxPoolSize, Queue<Runnable> queue, int queueLimit,
+                             long keepAliveTime, TimeUnit timeUnit, ThreadFactory threadFactory, int priority,
+                             boolean isDaemon, ClassLoader initialClassLoader) {
         this.poolName = poolName;
         this.corePoolSize = corePoolSize;
         this.maxPoolSize = maxPoolSize;
@@ -148,9 +150,11 @@ public final class ThreadPoolConfig {
     }
 
     /**
-     * Set a queue implementation that will be used to temporarily store tasks when all threads in the thread pool are busy.
+     * Set a queue implementation that will be used to temporarily store tasks when all threads in the thread pool are
+     * busy.
      *
-     * @param queue queue implementation that will be used to temporarily store tasks when all threads in the thread pool are busy.
+     * @param queue queue implementation that will be used to temporarily store tasks when all threads in the thread
+     *              pool are busy.
      * @return the {@link ThreadPoolConfig} with the new {@link java.util.Queue} implementation.
      */
     public ThreadPoolConfig setQueue(Queue<Runnable> queue) {
@@ -173,9 +177,9 @@ public final class ThreadPoolConfig {
     /**
      * Set {@link java.util.concurrent.ThreadFactory} that will be used to create thread pool threads.
      *
-     * @param threadFactory custom {@link java.util.concurrent.ThreadFactory}
-     *                      If {@link java.util.concurrent.ThreadFactory} is set, then {@link #priority}, {@link #isDaemon},
-     *                      {@link #poolName} settings will not be considered when creating new threads.
+     * @param threadFactory custom {@link java.util.concurrent.ThreadFactory} If
+     *                      {@link java.util.concurrent.ThreadFactory} is set, then {@link #priority}, {@link
+     *                      #isDaemon}, {@link #poolName} settings will not be considered when creating new threads.
      * @return the {@link ThreadPoolConfig} with the new {@link java.util.concurrent.ThreadFactory}
      */
     public ThreadPoolConfig setThreadFactory(ThreadFactory threadFactory) {
@@ -253,7 +257,8 @@ public final class ThreadPoolConfig {
     }
 
     /**
-     * Set max thread pool size. The default is The default is {@code Math.max(Runtime.getRuntime().availableProcessors(), 20)}.
+     * Set max thread pool size. The default is The default is {@code
+     * Math.max(Runtime.getRuntime().availableProcessors(), 20)}.
      * <p/>
      * Cannot be smaller than 3.
      *
@@ -328,8 +333,8 @@ public final class ThreadPoolConfig {
     /**
      * The max period of time a thread will wait for a new task to process.
      * <p/>
-     * If the timeout expires and the thread is not a core one (see {@link #setCorePoolSize(int)}, {@link #setMaxPoolSize(int)})
-     * - then the thread will be terminated and removed from the thread pool.
+     * If the timeout expires and the thread is not a core one (see {@link #setCorePoolSize(int)},
+     * {@link #setMaxPoolSize(int)}) - then the thread will be terminated and removed from the thread pool.
      * <p/>
      * The default is 10s.
      *
@@ -349,8 +354,8 @@ public final class ThreadPoolConfig {
     /**
      * Get the max period of time a thread will wait for a new task to process.
      * <p/>
-     * If the timeout expires and the thread is not a core one (see {@link #setCorePoolSize(int)}, {@link #setMaxPoolSize(int)})
-     * - then the thread will be terminated and removed from the thread pool.
+     * If the timeout expires and the thread is not a core one (see {@link #setCorePoolSize(int)}, {@link
+     * #setMaxPoolSize(int)}) - then the thread will be terminated and removed from the thread pool.
      * <p/>
      * The default is 10s.
      *
@@ -434,7 +439,8 @@ public final class ThreadPoolConfig {
         if (queueLimit != that.queueLimit) {
             return false;
         }
-        if (initialClassLoader != null ? !initialClassLoader.equals(that.initialClassLoader) : that.initialClassLoader != null) {
+        if (initialClassLoader != null ? !initialClassLoader.equals(that.initialClassLoader) :
+                that.initialClassLoader != null) {
             return false;
         }
         if (poolName != null ? !poolName.equals(that.poolName) : that.poolName != null) {

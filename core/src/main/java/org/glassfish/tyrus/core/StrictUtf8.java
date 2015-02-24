@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -94,22 +94,20 @@ public class StrictUtf8 extends Charset {
     }
 
     private static char highSurrogate(int codePoint) {
-        return (char) ((codePoint >>> 10)
-                + (Character.MIN_HIGH_SURROGATE - (Character.MIN_SUPPLEMENTARY_CODE_POINT >>> 10)));
+        return (char) ((codePoint >>> 10) + (Character.MIN_HIGH_SURROGATE -
+                (Character.MIN_SUPPLEMENTARY_CODE_POINT >>> 10)));
     }
 
     private static char lowSurrogate(int codePoint) {
         return (char) ((codePoint & 0x3ff) + Character.MIN_LOW_SURROGATE);
     }
 
-    private static void updatePositions(ByteBuffer src, int sp,
-                                        CharBuffer dst, int dp) {
+    private static void updatePositions(ByteBuffer src, int sp, CharBuffer dst, int dp) {
         src.position(sp - src.arrayOffset());
         dst.position(dp - dst.arrayOffset());
     }
 
-    private static void updatePositions(CharBuffer src, int sp,
-                                        ByteBuffer dst, int dp) {
+    private static void updatePositions(CharBuffer src, int sp, ByteBuffer dst, int dp) {
         src.position(sp - src.arrayOffset());
         dst.position(dp - dst.arrayOffset());
     }
@@ -143,8 +141,7 @@ public class StrictUtf8 extends Charset {
 
         // only used when there is only one byte left in src buffer
         private static boolean isMalformed3_2(int b1, int b2) {
-            return (b1 == (byte) 0xe0 && (b2 & 0xe0) == 0x80) ||
-                    (b2 & 0xc0) != 0x80;
+            return (b1 == (byte) 0xe0 && (b2 & 0xe0) == 0x80) || (b2 & 0xc0) != 0x80;
         }
 
 
@@ -160,8 +157,7 @@ public class StrictUtf8 extends Charset {
 
         // only used when there is less than 4 bytes left in src buffer
         private static boolean isMalformed4_2(int b1, int b2) {
-            return (b1 == 0xf0 && b2 == 0x90) ||
-                    (b2 & 0xc0) != 0x80;
+            return (b1 == 0xf0 && b2 == 0x90) || (b2 & 0xc0) != 0x80;
         }
 
         private static boolean isMalformed4_3(int b3) {
@@ -176,19 +172,20 @@ public class StrictUtf8 extends Charset {
                 case 3:
                     int b1 = src.get();
                     int b2 = src.get();    // no need to lookup b3
-                    return CoderResult.malformedForLength(
-                            ((b1 == (byte) 0xe0 && (b2 & 0xe0) == 0x80) ||
-                                    isNotContinuation(b2)) ? 1 : 2);
+                    return CoderResult.malformedForLength(((b1 == (byte) 0xe0 && (b2 & 0xe0) == 0x80) ||
+                            isNotContinuation(b2)) ? 1 : 2);
                 case 4:  // we don't care the speed here
                     b1 = src.get() & 0xff;
                     b2 = src.get() & 0xff;
                     if (b1 > 0xf4 ||
                             (b1 == 0xf0 && (b2 < 0x90 || b2 > 0xbf)) ||
                             (b1 == 0xf4 && (b2 & 0xf0) != 0x80) ||
-                            isNotContinuation(b2))
+                            isNotContinuation(b2)) {
                         return CoderResult.malformedForLength(1);
-                    if (isNotContinuation(src.get()))
+                    }
+                    if (isNotContinuation(src.get())) {
                         return CoderResult.malformedForLength(2);
+                    }
                     return CoderResult.malformedForLength(3);
                 default:
                     assert false;
@@ -196,9 +193,7 @@ public class StrictUtf8 extends Charset {
             }
         }
 
-        private static CoderResult malformed(ByteBuffer src, int sp,
-                                             CharBuffer dst, int dp,
-                                             int nb) {
+        private static CoderResult malformed(ByteBuffer src, int sp, CharBuffer dst, int dp, int nb) {
             src.position(sp - src.arrayOffset());
             CoderResult cr = malformedN(src, nb);
             updatePositions(src, sp, dst, dp);
@@ -206,46 +201,35 @@ public class StrictUtf8 extends Charset {
         }
 
 
-        private static CoderResult malformed(ByteBuffer src,
-                                             int mark, int nb) {
+        private static CoderResult malformed(ByteBuffer src, int mark, int nb) {
             src.position(mark);
             CoderResult cr = malformedN(src, nb);
             src.position(mark);
             return cr;
         }
 
-        private static CoderResult malformedForLength(ByteBuffer src,
-                                                      int sp,
-                                                      CharBuffer dst,
-                                                      int dp,
-                                                      int malformedNB) {
+        private static CoderResult malformedForLength(ByteBuffer src, int sp, CharBuffer dst, int dp, int malformedNB) {
             updatePositions(src, sp, dst, dp);
             return CoderResult.malformedForLength(malformedNB);
         }
 
-        private static CoderResult malformedForLength(ByteBuffer src,
-                                                      int mark,
-                                                      int malformedNB) {
+        private static CoderResult malformedForLength(ByteBuffer src, int mark, int malformedNB) {
             src.position(mark);
             return CoderResult.malformedForLength(malformedNB);
         }
 
 
-        private static CoderResult xflow(ByteBuffer src, int sp, int sl,
-                                         CharBuffer dst, int dp, int nb) {
+        private static CoderResult xflow(ByteBuffer src, int sp, int sl, CharBuffer dst, int dp, int nb) {
             updatePositions(src, sp, dst, dp);
-            return (nb == 0 || sl - sp < nb)
-                    ? CoderResult.UNDERFLOW : CoderResult.OVERFLOW;
+            return (nb == 0 || sl - sp < nb) ? CoderResult.UNDERFLOW : CoderResult.OVERFLOW;
         }
 
         private static CoderResult xflow(Buffer src, int mark, int nb) {
             src.position(mark);
-            return (nb == 0 || src.remaining() < nb)
-                    ? CoderResult.UNDERFLOW : CoderResult.OVERFLOW;
+            return (nb == 0 || src.remaining() < nb) ? CoderResult.UNDERFLOW : CoderResult.OVERFLOW;
         }
 
-        private CoderResult decodeArrayLoop(ByteBuffer src,
-                                            CharBuffer dst) {
+        private CoderResult decodeArrayLoop(ByteBuffer src, CharBuffer dst) {
             // This method is optimized for ASCII input.
             byte[] sa = src.array();
             int sp = src.arrayOffset() + src.position();
@@ -257,59 +241,63 @@ public class StrictUtf8 extends Charset {
             int dlASCII = dp + Math.min(sl - sp, dl - dp);
 
             // ASCII only loop
-            while (dp < dlASCII && sa[sp] >= 0)
+            while (dp < dlASCII && sa[sp] >= 0) {
                 da[dp++] = (char) sa[sp++];
+            }
             while (sp < sl) {
                 int b1 = sa[sp];
                 if (b1 >= 0) {
                     // 1 byte, 7 bits: 0xxxxxxx
-                    if (dp >= dl)
+                    if (dp >= dl) {
                         return xflow(src, sp, sl, dst, dp, 1);
+                    }
                     da[dp++] = (char) b1;
                     sp++;
                 } else if ((b1 >> 5) == -2 && (b1 & 0x1e) != 0) {
                     // 2 bytes, 11 bits: 110xxxxx 10xxxxxx
-                    if (sl - sp < 2 || dp >= dl)
+                    if (sl - sp < 2 || dp >= dl) {
                         return xflow(src, sp, sl, dst, dp, 2);
+                    }
                     int b2 = sa[sp + 1];
-                    if (isNotContinuation(b2))
+                    if (isNotContinuation(b2)) {
                         return malformedForLength(src, sp, dst, dp, 1);
-                    da[dp++] = (char) (((b1 << 6) ^ b2)
-                            ^
-                            (((byte) 0xC0 << 6) ^
-                                    ((byte) 0x80)));
+                    }
+                    da[dp++] = (char) (((b1 << 6) ^ b2) ^ (((byte) 0xC0 << 6) ^ ((byte) 0x80)));
                     sp += 2;
                 } else if ((b1 >> 4) == -2) {
                     // 3 bytes, 16 bits: 1110xxxx 10xxxxxx 10xxxxxx
                     int srcRemaining = sl - sp;
                     if (srcRemaining < 3 || dp >= dl) {
-                        if (srcRemaining > 1 && isMalformed3_2(b1, sa[sp + 1]))
+                        if (srcRemaining > 1 && isMalformed3_2(b1, sa[sp + 1])) {
                             return malformedForLength(src, sp, dst, dp, 1);
+                        }
                         return xflow(src, sp, sl, dst, dp, 3);
                     }
                     int b2 = sa[sp + 1];
                     int b3 = sa[sp + 2];
-                    if (isMalformed3(b1, b2, b3))
+                    if (isMalformed3(b1, b2, b3)) {
                         return malformed(src, sp, dst, dp, 3);
-                    char c = (char)
-                            ((b1 << 12) ^
-                                    (b2 << 6) ^
-                                    (b3 ^
-                                            (((byte) 0xE0 << 12) ^
-                                                    ((byte) 0x80 << 6) ^
-                                                    ((byte) 0x80))));
-                    if (isSurrogate(c))
+                    }
+                    char c = (char) ((b1 << 12) ^
+                            (b2 << 6) ^
+                            (b3 ^ (((byte) 0xE0 << 12) ^
+                                    ((byte) 0x80 << 6) ^
+                                    ((byte) 0x80))));
+                    if (isSurrogate(c)) {
                         return malformedForLength(src, sp, dst, dp, 3);
+                    }
                     da[dp++] = c;
                     sp += 3;
                 } else if ((b1 >> 3) == -2) {
                     // 4 bytes, 21 bits: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
                     int srcRemaining = sl - sp;
                     if (srcRemaining < 4 || dl - dp < 2) {
-                        if (srcRemaining > 1 && isMalformed4_2(b1, sa[sp + 1]))
+                        if (srcRemaining > 1 && isMalformed4_2(b1, sa[sp + 1])) {
                             return malformedForLength(src, sp, dst, dp, 1);
-                        if (srcRemaining > 2 && isMalformed4_3(sa[sp + 2]))
+                        }
+                        if (srcRemaining > 2 && isMalformed4_3(sa[sp + 2])) {
                             return malformedForLength(src, sp, dst, dp, 2);
+                        }
                         return xflow(src, sp, sl, dst, dp, 4);
                     }
                     int b2 = sa[sp + 1];
@@ -331,67 +319,70 @@ public class StrictUtf8 extends Charset {
                     da[dp++] = highSurrogate(uc);
                     da[dp++] = lowSurrogate(uc);
                     sp += 4;
-                } else
+                } else {
                     return malformed(src, sp, dst, dp, 1);
+                }
             }
             return xflow(src, sp, sl, dst, dp, 0);
         }
 
-        private CoderResult decodeBufferLoop(ByteBuffer src,
-                                             CharBuffer dst) {
+        private CoderResult decodeBufferLoop(ByteBuffer src, CharBuffer dst) {
             int mark = src.position();
             int limit = src.limit();
             while (mark < limit) {
                 int b1 = src.get();
                 if (b1 >= 0) {
                     // 1 byte, 7 bits: 0xxxxxxx
-                    if (dst.remaining() < 1)
+                    if (dst.remaining() < 1) {
                         return xflow(src, mark, 1); // overflow
+                    }
                     dst.put((char) b1);
                     mark++;
                 } else if ((b1 >> 5) == -2 && (b1 & 0x1e) != 0) {
                     // 2 bytes, 11 bits: 110xxxxx 10xxxxxx
-                    if (limit - mark < 2 || dst.remaining() < 1)
+                    if (limit - mark < 2 || dst.remaining() < 1) {
                         return xflow(src, mark, 2);
+                    }
                     int b2 = src.get();
-                    if (isNotContinuation(b2))
+                    if (isNotContinuation(b2)) {
                         return malformedForLength(src, mark, 1);
-                    dst.put((char) (((b1 << 6) ^ b2)
-                            ^
-                            (((byte) 0xC0 << 6) ^
-                                    ((byte) 0x80))));
+                    }
+                    dst.put((char) (((b1 << 6) ^ b2) ^ (((byte) 0xC0 << 6) ^ ((byte) 0x80))));
                     mark += 2;
                 } else if ((b1 >> 4) == -2) {
                     // 3 bytes, 16 bits: 1110xxxx 10xxxxxx 10xxxxxx
                     int srcRemaining = limit - mark;
                     if (srcRemaining < 3 || dst.remaining() < 1) {
-                        if (srcRemaining > 1 && isMalformed3_2(b1, src.get()))
+                        if (srcRemaining > 1 && isMalformed3_2(b1, src.get())) {
                             return malformedForLength(src, mark, 1);
+                        }
                         return xflow(src, mark, 3);
                     }
                     int b2 = src.get();
                     int b3 = src.get();
-                    if (isMalformed3(b1, b2, b3))
+                    if (isMalformed3(b1, b2, b3)) {
                         return malformed(src, mark, 3);
-                    char c = (char)
-                            ((b1 << 12) ^
-                                    (b2 << 6) ^
-                                    (b3 ^
-                                            (((byte) 0xE0 << 12) ^
-                                                    ((byte) 0x80 << 6) ^
-                                                    ((byte) 0x80))));
-                    if (isSurrogate(c))
+                    }
+                    char c = (char) ((b1 << 12) ^
+                            (b2 << 6) ^
+                            (b3 ^ (((byte) 0xE0 << 12) ^
+                                    ((byte) 0x80 << 6) ^
+                                    ((byte) 0x80))));
+                    if (isSurrogate(c)) {
                         return malformedForLength(src, mark, 3);
+                    }
                     dst.put(c);
                     mark += 3;
                 } else if ((b1 >> 3) == -2) {
                     // 4 bytes, 21 bits: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
                     int srcRemaining = limit - mark;
                     if (srcRemaining < 4 || dst.remaining() < 2) {
-                        if (srcRemaining > 1 && isMalformed4_2(b1, src.get()))
+                        if (srcRemaining > 1 && isMalformed4_2(b1, src.get())) {
                             return malformedForLength(src, mark, 1);
-                        if (srcRemaining > 2 && isMalformed4_3(src.get()))
+                        }
+                        if (srcRemaining > 2 && isMalformed4_3(src.get())) {
                             return malformedForLength(src, mark, 2);
+                        }
                         return xflow(src, mark, 4);
                     }
                     int b2 = src.get();
@@ -400,11 +391,10 @@ public class StrictUtf8 extends Charset {
                     int uc = ((b1 << 18) ^
                             (b2 << 12) ^
                             (b3 << 6) ^
-                            (b4 ^
-                                    (((byte) 0xF0 << 18) ^
-                                            ((byte) 0x80 << 12) ^
-                                            ((byte) 0x80 << 6) ^
-                                            ((byte) 0x80))));
+                            (b4 ^ (((byte) 0xF0 << 18) ^
+                                    ((byte) 0x80 << 12) ^
+                                    ((byte) 0x80 << 6) ^
+                                    ((byte) 0x80))));
                     if (isMalformed4(b2, b3, b4) ||
                             // shortest form check
                             !Character.isSupplementaryCodePoint(uc)) {
@@ -421,17 +411,18 @@ public class StrictUtf8 extends Charset {
         }
 
         @Override
-        protected CoderResult decodeLoop(ByteBuffer src,
-                                         CharBuffer dst) {
-            if (src.hasArray() && dst.hasArray())
+        protected CoderResult decodeLoop(ByteBuffer src, CharBuffer dst) {
+            if (src.hasArray() && dst.hasArray()) {
                 return decodeArrayLoop(src, dst);
-            else
+            } else {
                 return decodeBufferLoop(src, dst);
+            }
         }
 
         private static ByteBuffer getByteBuffer(ByteBuffer bb, byte[] ba, int sp) {
-            if (bb == null)
+            if (bb == null) {
                 bb = ByteBuffer.wrap(ba);
+            }
             bb.position(sp);
             return bb;
         }
@@ -445,8 +436,9 @@ public class StrictUtf8 extends Charset {
             ByteBuffer bb = null;  // only necessary if malformed
 
             // ASCII only optimized loop
-            while (dp < dlASCII && sa[sp] >= 0)
+            while (dp < dlASCII && sa[sp] >= 0) {
                 da[dp++] = (char) sa[sp++];
+            }
 
             while (sp < sl) {
                 int b1 = sa[sp++];
@@ -458,19 +450,19 @@ public class StrictUtf8 extends Charset {
                     if (sp < sl) {
                         int b2 = sa[sp++];
                         if (isNotContinuation(b2)) {
-                            if (malformedInputAction() != CodingErrorAction.REPLACE)
+                            if (malformedInputAction() != CodingErrorAction.REPLACE) {
                                 return -1;
+                            }
                             da[dp++] = replacement().charAt(0);
                             sp--;            // malformedN(bb, 2) always returns 1
                         } else {
-                            da[dp++] = (char) (((b1 << 6) ^ b2) ^
-                                    (((byte) 0xC0 << 6) ^
-                                            ((byte) 0x80)));
+                            da[dp++] = (char) (((b1 << 6) ^ b2) ^ (((byte) 0xC0 << 6) ^ ((byte) 0x80)));
                         }
                         continue;
                     }
-                    if (malformedInputAction() != CodingErrorAction.REPLACE)
+                    if (malformedInputAction() != CodingErrorAction.REPLACE) {
                         return -1;
+                    }
                     da[dp++] = replacement().charAt(0);
                     return dp;
                 } else if ((b1 >> 4) == -2) {
@@ -479,8 +471,9 @@ public class StrictUtf8 extends Charset {
                         int b2 = sa[sp++];
                         int b3 = sa[sp++];
                         if (isMalformed3(b1, b2, b3)) {
-                            if (malformedInputAction() != CodingErrorAction.REPLACE)
+                            if (malformedInputAction() != CodingErrorAction.REPLACE) {
                                 return -1;
+                            }
                             da[dp++] = replacement().charAt(0);
                             sp -= 3;
                             bb = getByteBuffer(bb, sa, sp);
@@ -488,13 +481,13 @@ public class StrictUtf8 extends Charset {
                         } else {
                             char c = (char) ((b1 << 12) ^
                                     (b2 << 6) ^
-                                    (b3 ^
-                                            (((byte) 0xE0 << 12) ^
-                                                    ((byte) 0x80 << 6) ^
-                                                    ((byte) 0x80))));
+                                    (b3 ^ (((byte) 0xE0 << 12) ^
+                                            ((byte) 0x80 << 6) ^
+                                            ((byte) 0x80))));
                             if (isSurrogate(c)) {
-                                if (malformedInputAction() != CodingErrorAction.REPLACE)
+                                if (malformedInputAction() != CodingErrorAction.REPLACE) {
                                     return -1;
+                                }
                                 da[dp++] = replacement().charAt(0);
                             } else {
                                 da[dp++] = c;
@@ -502,8 +495,9 @@ public class StrictUtf8 extends Charset {
                         }
                         continue;
                     }
-                    if (malformedInputAction() != CodingErrorAction.REPLACE)
+                    if (malformedInputAction() != CodingErrorAction.REPLACE) {
                         return -1;
+                    }
                     if (sp < sl && isMalformed3_2(b1, sa[sp])) {
                         da[dp++] = replacement().charAt(0);
                         continue;
@@ -520,16 +514,16 @@ public class StrictUtf8 extends Charset {
                         int uc = ((b1 << 18) ^
                                 (b2 << 12) ^
                                 (b3 << 6) ^
-                                (b4 ^
-                                        (((byte) 0xF0 << 18) ^
-                                                ((byte) 0x80 << 12) ^
-                                                ((byte) 0x80 << 6) ^
-                                                ((byte) 0x80))));
+                                (b4 ^ (((byte) 0xF0 << 18) ^
+                                        ((byte) 0x80 << 12) ^
+                                        ((byte) 0x80 << 6) ^
+                                        ((byte) 0x80))));
                         if (isMalformed4(b2, b3, b4) ||
                                 // shortest form check
                                 !Character.isSupplementaryCodePoint(uc)) {
-                            if (malformedInputAction() != CodingErrorAction.REPLACE)
+                            if (malformedInputAction() != CodingErrorAction.REPLACE) {
                                 return -1;
+                            }
                             da[dp++] = replacement().charAt(0);
                             sp -= 4;
                             bb = getByteBuffer(bb, sa, sp);
@@ -540,8 +534,9 @@ public class StrictUtf8 extends Charset {
                         }
                         continue;
                     }
-                    if (malformedInputAction() != CodingErrorAction.REPLACE)
+                    if (malformedInputAction() != CodingErrorAction.REPLACE) {
                         return -1;
+                    }
 
                     if (sp < sl && isMalformed4_2(b1, sa[sp])) {
                         da[dp++] = replacement().charAt(0);
@@ -555,8 +550,9 @@ public class StrictUtf8 extends Charset {
                     da[dp++] = replacement().charAt(0);
                     return dp;
                 } else {
-                    if (malformedInputAction() != CodingErrorAction.REPLACE)
+                    if (malformedInputAction() != CodingErrorAction.REPLACE) {
                         return -1;
+                    }
                     da[dp++] = replacement().charAt(0);
                 }
             }
@@ -577,12 +573,10 @@ public class StrictUtf8 extends Charset {
 
         @Override
         public boolean isLegalReplacement(byte[] repl) {
-            return ((repl.length == 1 && repl[0] >= 0) ||
-                    super.isLegalReplacement(repl));
+            return ((repl.length == 1 && repl[0] >= 0) || super.isLegalReplacement(repl));
         }
 
-        private static CoderResult overflow(CharBuffer src, int sp,
-                                            ByteBuffer dst, int dp) {
+        private static CoderResult overflow(CharBuffer src, int sp, ByteBuffer dst, int dp) {
             updatePositions(src, sp, dst, dp);
             return CoderResult.OVERFLOW;
         }
@@ -594,8 +588,7 @@ public class StrictUtf8 extends Charset {
 
         private Parser sgp;
 
-        private CoderResult encodeArrayLoop(CharBuffer src,
-                                            ByteBuffer dst) {
+        private CoderResult encodeArrayLoop(CharBuffer src, ByteBuffer dst) {
             char[] sa = src.array();
             int sp = src.arrayOffset() + src.position();
             int sl = src.arrayOffset() + src.limit();
@@ -606,32 +599,37 @@ public class StrictUtf8 extends Charset {
             int dlASCII = dp + Math.min(sl - sp, dl - dp);
 
             // ASCII only loop
-            while (dp < dlASCII && sa[sp] < '\u0080')
+            while (dp < dlASCII && sa[sp] < '\u0080') {
                 da[dp++] = (byte) sa[sp++];
+            }
             while (sp < sl) {
                 char c = sa[sp];
                 if (c < 0x80) {
                     // Have at most seven bits
-                    if (dp >= dl)
+                    if (dp >= dl) {
                         return overflow(src, sp, dst, dp);
+                    }
                     da[dp++] = (byte) c;
                 } else if (c < 0x800) {
                     // 2 bytes, 11 bits
-                    if (dl - dp < 2)
+                    if (dl - dp < 2) {
                         return overflow(src, sp, dst, dp);
+                    }
                     da[dp++] = (byte) (0xc0 | (c >> 6));
                     da[dp++] = (byte) (0x80 | (c & 0x3f));
                 } else if (isSurrogate(c)) {
                     // Have a surrogate pair
-                    if (sgp == null)
+                    if (sgp == null) {
                         sgp = new Parser();
+                    }
                     int uc = sgp.parse(c, sa, sp, sl);
                     if (uc < 0) {
                         updatePositions(src, sp, dst, dp);
                         return sgp.error();
                     }
-                    if (dl - dp < 4)
+                    if (dl - dp < 4) {
                         return overflow(src, sp, dst, dp);
+                    }
                     da[dp++] = (byte) (0xf0 | ((uc >> 18)));
                     da[dp++] = (byte) (0x80 | ((uc >> 12) & 0x3f));
                     da[dp++] = (byte) (0x80 | ((uc >> 6) & 0x3f));
@@ -639,8 +637,9 @@ public class StrictUtf8 extends Charset {
                     sp++;  // 2 chars
                 } else {
                     // 3 bytes, 16 bits
-                    if (dl - dp < 3)
+                    if (dl - dp < 3) {
                         return overflow(src, sp, dst, dp);
+                    }
                     da[dp++] = (byte) (0xe0 | ((c >> 12)));
                     da[dp++] = (byte) (0x80 | ((c >> 6) & 0x3f));
                     da[dp++] = (byte) (0x80 | (c & 0x3f));
@@ -651,33 +650,36 @@ public class StrictUtf8 extends Charset {
             return CoderResult.UNDERFLOW;
         }
 
-        private CoderResult encodeBufferLoop(CharBuffer src,
-                                             ByteBuffer dst) {
+        private CoderResult encodeBufferLoop(CharBuffer src, ByteBuffer dst) {
             int mark = src.position();
             while (src.hasRemaining()) {
                 char c = src.get();
                 if (c < 0x80) {
                     // Have at most seven bits
-                    if (!dst.hasRemaining())
+                    if (!dst.hasRemaining()) {
                         return overflow(src, mark);
+                    }
                     dst.put((byte) c);
                 } else if (c < 0x800) {
                     // 2 bytes, 11 bits
-                    if (dst.remaining() < 2)
+                    if (dst.remaining() < 2) {
                         return overflow(src, mark);
+                    }
                     dst.put((byte) (0xc0 | (c >> 6)));
                     dst.put((byte) (0x80 | (c & 0x3f)));
                 } else if (isSurrogate(c)) {
                     // Have a surrogate pair
-                    if (sgp == null)
+                    if (sgp == null) {
                         sgp = new Parser();
+                    }
                     int uc = sgp.parse(c, src);
                     if (uc < 0) {
                         src.position(mark);
                         return sgp.error();
                     }
-                    if (dst.remaining() < 4)
+                    if (dst.remaining() < 4) {
                         return overflow(src, mark);
+                    }
                     dst.put((byte) (0xf0 | ((uc >> 18))));
                     dst.put((byte) (0x80 | ((uc >> 12) & 0x3f)));
                     dst.put((byte) (0x80 | ((uc >> 6) & 0x3f)));
@@ -685,8 +687,9 @@ public class StrictUtf8 extends Charset {
                     mark++;  // 2 chars
                 } else {
                     // 3 bytes, 16 bits
-                    if (dst.remaining() < 3)
+                    if (dst.remaining() < 3) {
                         return overflow(src, mark);
+                    }
                     dst.put((byte) (0xe0 | ((c >> 12))));
                     dst.put((byte) (0x80 | ((c >> 6) & 0x3f)));
                     dst.put((byte) (0x80 | (c & 0x3f)));
@@ -698,12 +701,12 @@ public class StrictUtf8 extends Charset {
         }
 
         @Override
-        protected final CoderResult encodeLoop(CharBuffer src,
-                                               ByteBuffer dst) {
-            if (src.hasArray() && dst.hasArray())
+        protected final CoderResult encodeLoop(CharBuffer src, ByteBuffer dst) {
+            if (src.hasArray() && dst.hasArray()) {
                 return encodeArrayLoop(src, dst);
-            else
+            } else {
                 return encodeBufferLoop(src, dst);
+            }
         }
 
         // returns -1 if there is malformed char(s) and the
@@ -714,8 +717,9 @@ public class StrictUtf8 extends Charset {
             int dlASCII = dp + Math.min(len, da.length);
 
             // ASCII only optimized loop
-            while (dp < dlASCII && sa[sp] < '\u0080')
+            while (dp < dlASCII && sa[sp] < '\u0080') {
                 da[dp++] = (byte) sa[sp++];
+            }
 
             while (sp < sl) {
                 char c = sa[sp++];
@@ -727,12 +731,14 @@ public class StrictUtf8 extends Charset {
                     da[dp++] = (byte) (0xc0 | (c >> 6));
                     da[dp++] = (byte) (0x80 | (c & 0x3f));
                 } else if (isSurrogate(c)) {
-                    if (sgp == null)
+                    if (sgp == null) {
                         sgp = new Parser();
+                    }
                     int uc = sgp.parse(c, sa, sp - 1, sl);
                     if (uc < 0) {
-                        if (malformedInputAction() != CodingErrorAction.REPLACE)
+                        if (malformedInputAction() != CodingErrorAction.REPLACE) {
                             return -1;
+                        }
                         da[dp++] = replacement()[0];
                     } else {
                         da[dp++] = (byte) (0xf0 | ((uc >> 18)));
@@ -753,16 +759,15 @@ public class StrictUtf8 extends Charset {
     }
 
     /**
-     * Surrogate parsing support.  Charset implementations may use instances of
-     * this class to handle the details of parsing UTF-16 surrogate pairs.
+     * Surrogate parsing support.  Charset implementations may use instances of this class to handle the details of
+     * parsing UTF-16 surrogate pairs.
      */
     public static class Parser {
 
         private CoderResult error = CoderResult.UNDERFLOW;
 
         /**
-         * If the previous parse operation detected an error, return the object
-         * describing that error.
+         * If the previous parse operation detected an error, return the object describing that error.
          */
         public CoderResult error() {
             assert (error != null);
@@ -770,16 +775,12 @@ public class StrictUtf8 extends Charset {
         }
 
         /**
-         * Parses a UCS-4 character from the given source buffer, handling
-         * surrogates.
+         * Parses a UCS-4 character from the given source buffer, handling surrogates.
          *
          * @param c  The first character
-         * @param in The source buffer, from which one more character
-         *           will be consumed if c is a high surrogate
-         * @return Either a parsed UCS-4 character, in which case the isPair()
-         *         and increment() methods will return meaningful values, or
-         *         -1, in which case error() will return a descriptive result
-         *         object
+         * @param in The source buffer, from which one more character will be consumed if c is a high surrogate
+         * @return Either a parsed UCS-4 character, in which case the isPair() and increment() methods will return
+         * meaningful values, or -1, in which case error() will return a descriptive result object
          */
         public int parse(char c, CharBuffer in) {
             int character;          // UCS-4
@@ -808,18 +809,14 @@ public class StrictUtf8 extends Charset {
         }
 
         /**
-         * Parses a UCS-4 character from the given source buffer, handling
-         * surrogates.
+         * Parses a UCS-4 character from the given source buffer, handling surrogates.
          *
          * @param c  The first character
-         * @param ia The input array, from which one more character
-         *           will be consumed if c is a high surrogate
+         * @param ia The input array, from which one more character will be consumed if c is a high surrogate
          * @param ip The input index
          * @param il The input limit
-         * @return Either a parsed UCS-4 character, in which case the isPair()
-         *         and increment() methods will return meaningful values, or
-         *         -1, in which case error() will return a descriptive result
-         *         object
+         * @return Either a parsed UCS-4 character, in which case the isPair() and increment() methods will return
+         * meaningful values, or -1, in which case error() will return a descriptive result object
          */
         public int parse(char c, char[] ia, int ip, int il) {
             int character;          // UCS-4

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -71,14 +71,14 @@ public class TyrusToolkit implements ServerToolkit {
     }
 
     /**
-     * Start embedded server unless "tyrus.test.host" system property is
-     * specified.
+     * Start embedded server unless "tyrus.test.host" system property is specified.
      */
     @Override
     public void startServer() throws DeploymentException {
         final String host = System.getProperty("tyrus.test.host");
         if (host == null) {
-            server = new Server(config.getHost(), config.getPort(), config.getContextPath(), Collections.<String, Object>emptyMap(), endpointClasses);
+            server = new Server(config.getHost(), config.getPort(), config.getContextPath(),
+                                Collections.<String, Object>emptyMap(), endpointClasses);
             server.start();
             logger.log(Level.INFO, "Tyrus Server started at {0}:{1}", new Object[]{config.getHost(), config.getPort()});
         }

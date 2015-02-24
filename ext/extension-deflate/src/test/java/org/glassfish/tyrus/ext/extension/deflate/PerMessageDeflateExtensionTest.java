@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -77,10 +77,13 @@ public class PerMessageDeflateExtensionTest extends TestContainer {
 
     public static class ServerDeployApplicationConfig extends TyrusServerConfiguration {
         public ServerDeployApplicationConfig() {
-            super(Collections.<Class<?>>emptySet(), new HashSet<ServerEndpointConfig>() {{
-                add(ServerEndpointConfig.Builder.create(EchoEndpoint.class, "/compressionExtensionTest")
-                        .extensions(Arrays.<Extension>asList(new PerMessageDeflateExtension())).build());
-            }
+            super(Collections.<Class<?>>emptySet(), new HashSet<ServerEndpointConfig>() {
+                {
+                    add(ServerEndpointConfig.Builder.create(EchoEndpoint.class, "/compressionExtensionTest")
+                                                    .extensions(
+                                                            Arrays.<Extension>asList(new PerMessageDeflateExtension()))
+                                                    .build());
+                }
 
                 private static final long serialVersionUID = -6065653369480760041L;
             });
@@ -113,10 +116,8 @@ public class PerMessageDeflateExtensionTest extends TestContainer {
             ArrayList<Extension> extensions = new ArrayList<Extension>();
             extensions.add(new PerMessageDeflateExtension());
 
-            final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create()
-                    .extensions(extensions)
-                    .configurator(new LoggingClientEndpointConfigurator())
-                    .build();
+            final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create().extensions
+                    (extensions).configurator(new LoggingClientEndpointConfigurator()).build();
 
             ClientManager client = ClientManager.createClient();
             final Session session = client.connectToServer(new Endpoint() {
@@ -144,11 +145,12 @@ public class PerMessageDeflateExtensionTest extends TestContainer {
             assertTrue(compressionNegotiated);
 
             try {
-                session.getBasicRemote().sendBinary(ByteBuffer.wrap("Always pass on what you have learned.".getBytes(Charset.forName("UTF-8"))));
-                session.getBasicRemote().sendBinary(ByteBuffer.wrap("Always pass on what you have learned.".getBytes(Charset.forName("UTF-8"))));
-                session.getBasicRemote().sendBinary(ByteBuffer.wrap("Always pass on what you have learned.".getBytes(Charset.forName("UTF-8"))));
-                session.getBasicRemote().sendBinary(ByteBuffer.wrap("Always pass on what you have learned.".getBytes(Charset.forName("UTF-8"))));
-                session.getBasicRemote().sendBinary(ByteBuffer.wrap("Always pass on what you have learned.".getBytes(Charset.forName("UTF-8"))));
+                byte[] bytes = "Always pass on what you have learned.".getBytes(Charset.forName("UTF-8"));
+                session.getBasicRemote().sendBinary(ByteBuffer.wrap(bytes));
+                session.getBasicRemote().sendBinary(ByteBuffer.wrap(bytes));
+                session.getBasicRemote().sendBinary(ByteBuffer.wrap(bytes));
+                session.getBasicRemote().sendBinary(ByteBuffer.wrap(bytes));
+                session.getBasicRemote().sendBinary(ByteBuffer.wrap(bytes));
             } catch (IOException e) {
                 e.printStackTrace();
             }

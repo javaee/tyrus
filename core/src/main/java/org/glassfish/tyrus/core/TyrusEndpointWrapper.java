@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -107,6 +107,7 @@ import org.glassfish.tyrus.spi.UpgradeResponse;
 
 /**
  * Wraps the registered application class.
+ * <p/>
  * There is one {@link TyrusEndpointWrapper} for each application class, which handles all the methods.
  *
  * @author Danny Coward (danny.coward at oracle.com)
@@ -116,13 +117,13 @@ import org.glassfish.tyrus.spi.UpgradeResponse;
  */
 public class TyrusEndpointWrapper {
 
-    private final static Logger LOGGER = Logger.getLogger(TyrusEndpointWrapper.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(TyrusEndpointWrapper.class.getName());
 
     /**
-     * Used as threshold for parallel broadcast. When the sessions are divided between threads, number of sessions
-     * per thread should not be lower than this constant.
+     * Used as threshold for parallel broadcast. When the sessions are divided between threads, number of sessions per
+     * thread should not be lower than this constant.
      */
-    private final static int MIN_SESSIONS_PER_THREAD = 16;
+    private static final int MIN_SESSIONS_PER_THREAD = 16;
     /**
      * The container for this session.
      */
@@ -166,8 +167,10 @@ public class TyrusEndpointWrapper {
                                 ComponentProviderService componentProvider, WebSocketContainer container,
                                 String contextPath, ServerEndpointConfig.Configurator configurator,
                                 SessionListener sessionListener, ClusterContext clusterContext,
-                                EndpointEventListener endpointEventListener, Boolean parallelBroadcastEnabled) throws DeploymentException {
-        this(null, endpointClass, configuration, componentProvider, container, contextPath, configurator, sessionListener, clusterContext, endpointEventListener, parallelBroadcastEnabled);
+                                EndpointEventListener endpointEventListener, Boolean parallelBroadcastEnabled) throws
+            DeploymentException {
+        this(null, endpointClass, configuration, componentProvider, container, contextPath, configurator,
+             sessionListener, clusterContext, endpointEventListener, parallelBroadcastEnabled);
     }
 
     /**
@@ -181,17 +184,23 @@ public class TyrusEndpointWrapper {
      * @param endpointEventListener    endpoint event listener.
      * @param parallelBroadcastEnabled {@code true} if parallel broadcast should be enabled, {@code true} is default.
      */
-    public TyrusEndpointWrapper(Endpoint endpoint, EndpointConfig configuration, ComponentProviderService componentProvider, WebSocketContainer container,
-                                String contextPath, ServerEndpointConfig.Configurator configurator, SessionListener sessionListener, ClusterContext clusterContext,
-                                EndpointEventListener endpointEventListener, Boolean parallelBroadcastEnabled) throws DeploymentException {
-        this(endpoint, null, configuration, componentProvider, container, contextPath, configurator, sessionListener, clusterContext, endpointEventListener, parallelBroadcastEnabled);
+    public TyrusEndpointWrapper(Endpoint endpoint, EndpointConfig configuration,
+                                ComponentProviderService componentProvider, WebSocketContainer container,
+                                String contextPath, ServerEndpointConfig.Configurator configurator,
+                                SessionListener sessionListener, ClusterContext clusterContext,
+                                EndpointEventListener endpointEventListener, Boolean parallelBroadcastEnabled) throws
+            DeploymentException {
+        this(endpoint, null, configuration, componentProvider, container, contextPath, configurator, sessionListener,
+             clusterContext, endpointEventListener, parallelBroadcastEnabled);
     }
 
-    private TyrusEndpointWrapper(Endpoint endpoint, Class<? extends Endpoint> endpointClass, EndpointConfig configuration,
+    private TyrusEndpointWrapper(Endpoint endpoint, Class<? extends Endpoint> endpointClass,
+                                 EndpointConfig configuration,
                                  ComponentProviderService componentProvider, WebSocketContainer container,
                                  String contextPath, final ServerEndpointConfig.Configurator configurator,
                                  SessionListener sessionListener, final ClusterContext clusterContext,
-                                 EndpointEventListener endpointEventListener, Boolean parallelBroadcastEnabled) throws DeploymentException {
+                                 EndpointEventListener endpointEventListener, Boolean parallelBroadcastEnabled) throws
+            DeploymentException {
         this.endpointClass = endpointClass;
         this.endpoint = endpoint;
         this.programmaticEndpoint = (endpoint != null);
@@ -216,19 +225,22 @@ public class TyrusEndpointWrapper {
         // server-side only
         if (configuration instanceof ServerEndpointConfig) {
             this.serverEndpointPath = ((ServerEndpointConfig) configuration).getPath();
-            this.endpointPath = (contextPath.endsWith("/") ? contextPath.substring(0, contextPath.length() - 1) : contextPath)
-                    + "/" + (serverEndpointPath.startsWith("/") ? serverEndpointPath.substring(1) : serverEndpointPath);
+            this.endpointPath =
+                    (contextPath.endsWith("/") ? contextPath.substring(0, contextPath.length() - 1) : contextPath)
+                            + "/" +
+                            (serverEndpointPath.startsWith("/") ? serverEndpointPath.substring(1) : serverEndpointPath);
         } else {
             this.serverEndpointPath = null;
             this.endpointPath = null;
         }
 
-        this.componentProvider = configurator == null ? componentProvider : new ComponentProviderService(componentProvider) {
-            @Override
-            public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
-                return configurator.getEndpointInstance(endpointClass);
-            }
-        };
+        this.componentProvider =
+                configurator == null ? componentProvider : new ComponentProviderService(componentProvider) {
+                    @Override
+                    public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
+                        return configurator.getEndpointInstance(endpointClass);
+                    }
+                };
 
         {
             final Class<? extends Endpoint> clazz = endpointClass == null ? endpoint.getClass() : endpointClass;
@@ -326,18 +338,23 @@ public class TyrusEndpointWrapper {
 
         // clustered mode
         if (clusterContext != null) {
-            clusterContext.registerSessionListener(getEndpointPath(), new org.glassfish.tyrus.core.cluster.SessionListener() {
-                @Override
-                public void onSessionOpened(String sessionId) {
-                    final Map<RemoteSession.DistributedMapKey, Object> distributedSessionProperties = clusterContext.getDistributedSessionProperties(sessionId);
-                    clusteredSessions.put(sessionId, new RemoteSession(sessionId, clusterContext, distributedSessionProperties, TyrusEndpointWrapper.this, dummySession));
-                }
+            clusterContext
+                    .registerSessionListener(getEndpointPath(), new org.glassfish.tyrus.core.cluster.SessionListener() {
+                        @Override
+                        public void onSessionOpened(String sessionId) {
+                            final Map<RemoteSession.DistributedMapKey, Object> distributedSessionProperties =
+                                    clusterContext.getDistributedSessionProperties(sessionId);
+                            clusteredSessions.put(sessionId, new RemoteSession(sessionId, clusterContext,
+                                                                               distributedSessionProperties,
+                                                                               TyrusEndpointWrapper.this,
+                                                                               dummySession));
+                        }
 
-                @Override
-                public void onSessionClosed(String sessionId) {
-                    clusteredSessions.remove(sessionId);
-                }
-            });
+                        @Override
+                        public void onSessionClosed(String sessionId) {
+                            clusteredSessions.remove(sessionId);
+                        }
+                    });
 
             clusterContext.registerBroadcastListener(getEndpointPath(), new BroadcastListener() {
                 @Override
@@ -352,8 +369,11 @@ public class TyrusEndpointWrapper {
             });
 
             for (String sessionId : clusterContext.getRemoteSessionIds(getEndpointPath())) {
-                final Map<RemoteSession.DistributedMapKey, Object> distributedSessionProperties = clusterContext.getDistributedSessionProperties(sessionId);
-                clusteredSessions.put(sessionId, new RemoteSession(sessionId, clusterContext, distributedSessionProperties, this, dummySession));
+                final Map<RemoteSession.DistributedMapKey, Object> distributedSessionProperties =
+                        clusterContext.getDistributedSessionProperties(sessionId);
+                clusteredSessions.put(sessionId,
+                                      new RemoteSession(sessionId, clusterContext, distributedSessionProperties, this,
+                                                        dummySession));
             }
         }
     }
@@ -381,7 +401,8 @@ public class TyrusEndpointWrapper {
         final Object coder = wrapper.getCoder();
         if (coder == null) {
             ErrorCollector collector = new ErrorCollector();
-            final Object coderInstance = this.componentProvider.getCoderInstance(wrapper.getCoderClass(), session, getEndpointConfig(), collector);
+            final Object coderInstance = this.componentProvider
+                    .getCoderInstance(wrapper.getCoderClass(), session, getEndpointConfig(), collector);
             if (!collector.isEmpty()) {
                 final DeploymentException deploymentException = collector.composeComprehensiveException();
                 LOGGER.log(Level.WARNING, deploymentException.getMessage(), deploymentException);
@@ -394,14 +415,17 @@ public class TyrusEndpointWrapper {
         return coder;
     }
 
-    Object decodeCompleteMessage(TyrusSession session, Object message, Class<?> type, CoderWrapper<Decoder> selectedDecoder) throws DecodeException, IOException {
+    Object decodeCompleteMessage(TyrusSession session, Object message, Class<?> type,
+                                 CoderWrapper<Decoder> selectedDecoder) throws DecodeException, IOException {
         final Class<? extends Decoder> decoderClass = selectedDecoder.getCoderClass();
 
         if (Decoder.Text.class.isAssignableFrom(decoderClass)) {
             if (type != null && type.isAssignableFrom(selectedDecoder.getType())) {
                 final Decoder.Text decoder = (Decoder.Text) getCoderInstance(session, selectedDecoder);
 
-                session.getDebugContext().appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_IN, "Decoding with ", selectedDecoder);
+                session.getDebugContext()
+                       .appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_IN, "Decoding with ",
+                                         selectedDecoder);
 
                 // TYRUS-210: willDecode was already called
                 return decoder.decode((String) message);
@@ -410,31 +434,40 @@ public class TyrusEndpointWrapper {
             if (type != null && type.isAssignableFrom(selectedDecoder.getType())) {
                 final Decoder.Binary decoder = (Decoder.Binary) getCoderInstance(session, selectedDecoder);
 
-                session.getDebugContext().appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_IN, "Decoding with ", selectedDecoder);
+                session.getDebugContext()
+                       .appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_IN, "Decoding with ",
+                                         selectedDecoder);
                 // TYRUS-210: willDecode was already called
                 return decoder.decode((ByteBuffer) message);
             }
         } else if (Decoder.TextStream.class.isAssignableFrom(decoderClass)) {
             if (type != null && type.isAssignableFrom(selectedDecoder.getType())) {
 
-                session.getDebugContext().appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_IN, "Decoding with ", selectedDecoder);
+                session.getDebugContext()
+                       .appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_IN, "Decoding with ",
+                                         selectedDecoder);
 
-                return ((Decoder.TextStream) getCoderInstance(session, selectedDecoder)).decode(new StringReader((String) message));
+                return ((Decoder.TextStream) getCoderInstance(session, selectedDecoder))
+                        .decode(new StringReader((String) message));
             }
         } else if (Decoder.BinaryStream.class.isAssignableFrom(decoderClass)) {
             if (type != null && type.isAssignableFrom(selectedDecoder.getType())) {
                 byte[] array = ((ByteBuffer) message).array();
 
-                session.getDebugContext().appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_IN, "Decoding with ", selectedDecoder);
+                session.getDebugContext()
+                       .appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_IN, "Decoding with ",
+                                         selectedDecoder);
 
-                return ((Decoder.BinaryStream) getCoderInstance(session, selectedDecoder)).decode(new ByteArrayInputStream(array));
+                return ((Decoder.BinaryStream) getCoderInstance(session, selectedDecoder))
+                        .decode(new ByteArrayInputStream(array));
             }
         }
 
         return null;
     }
 
-    private ArrayList<CoderWrapper<Decoder>> findApplicableDecoders(TyrusSession session, Object message, boolean isString) {
+    private ArrayList<CoderWrapper<Decoder>> findApplicableDecoders(TyrusSession session, Object message,
+                                                                    boolean isString) {
         ArrayList<CoderWrapper<Decoder>> result = new ArrayList<CoderWrapper<Decoder>>();
 
         for (CoderWrapper<Decoder> dec : decoders) {
@@ -457,11 +490,13 @@ public class TyrusEndpointWrapper {
             }
         }
 
-        session.getDebugContext().appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_IN, "Applicable decoders: ", result);
+        session.getDebugContext()
+               .appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_IN, "Applicable decoders: ", result);
 
         return result;
     }
 
+    @SuppressWarnings("unchecked")
     public Object doEncode(Session session, Object message) throws EncodeException, IOException {
         for (CoderWrapper<Encoder> enc : encoders) {
             final Class<? extends Encoder> encoderClass = enc.getCoderClass();
@@ -511,7 +546,9 @@ public class TyrusEndpointWrapper {
     private void logUsedEncoder(CoderWrapper<Encoder> encoder, Session session) {
         if (LOGGER.isLoggable(Level.FINEST)) {
             if (session instanceof TyrusSession) {
-                ((TyrusSession) session).getDebugContext().appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_OUT, "Encoding with: ", encoder);
+                ((TyrusSession) session).getDebugContext()
+                                        .appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_OUT,
+                                                          "Encoding with: ", encoder);
             }
         }
     }
@@ -548,7 +585,8 @@ public class TyrusEndpointWrapper {
      */
     List<Extension> getNegotiatedExtensions(List<Extension> clientExtensions) {
         if (configuration instanceof ServerEndpointConfig) {
-            return configurator.getNegotiatedExtensions(((ServerEndpointConfig) configuration).getExtensions(), clientExtensions);
+            return configurator
+                    .getNegotiatedExtensions(((ServerEndpointConfig) configuration).getExtensions(), clientExtensions);
         } else {
             return Collections.emptyList();
         }
@@ -562,7 +600,8 @@ public class TyrusEndpointWrapper {
      */
     String getNegotiatedProtocol(List<String> clientProtocols) {
         if (configuration instanceof ServerEndpointConfig) {
-            return configurator.getNegotiatedSubprotocol(((ServerEndpointConfig) configuration).getSubprotocols(), clientProtocols);
+            return configurator.getNegotiatedSubprotocol(((ServerEndpointConfig) configuration).getSubprotocols(),
+                                                         clientProtocols);
         } else {
             return null;
         }
@@ -605,9 +644,13 @@ public class TyrusEndpointWrapper {
      * @param debugContext debug context.
      * @return {@link Session} representing the connection.
      */
-    public Session createSessionForRemoteEndpoint(TyrusWebSocket socket, String subprotocol, List<Extension> extensions, DebugContext debugContext) {
+    public Session createSessionForRemoteEndpoint(TyrusWebSocket socket, String subprotocol, List<Extension> extensions,
+                                                  DebugContext debugContext) {
         final TyrusSession session = new TyrusSession(container, socket, this, subprotocol, extensions, false,
-                getURI(contextPath, null), null, Collections.<String, String>emptyMap(), null, Collections.<String, List<String>>emptyMap(), null, null, null, debugContext);
+                                                      getURI(contextPath, null), null,
+                                                      Collections.<String, String>emptyMap(), null,
+                                                      Collections.<String, List<String>>emptyMap(), null, null, null,
+                                                      debugContext);
         webSocketToSession.put(socket, session);
         return session;
     }
@@ -617,8 +660,7 @@ public class TyrusEndpointWrapper {
     }
 
     /**
-     * Called by the provider when the web socket connection
-     * is established.
+     * Called by the provider when the web socket connection is established.
      *
      * @param socket         {@link TyrusWebSocket} who has just connected to this web socket endpoint.
      * @param upgradeRequest request associated with accepted connection.
@@ -626,7 +668,8 @@ public class TyrusEndpointWrapper {
      * @return Created {@link Session} instance or {@code null} when session was not created properly (max sessions
      * limit on endpoint or application or issues with endpoint validation).
      */
-    Session onConnect(TyrusWebSocket socket, UpgradeRequest upgradeRequest, String subProtocol, List<Extension> extensions, String connectionId, DebugContext debugContext) {
+    Session onConnect(TyrusWebSocket socket, UpgradeRequest upgradeRequest, String subProtocol,
+                      List<Extension> extensions, String connectionId, DebugContext debugContext) {
         TyrusSession session = webSocketToSession.get(socket);
         // session is null on Server; client always has session instance at this point.
         if (session == null) {
@@ -638,10 +681,12 @@ public class TyrusEndpointWrapper {
 
             // create a new session
             session = new TyrusSession(container, socket, this, subProtocol, extensions, upgradeRequest.isSecure(),
-                    getURI(upgradeRequest.getRequestURI().toString(), upgradeRequest.getQueryString()),
-                    upgradeRequest.getQueryString(), templateValues, upgradeRequest.getUserPrincipal(),
-                    upgradeRequest.getParameterMap(), clusterContext, connectionId,
-                    ((RequestContext) upgradeRequest).getRemoteAddr(), debugContext);
+                                       getURI(upgradeRequest.getRequestURI().toString(),
+                                              upgradeRequest.getQueryString()),
+                                       upgradeRequest.getQueryString(), templateValues,
+                                       upgradeRequest.getUserPrincipal(),
+                                       upgradeRequest.getParameterMap(), clusterContext, connectionId,
+                                       ((RequestContext) upgradeRequest).getRemoteAddr(), debugContext);
             webSocketToSession.put(socket, session);
 
             // max open session per endpoint exceeded?
@@ -673,10 +718,12 @@ public class TyrusEndpointWrapper {
                         }
                     }
 
-                    debugContext.appendLogMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_IN, "Session opening refused: ", refuseDetail);
+                    debugContext.appendLogMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_IN,
+                                                  "Session opening refused: ", refuseDetail);
                     session.close(new CloseReason(CloseReason.CloseCodes.TRY_AGAIN_LATER, refuseDetail));
                 } catch (IOException e) {
-                    debugContext.appendLogMessageWithThrowable(LOGGER, Level.WARNING, DebugContext.Type.MESSAGE_IN, e, e.getMessage());
+                    debugContext.appendLogMessageWithThrowable(LOGGER, Level.WARNING, DebugContext.Type.MESSAGE_IN, e,
+                                                               e.getMessage());
                 }
                 // session was not opened.
                 return null;
@@ -695,14 +742,16 @@ public class TyrusEndpointWrapper {
         if (toCall == null) {
             if (!collector.isEmpty()) {
                 Throwable t = collector.composeComprehensiveException();
-                debugContext.appendLogMessageWithThrowable(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_IN, t, t.getMessage());
+                debugContext.appendLogMessageWithThrowable(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_IN, t,
+                                                           t.getMessage());
             }
             webSocketToSession.remove(socket);
             sessionListener.onClose(session, CloseReasons.UNEXPECTED_CONDITION.getCloseReason());
             try {
                 session.close(CloseReasons.UNEXPECTED_CONDITION.getCloseReason());
             } catch (IOException e) {
-                debugContext.appendLogMessageWithThrowable(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_IN, e, e.getMessage());
+                debugContext.appendLogMessageWithThrowable(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_IN, e,
+                                                           e.getMessage());
             }
             // session was not opened.
             return null;
@@ -729,7 +778,8 @@ public class TyrusEndpointWrapper {
                 try {
                     onError.invoke(toCall, session, t);
                 } catch (Exception e) {
-                    debugContext.appendLogMessageWithThrowable(LOGGER, Level.WARNING, DebugContext.Type.MESSAGE_IN, t, t.getMessage());
+                    debugContext.appendLogMessageWithThrowable(LOGGER, Level.WARNING, DebugContext.Type.MESSAGE_IN, t,
+                                                               t.getMessage());
                 }
             }
             endpointEventListener.onError(session.getId(), t);
@@ -739,8 +789,8 @@ public class TyrusEndpointWrapper {
     }
 
     /**
-     * Called by the provider when the web socket connection
-     * has an incoming text message from the given remote endpoint.
+     * Called by the provider when the web socket connection has an incoming text message from the given remote
+     * endpoint.
      *
      * @param socket       {@link TyrusWebSocket} who sent the message.
      * @param messageBytes the message.
@@ -753,7 +803,8 @@ public class TyrusEndpointWrapper {
             return;
         }
 
-        session.getDebugContext().appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_IN, "Received binary message");
+        session.getDebugContext()
+               .appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_IN, "Received binary message");
 
         try {
             session.restartIdleTimeoutExecutor();
@@ -793,8 +844,8 @@ public class TyrusEndpointWrapper {
     }
 
     /**
-     * Called by the provider when the web socket connection
-     * has an incoming text message from the given remote endpoint.
+     * Called by the provider when the web socket connection has an incoming text message from the given remote
+     * endpoint.
      *
      * @param socket        {@link TyrusWebSocket} who sent the message.
      * @param messageString the message.
@@ -807,7 +858,8 @@ public class TyrusEndpointWrapper {
             return;
         }
 
-        session.getDebugContext().appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_IN, "Received text message");
+        session.getDebugContext()
+               .appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_IN, "Received text message");
 
         try {
             session.restartIdleTimeoutExecutor();
@@ -865,7 +917,8 @@ public class TyrusEndpointWrapper {
             return;
         }
 
-        session.getDebugContext().appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_IN, "Received partial text message");
+        session.getDebugContext()
+               .appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_IN, "Received partial text message");
 
         try {
             session.restartIdleTimeoutExecutor();
@@ -899,7 +952,8 @@ public class TyrusEndpointWrapper {
                         if (state == TyrusSession.State.RECEIVING_BINARY) {
                             session.setState(TyrusSession.State.RUNNING);
                         }
-                        throw new IllegalStateException(LocalizationMessages.PARTIAL_TEXT_MESSAGE_OUT_OF_ORDER(session));
+                        throw new IllegalStateException(
+                                LocalizationMessages.PARTIAL_TEXT_MESSAGE_OUT_OF_ORDER(session));
                 }
             } else if (session.isWholeTextHandlerPresent()) {
                 switch (state) {
@@ -966,7 +1020,8 @@ public class TyrusEndpointWrapper {
             return;
         }
 
-        session.getDebugContext().appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_IN, "Received partial binary message");
+        session.getDebugContext()
+               .appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_IN, "Received partial binary message");
 
         try {
             session.restartIdleTimeoutExecutor();
@@ -1000,7 +1055,8 @@ public class TyrusEndpointWrapper {
                         if (state == TyrusSession.State.RECEIVING_TEXT) {
                             session.setState(TyrusSession.State.RUNNING);
                         }
-                        throw new IllegalStateException(LocalizationMessages.PARTIAL_BINARY_MESSAGE_OUT_OF_ORDER(session));
+                        throw new IllegalStateException(
+                                LocalizationMessages.PARTIAL_BINARY_MESSAGE_OUT_OF_ORDER(session));
                 }
             } else if (session.isWholeBinaryHandlerPresent()) {
                 switch (state) {
@@ -1058,7 +1114,9 @@ public class TyrusEndpointWrapper {
      */
     private boolean processThrowable(Throwable throwable, Session session) {
         if (LOGGER.isLoggable(Level.FINE)) {
-            LOGGER.log(Level.FINE, String.format("Exception thrown while processing message. Session: '%session'.", session), throwable);
+            LOGGER.log(Level.FINE,
+                       String.format("Exception thrown while processing message. Session: '%session'.", session),
+                       throwable);
         }
 
         if (throwable instanceof WebSocketException) {
@@ -1088,7 +1146,8 @@ public class TyrusEndpointWrapper {
             return;
         }
 
-        session.getDebugContext().appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_IN, "Received pong message");
+        session.getDebugContext()
+               .appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_IN, "Received pong message");
 
         session.restartIdleTimeoutExecutor();
 
@@ -1128,7 +1187,8 @@ public class TyrusEndpointWrapper {
                 }
             }
         } else {
-            session.getDebugContext().appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_IN, "Unhandled pong message");
+            session.getDebugContext()
+                   .appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_IN, "Unhandled pong message");
         }
     }
 
@@ -1150,7 +1210,8 @@ public class TyrusEndpointWrapper {
             return;
         }
 
-        session.getDebugContext().appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_IN, "Received ping message");
+        session.getDebugContext()
+               .appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_IN, "Received ping message");
 
         session.restartIdleTimeoutExecutor();
         try {
@@ -1284,7 +1345,8 @@ public class TyrusEndpointWrapper {
                         byteBuffer.get(tempFrame);
 
                         final Future<Frame> frameFuture = webSocket.sendRawFrame(ByteBuffer.wrap(tempFrame));
-                        webSocket.getMessageEventListener().onFrameSent(TyrusFrame.FrameType.TEXT, dataFrame.getPayloadLength());
+                        webSocket.getMessageEventListener()
+                                 .onFrameSent(TyrusFrame.FrameType.TEXT, dataFrame.getPayloadLength());
                         return frameFuture;
                     } else {
                         final Future<Frame> frameFuture = webSocket.sendRawFrame(ByteBuffer.wrap(frame));
@@ -1359,7 +1421,8 @@ public class TyrusEndpointWrapper {
                         byteBuffer.get(tempFrame);
 
                         final Future<Frame> frameFuture = webSocket.sendRawFrame(ByteBuffer.wrap(tempFrame));
-                        webSocket.getMessageEventListener().onFrameSent(TyrusFrame.FrameType.BINARY, dataFrame.getPayloadLength());
+                        webSocket.getMessageEventListener()
+                                 .onFrameSent(TyrusFrame.FrameType.BINARY, dataFrame.getPayloadLength());
                         return frameFuture;
                     } else {
                         final Future<Frame> frameFuture = webSocket.sendRawFrame(ByteBuffer.wrap(frame));
@@ -1387,13 +1450,15 @@ public class TyrusEndpointWrapper {
     }
 
     /**
-     * Divides open sessions into subsets on which an operation passed as {@code broadcastCallable} will be executed in parallel.
+     * Divides open sessions into subsets on which an operation passed as {@code broadcastCallable} will be executed in
+     * parallel.
      *
      * @param broadcastCallable operation to be executed on open sessions.
      * @return futures of the operations executed on each session.
      */
     private Map<Session, Future<?>> executeInParallel(final SessionCallable broadcastCallable) {
-        final List<Map.Entry<TyrusWebSocket, TyrusSession>> sessions = new ArrayList<Map.Entry<TyrusWebSocket, TyrusSession>>();
+        final List<Map.Entry<TyrusWebSocket, TyrusSession>> sessions =
+                new ArrayList<Map.Entry<TyrusWebSocket, TyrusSession>>();
 
         for (Map.Entry<TyrusWebSocket, TyrusSession> e : webSocketToSession.entrySet()) {
             if (e.getValue().isOpen()) {
@@ -1406,7 +1471,8 @@ public class TyrusEndpointWrapper {
         }
 
         ExecutorService executor = ((BaseContainer) sessions.get(0).getValue().getContainer()).getExecutorService();
-        Map<Future<Map<Session, Future<?>>>, int[]> submitFutures = new HashMap<Future<Map<Session, Future<?>>>, int[]>();
+        Map<Future<Map<Session, Future<?>>>, int[]> submitFutures =
+                new HashMap<Future<Map<Session, Future<?>>>, int[]>();
 
         int sessionCount = sessions.size();
         int maxThreadCount = sessionCount / MIN_SESSIONS_PER_THREAD == 0 ? 1 : sessionCount / MIN_SESSIONS_PER_THREAD;
@@ -1551,7 +1617,8 @@ public class TyrusEndpointWrapper {
      * {@code false}.
      */
     boolean onError(TyrusWebSocket socket, Throwable t) {
-        Logger.getLogger(TyrusEndpointWrapper.class.getName()).log(Level.WARNING, LocalizationMessages.UNEXPECTED_ERROR_CONNECTION_CLOSE(), t);
+        Logger.getLogger(TyrusEndpointWrapper.class.getName())
+              .log(Level.WARNING, LocalizationMessages.UNEXPECTED_ERROR_CONNECTION_CLOSE(), t);
         return true;
     }
 
@@ -1570,16 +1637,19 @@ public class TyrusEndpointWrapper {
 
             // http://java.net/jira/browse/TYRUS-62
             final ServerEndpointConfig serverEndpointConfig = (ServerEndpointConfig) configuration;
-            serverEndpointConfig.getConfigurator().modifyHandshake(serverEndpointConfig, createHandshakeRequest(request),
-                    response);
+            serverEndpointConfig.getConfigurator()
+                                .modifyHandshake(serverEndpointConfig, createHandshakeRequest(request),
+                                                 response);
         }
     }
 
     private HandshakeRequest createHandshakeRequest(final UpgradeRequest webSocketRequest) {
         if (webSocketRequest instanceof RequestContext) {
             final RequestContext requestContext = (RequestContext) webSocketRequest;
-            // TYRUS-208; spec requests headers to be read only when passed to ServerEndpointConfig.Configurator#modifyHandshake.
-            // TYRUS-211; spec requests parameterMap to be read only when passed to ServerEndpointConfig.Configurator#modifyHandshake.
+            // TYRUS-208; spec requests headers to be read only when passed to ServerEndpointConfig
+            // .Configurator#modifyHandshake.
+            // TYRUS-211; spec requests parameterMap to be read only when passed to ServerEndpointConfig
+            // .Configurator#modifyHandshake.
             requestContext.lock();
             return requestContext;
         }
@@ -1656,7 +1726,8 @@ public class TyrusEndpointWrapper {
          * Invoked before {@link javax.websocket.OnOpen} annotated method
          * or {@link Endpoint#onOpen(javax.websocket.Session, javax.websocket.EndpointConfig)} is invoked.
          * <p/>
-         * Default implementation always returns {@link org.glassfish.tyrus.core.TyrusEndpointWrapper.SessionListener.OnOpenResult#SESSION_ALLOWED}.
+         * Default implementation always returns {@link
+         * org.glassfish.tyrus.core.TyrusEndpointWrapper.SessionListener.OnOpenResult#SESSION_ALLOWED}.
          *
          * @param session session to be opened.
          * @return {@link org.glassfish.tyrus.core.TyrusEndpointWrapper.SessionListener.OnOpenResult#SESSION_ALLOWED}

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -147,9 +147,11 @@ public class Auction {
                 try {
                     arc.getBasicRemote().sendObject(new AuctionMessage.LoginResponseMessage(id, item));
                     if (bestBidderName != null && bestBidderName.equals(messsage.getData())) {
-                        arc.getBasicRemote().sendObject(new AuctionMessage.ResultMessage(id, String.format("Congratulations, You won the auction and will pay %.0f.", bestBid)));
+                        arc.getBasicRemote().sendObject(new AuctionMessage.ResultMessage(id, String.format(
+                                "Congratulations, You won the auction and will pay %.0f.", bestBid)));
                     } else {
-                        arc.getBasicRemote().sendObject(new AuctionMessage.ResultMessage(id, String.format("You did not win the auction. The item was sold for %.0f.", bestBid)));
+                        arc.getBasicRemote().sendObject(new AuctionMessage.ResultMessage(id, String.format(
+                                "You did not win the auction. The item was sold for %.0f.", bestBid)));
                     }
                 } catch (Exception e) {
                     Logger.getLogger(Auction.class.getName()).log(Level.SEVERE, null, e);
@@ -175,7 +177,8 @@ public class Auction {
     }
 
     private void sendPriceUpdateMessage() {
-        AuctionMessage.PriceUpdateResponseMessage purm = new AuctionMessage.PriceUpdateResponseMessage(id, "" + bestBid);
+        AuctionMessage.PriceUpdateResponseMessage purm =
+                new AuctionMessage.PriceUpdateResponseMessage(id, "" + bestBid);
         for (Session arc : getRemoteClients()) {
             try {
                 arc.getBasicRemote().sendObject(purm);
@@ -205,7 +208,8 @@ public class Auction {
         }
 
         if (bestBidder != null) {
-            AuctionMessage.ResultMessage winnerMessage = new AuctionMessage.ResultMessage(id, String.format("Congratulations, You won the auction and will pay %.0f.", bestBid));
+            AuctionMessage.ResultMessage winnerMessage = new AuctionMessage.ResultMessage(id, String.format(
+                    "Congratulations, You won the auction and will pay %.0f.", bestBid));
             try {
                 bestBidder.getBasicRemote().sendObject(winnerMessage);
             } catch (Exception e) {
@@ -213,7 +217,8 @@ public class Auction {
             }
         }
 
-        AuctionMessage.ResultMessage loserMessage = new AuctionMessage.ResultMessage(id, String.format("You did not win the auction. The item was sold for %.0f.", bestBid));
+        AuctionMessage.ResultMessage loserMessage = new AuctionMessage.ResultMessage(id, String.format(
+                "You did not win the auction. The item was sold for %.0f.", bestBid));
         for (Session arc : getRemoteClients()) {
             if (arc != bestBidder) {
                 try {

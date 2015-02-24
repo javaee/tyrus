@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -67,10 +67,11 @@ public interface EndpointEventListener {
     /**
      * Called when an error has occurred.
      * <p/>
-     * Errors that occur either during {@link javax.websocket.Endpoint#onOpen(javax.websocket.Session, javax.websocket.EndpointConfig)},
-     * {@link javax.websocket.Endpoint#onClose(javax.websocket.Session, javax.websocket.CloseReason)} and their annotated equivalent
-     * or when handling an incoming message, cause this listener to be called. It corresponds to the event of invocation of
-     * {@link javax.websocket.Endpoint#onError(javax.websocket.Session, Throwable)} and its annotated equivalent.
+     * Errors that occur either during {@link javax.websocket.Endpoint#onOpen(javax.websocket.Session,
+     * javax.websocket.EndpointConfig)}, {@link javax.websocket.Endpoint#onClose(javax.websocket.Session,
+     * javax.websocket.CloseReason)} and their annotated equivalent or when handling an incoming message, cause this
+     * listener to be called. It corresponds to the event of invocation of {@link javax.websocket.Endpoint#onError
+     * (javax.websocket.Session, Throwable)} and its annotated equivalent.
      *
      * @param sessionId an ID of the session on which the error occurred.
      * @param t         throwable that has been thrown.

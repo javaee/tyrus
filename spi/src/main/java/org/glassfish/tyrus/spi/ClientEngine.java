@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -50,48 +50,49 @@ public interface ClientEngine {
     /**
      * Create upgrade request and register {@link TimeoutHandler}.
      *
-     * @param timeoutHandler handshake timeout handler. {@link TimeoutHandler#handleTimeout()}
-     *                       is invoked if {@link #processResponse(UpgradeResponse, Writer, Connection.CloseListener)}
-     *                       is not called within handshake timeout.
+     * @param timeoutHandler handshake timeout handler. {@link TimeoutHandler#handleTimeout()} is invoked if {@link
+     *                       #processResponse(UpgradeResponse, Writer, Connection.CloseListener)} is not called within
+     *                       handshake timeout.
      * @return request to be send on the wire or {@code null}, when the request cannot be created. When {@code null} is
      * returned, client should free all resources tied to current connection.
      */
-    public UpgradeRequest createUpgradeRequest(TimeoutHandler timeoutHandler);
+    UpgradeRequest createUpgradeRequest(TimeoutHandler timeoutHandler);
 
     /**
      * Process handshake and return {@link ClientUpgradeInfo} with handshake status ({@link ClientUpgradeStatus}).
      *
      * @param upgradeResponse response to be processed.
      * @param writer          used for sending dataframes from client endpoint.
-     * @param closeListener   will be called when connection is closed, will be set as listener of returned
-     *                        {@link Connection}.
+     * @param closeListener   will be called when connection is closed, will be set as listener of returned {@link
+     *                        Connection}.
      * @return info with upgrade status.
      * @see #processError(Throwable)
      */
-    public ClientUpgradeInfo processResponse(UpgradeResponse upgradeResponse,
-                                             final Writer writer,
-                                             final Connection.CloseListener closeListener);
+    ClientUpgradeInfo processResponse(UpgradeResponse upgradeResponse, final Writer writer, final Connection
+            .CloseListener closeListener);
 
     /**
      * Process error.
      * <p/>
-     * This method can be called any time when client encounters an error which cannot be handled in the container before
-     * {@link ClientUpgradeStatus#SUCCESS} is returned from {@link #processResponse(UpgradeResponse, Writer, Connection.CloseListener)}.
+     * This method can be called any time when client encounters an error which cannot be handled in the container
+     * before {@link ClientUpgradeStatus#SUCCESS} is returned from {@link #processResponse(UpgradeResponse, Writer,
+     * Connection.CloseListener)}.
      *
      * @param t encountered error.
      * @see #processResponse(UpgradeResponse, Writer, Connection.CloseListener)
      */
-    public void processError(Throwable t);
+    void processError(Throwable t);
 
     /**
      * Indicates to container that handshake timeout was reached.
      */
-    public interface TimeoutHandler {
+    interface TimeoutHandler {
         /**
-         * Invoked when timeout is reached. Container is supposed to clean all resources related to {@link ClientEngine}
+         * Invoked when timeout is reached. Container is supposed to clean all resources related to {@link
+         * ClientEngine}
          * instance.
          */
-        public void handleTimeout();
+        void handleTimeout();
     }
 
     /**
@@ -115,7 +116,7 @@ public interface ClientEngine {
      * container HAS TO close all resources related to currently processed {@link UpgradeResponse}, open new TCP
      * connection and send {@link UpgradeRequest} obtained from method {@link #createUpgradeRequest(TimeoutHandler)}.
      */
-    public interface ClientUpgradeInfo {
+    interface ClientUpgradeInfo {
 
         /**
          * Get {@link ClientUpgradeStatus}.
@@ -135,9 +136,10 @@ public interface ClientEngine {
 
     /**
      * Status of upgrade process.
+     * <p/>
      * Returned by {@link #processResponse(UpgradeResponse, Writer, Connection.CloseListener)}.
      */
-    public enum ClientUpgradeStatus {
+    enum ClientUpgradeStatus {
 
         /**
          * Client engine needs to send another request.

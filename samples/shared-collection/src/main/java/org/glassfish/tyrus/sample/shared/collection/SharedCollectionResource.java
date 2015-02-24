@@ -92,7 +92,8 @@ public class SharedCollectionResource {
                 event.add("map", mapRepresentation.build());
 
                 try {
-                    eventOutput.write(new OutboundEvent.Builder().name("update").data(String.class, event.build().toString()).build());
+                    eventOutput.write(new OutboundEvent.Builder().name("update")
+                                                                 .data(String.class, event.build().toString()).build());
                 } catch (IOException e) {
                     // we don't care about that for now.
                 }

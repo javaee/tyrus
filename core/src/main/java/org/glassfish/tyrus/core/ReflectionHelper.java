@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -99,8 +99,9 @@ public class ReflectionHelper {
      * @return the string representation of the object.
      */
     public static String objectToString(Object o) {
-        if (o == null)
+        if (o == null) {
             return "null";
+        }
         StringBuilder sb = new StringBuilder();
         sb.append(o.getClass().getName()).
                 append('@').append(Integer.toHexString(o.hashCode()));
@@ -130,15 +131,15 @@ public class ReflectionHelper {
      */
     public static String methodInstanceToString(Object o, Method m) {
         StringBuilder sb = new StringBuilder();
-        sb.append(o.getClass().getName()).
-                append('@').append(Integer.toHexString(o.hashCode())).
-                append('.').append(m.getName()).append('(');
+        sb.append(o.getClass().getName()).append('@').append(Integer.toHexString(o.hashCode())).append('.')
+          .append(m.getName()).append('(');
 
         Class[] params = m.getParameterTypes();
         for (int i = 0; i < params.length; i++) {
             sb.append(getTypeName(params[i]));
-            if (i < (params.length - 1))
+            if (i < (params.length - 1)) {
                 sb.append(",");
+            }
         }
 
         sb.append(')');
@@ -218,8 +219,7 @@ public class ReflectionHelper {
      * @return the Class, otherwise null if the class cannot be found.
      * @throws ClassNotFoundException if the class cannot be found.
      */
-    public static Class classForNameWithException(String name)
-            throws ClassNotFoundException {
+    public static Class classForNameWithException(String name) throws ClassNotFoundException {
         return classForNameWithException(name, getContextClassLoader());
     }
 
@@ -232,8 +232,7 @@ public class ReflectionHelper {
      * @return the Class, otherwise null if the class cannot be found.
      * @throws ClassNotFoundException if the class cannot be found.
      */
-    public static Class classForNameWithException(String name, ClassLoader cl)
-            throws ClassNotFoundException {
+    public static Class classForNameWithException(String name, ClassLoader cl) throws ClassNotFoundException {
         if (cl != null) {
             try {
                 return Class.forName(name, false, cl);
@@ -254,11 +253,11 @@ public class ReflectionHelper {
      * @param <T>  class type.
      * @param name class name.
      * @return privileged exception action to obtain the Class.
-     *         The action could throw {@link ClassNotFoundException} or return {@code null} if the class cannot be found.
-     *
+     * The action could throw {@link ClassNotFoundException} or return {@code null} if the class cannot be found.
      * @see AccessController#doPrivileged(java.security.PrivilegedExceptionAction)
      */
-    public static <T> PrivilegedExceptionAction<Class<T>> classForNameWithExceptionPEA(final String name) throws ClassNotFoundException {
+    public static <T> PrivilegedExceptionAction<Class<T>> classForNameWithExceptionPEA(final String name) throws
+            ClassNotFoundException {
         return classForNameWithExceptionPEA(name, getContextClassLoader());
     }
 
@@ -277,7 +276,8 @@ public class ReflectionHelper {
      * @see AccessController#doPrivileged(java.security.PrivilegedExceptionAction)
      */
     @SuppressWarnings("unchecked")
-    public static <T> PrivilegedExceptionAction<Class<T>> classForNameWithExceptionPEA(final String name, final ClassLoader cl) throws ClassNotFoundException {
+    public static <T> PrivilegedExceptionAction<Class<T>> classForNameWithExceptionPEA(final String name, final
+    ClassLoader cl) throws ClassNotFoundException {
         return new PrivilegedExceptionAction<Class<T>>() {
             @Override
             public Class<T> run() throws ClassNotFoundException {
@@ -326,8 +326,9 @@ public class ReflectionHelper {
      * @param m the method to be set as accessible
      */
     public static void setAccessibleMethod(final Method m) {
-        if (Modifier.isPublic(m.getModifiers()))
+        if (Modifier.isPublic(m.getModifiers())) {
             return;
+        }
 
         AccessController.doPrivileged(new PrivilegedAction<Object>() {
             @Override
@@ -361,8 +362,9 @@ public class ReflectionHelper {
      */
     public static Class getGenericClass(Type parameterizedType) throws Exception {
         final Type t = getTypeArgumentOfParameterizedType(parameterizedType);
-        if (t == null)
+        if (t == null) {
             return null;
+        }
 
         final Class c = getClassOfType(t);
         if (c == null) {
@@ -383,8 +385,9 @@ public class ReflectionHelper {
 
     public static TypeClassPair getTypeArgumentAndClass(Type parameterizedType) throws Exception {
         final Type t = getTypeArgumentOfParameterizedType(parameterizedType);
-        if (t == null)
+        if (t == null) {
             return null;
+        }
 
         final Class c = getClassOfType(t);
         if (c == null) {
@@ -395,11 +398,15 @@ public class ReflectionHelper {
     }
 
     private static Type getTypeArgumentOfParameterizedType(Type parameterizedType) {
-        if (!(parameterizedType instanceof ParameterizedType)) return null;
+        if (!(parameterizedType instanceof ParameterizedType)) {
+            return null;
+        }
 
         ParameterizedType type = (ParameterizedType) parameterizedType;
         Type[] genericTypes = type.getActualTypeArguments();
-        if (genericTypes.length != 1) return null;
+        if (genericTypes.length != 1) {
+            return null;
+        }
 
         return genericTypes[0];
     }
@@ -493,8 +500,7 @@ public class ReflectionHelper {
 
 
     /**
-     * A tuple consisting of a concrete class, declaring class that declares a
-     * generic interface type.
+     * A tuple consisting of a concrete class, declaring class that declares a generic interface type.
      */
     public static class DeclaringClassInterfacePair {
         public final Class concreteClass;
@@ -511,12 +517,10 @@ public class ReflectionHelper {
     }
 
     /**
-     * Get the parameterized class arguments for a declaring class that
-     * declares a generic interface type.
+     * Get the parameterized class arguments for a declaring class that declares a generic interface type.
      *
      * @param p the declaring class
-     * @return the parameterized class arguments, or null if the generic
-     * interface type is not a parameterized type.
+     * @return the parameterized class arguments, or null if the generic interface type is not a parameterized type.
      */
     public static Class[] getParameterizedClassArguments(DeclaringClassInterfacePair p) {
         if (p.genericInterface instanceof ParameterizedType) {
@@ -545,12 +549,10 @@ public class ReflectionHelper {
     }
 
     /**
-     * Get the parameterized type arguments for a declaring class that
-     * declares a generic interface type.
+     * Get the parameterized type arguments for a declaring class that declares a generic interface type.
      *
      * @param p the declaring class
-     * @return the parameterized type arguments, or null if the generic
-     * interface type is not a parameterized type.
+     * @return the parameterized type arguments, or null if the generic interface type is not a parameterized type.
      */
     public static Type[] getParameterizedTypeArguments(DeclaringClassInterfacePair p) {
         if (p.genericInterface instanceof ParameterizedType) {
@@ -579,11 +581,9 @@ public class ReflectionHelper {
     /**
      * Find the declaring class that implements or extends an interface.
      *
-     * @param concrete the concrete class than directly or indirectly
-     *                 implements or extends an interface class.
+     * @param concrete the concrete class than directly or indirectly implements or extends an interface class.
      * @param iface    the interface class.
-     * @return the tuple of the declaring class and the generic interface
-     * type.
+     * @return the tuple of the declaring class and the generic interface type.
      */
     public static DeclaringClassInterfacePair getClass(Class concrete, Class iface) {
         return getClass(concrete, iface, concrete);
@@ -592,12 +592,14 @@ public class ReflectionHelper {
     private static DeclaringClassInterfacePair getClass(Class concrete, Class iface, Class c) {
         Type[] gis = c.getGenericInterfaces();
         DeclaringClassInterfacePair p = getType(concrete, iface, c, gis);
-        if (p != null)
+        if (p != null) {
             return p;
+        }
 
         c = c.getSuperclass();
-        if (c == null || c == Object.class)
+        if (c == null || c == Object.class) {
             return null;
+        }
 
         return getClass(concrete, iface, c);
     }
@@ -605,8 +607,9 @@ public class ReflectionHelper {
     private static DeclaringClassInterfacePair getType(Class concrete, Class iface, Class c, Type[] ts) {
         for (Type t : ts) {
             DeclaringClassInterfacePair p = getType(concrete, iface, c, t);
-            if (p != null)
+            if (p != null) {
                 return p;
+            }
         }
         return null;
     }
@@ -659,23 +662,22 @@ public class ReflectionHelper {
      * @param c  the concrete class from which all type variables are resolved
      * @param dc the declaring class where the type variable was defined
      * @param tv the type variable
-     * @return the resolved Java class and type, otherwise null if the type variable
-     * could not be resolved
+     * @return the resolved Java class and type, otherwise null if the type variable could not be resolved
      */
     public static ClassTypePair resolveTypeVariable(Class c, Class dc, TypeVariable tv) {
         return resolveTypeVariable(c, dc, tv, new HashMap<TypeVariable, Type>());
     }
 
-    private static ClassTypePair resolveTypeVariable(Class c, Class dc, TypeVariable tv,
-                                                     Map<TypeVariable, Type> map) {
+    private static ClassTypePair resolveTypeVariable(Class c, Class dc, TypeVariable tv, Map<TypeVariable, Type> map) {
         Type[] gis = c.getGenericInterfaces();
         for (Type gi : gis) {
             if (gi instanceof ParameterizedType) {
                 // process pt of interface
                 ParameterizedType pt = (ParameterizedType) gi;
                 ClassTypePair ctp = resolveTypeVariable(pt, (Class) pt.getRawType(), dc, tv, map);
-                if (ctp != null)
+                if (ctp != null) {
                     return ctp;
+                }
             }
         }
 
@@ -739,8 +741,9 @@ public class ReflectionHelper {
                 pt = (ParameterizedType) t;
                 if (pt.getRawType() instanceof Class) {
                     return new ClassTypePair((Class) pt.getRawType(), pt);
-                } else
+                } else {
                     return null;
+                }
             } else {
                 return null;
             }
@@ -772,10 +775,8 @@ public class ReflectionHelper {
             return c.getMethod(m.getName(), m.getParameterTypes());
         } catch (NoSuchMethodException ex) {
             for (Method _m : c.getMethods()) {
-                if (_m.getName().equals(m.getName()) &&
-                        _m.getParameterTypes().length == m.getParameterTypes().length) {
-                    if (compareParameterTypes(m.getGenericParameterTypes(),
-                            _m.getGenericParameterTypes())) {
+                if (_m.getName().equals(m.getName()) && _m.getParameterTypes().length == m.getParameterTypes().length) {
+                    if (compareParameterTypes(m.getGenericParameterTypes(), _m.getGenericParameterTypes())) {
                         return _m;
                     }
                 }
@@ -815,7 +816,8 @@ public class ReflectionHelper {
     /**
      * Returns an {@link OsgiRegistry} instance.
      *
-     * @return an {@link OsgiRegistry} instance or {@code null} if the class cannot be instantiated (not in OSGi environment).
+     * @return an {@link OsgiRegistry} instance or {@code null} if the class cannot be instantiated (not in OSGi
+     * environment).
      */
     public static OsgiRegistry getOsgiRegistryInstance() {
         try {
@@ -832,9 +834,8 @@ public class ReflectionHelper {
     }
 
     /**
-     * Creates an instance of {@link Class} c using {@link Class#newInstance()}.
-     * </p>
-     * Exceptions are logged to {@link ErrorCollector}.
+     * Creates an instance of {@link Class} c using {@link Class#newInstance()}. </p> Exceptions are logged to {@link
+     * ErrorCollector}.
      *
      * @param c         {@link Class} whose instance is going to be created
      * @param collector {@link ErrorCollector} which collects the {@link Exception}s.
@@ -847,7 +848,8 @@ public class ReflectionHelper {
         try {
             instance = getInstance(c);
         } catch (Exception e) {
-            collector.addException(new DeploymentException(LocalizationMessages.CLASS_NOT_INSTANTIATED(c.getName()), e));
+            collector.addException(new DeploymentException(LocalizationMessages.CLASS_NOT_INSTANTIATED(c.getName()),
+                                                           e));
         }
 
         return instance;

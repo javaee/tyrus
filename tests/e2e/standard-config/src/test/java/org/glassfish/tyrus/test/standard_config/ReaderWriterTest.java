@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -76,7 +76,8 @@ public class ReaderWriterTest extends TestContainer {
     public static class ReaderEndpoint {
         @OnMessage
         public String onMessage(Reader reader) throws IOException, JAXBException {
-            JAXBBean jaxbBean = (JAXBBean) JAXBContext.newInstance(JAXBBean.class).createUnmarshaller().unmarshal(reader);
+            JAXBBean jaxbBean =
+                    (JAXBBean) JAXBContext.newInstance(JAXBBean.class).createUnmarshaller().unmarshal(reader);
             reader.close();
 
             if (jaxbBean.string1.equals("test") && jaxbBean.string2.equals("bean")) {
@@ -111,7 +112,8 @@ public class ReaderWriterTest extends TestContainer {
                         });
 
                         Writer sendWriter = session.getBasicRemote().getSendWriter();
-                        JAXBContext.newInstance(JAXBBean.class).createMarshaller().marshal(new JAXBBean("test", "bean"), sendWriter);
+                        JAXBContext.newInstance(JAXBBean.class).createMarshaller()
+                                   .marshal(new JAXBBean("test", "bean"), sendWriter);
                         sendWriter.close();
 
                     } catch (IOException e) {
@@ -160,7 +162,9 @@ public class ReaderWriterTest extends TestContainer {
                         @Override
                         public void onMessage(Reader reader) {
                             try {
-                                JAXBBean jaxbBean = (JAXBBean) JAXBContext.newInstance(JAXBBean.class).createUnmarshaller().unmarshal(reader);
+                                JAXBBean jaxbBean =
+                                        (JAXBBean) JAXBContext.newInstance(JAXBBean.class).createUnmarshaller()
+                                                              .unmarshal(reader);
                                 if (jaxbBean.string1.equals("test") && jaxbBean.string2.equals("bean")) {
                                     messageLatch.countDown();
                                 }

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 - 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -82,14 +82,16 @@ public class Quotes implements Broadcaster {
         } else if (message.startsWith("add:")) {
             String symbol = message.substring(4, message.trim().length());
             HttpSession httpSession = remote.getSession().getHttpSession();
-            ApplicationPreferences preferences = (ApplicationPreferences) httpSession.getAttribute(ApplicationPreferences.APP_PREFERENCES);
+            ApplicationPreferences preferences =
+                    (ApplicationPreferences) httpSession.getAttribute(ApplicationPreferences.APP_PREFERENCES);
             preferences.addTicker(symbol);
             Buddies buddies = (Buddies) context.XgetProperties().get(Buddies.BUDDIES);
             buddies.broadcastActivity(httpSession, Activity.ADDED, symbol);
         } else if (message.startsWith("remove:")) {
             String symbol = message.substring(7, message.trim().length());
             HttpSession httpSession = remote.getSession().getHttpSession();
-            ApplicationPreferences preferences = (ApplicationPreferences) httpSession.getAttribute(ApplicationPreferences.APP_PREFERENCES);
+            ApplicationPreferences preferences =
+                    (ApplicationPreferences) httpSession.getAttribute(ApplicationPreferences.APP_PREFERENCES);
             preferences.removeTicker(symbol);
             Buddies buddies = (Buddies) context.XgetProperties().get(Buddies.BUDDIES);
             buddies.broadcastActivity(httpSession, Activity.REMOVED, symbol);
@@ -110,7 +112,8 @@ public class Quotes implements Broadcaster {
         for (Session session : myContext.getConversations()) {
             try {
                 HttpSession httpSession = session.getHttpSession();
-                ApplicationPreferences preferences = (ApplicationPreferences) httpSession.getAttribute(ApplicationPreferences.APP_PREFERENCES);
+                ApplicationPreferences preferences =
+                        (ApplicationPreferences) httpSession.getAttribute(ApplicationPreferences.APP_PREFERENCES);
                 if (preferences != null) {
                     List<Quote> quotes = Quote.getRandomQuotes(preferences.getTickers());
                     ((QuoteRemote) session.getRemote()).sendQuotes(quotes);

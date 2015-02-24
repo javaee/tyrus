@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -227,7 +227,9 @@ public class TestContainer {
      * @throws IOException
      * @throws InterruptedException
      */
-    protected void testViaServiceEndpoint(ClientManager client, Class<?> serviceEndpoint, final String expectedResult, String message) throws DeploymentException, IOException, InterruptedException {
+    protected void testViaServiceEndpoint(ClientManager client, Class<?> serviceEndpoint, final String expectedResult,
+                                          String message) throws DeploymentException, IOException,
+            InterruptedException {
         final MyServiceClientEndpoint myServiceClientEndpoint = new MyServiceClientEndpoint();
         final Session serviceSession = client.connectToServer(myServiceClientEndpoint, getURI(serviceEndpoint));
         serviceSession.getBasicRemote().sendText(message);

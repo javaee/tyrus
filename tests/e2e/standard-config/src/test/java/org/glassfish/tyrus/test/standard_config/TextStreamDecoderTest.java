@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -144,7 +144,8 @@ public class TextStreamDecoderTest extends TestContainer {
         final CountDownLatch messageLatch = new CountDownLatch(1);
 
         try {
-            final ClientEndpointConfig build = ClientEndpointConfig.Builder.create().decoders(Collections.<Class<? extends Decoder>>singletonList(TextStreamDecoder.class)).build();
+            final ClientEndpointConfig build = ClientEndpointConfig.Builder.create().decoders(
+                    Collections.<Class<? extends Decoder>>singletonList(TextStreamDecoder.class)).build();
 
             ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
@@ -178,7 +179,8 @@ public class TextStreamDecoderTest extends TestContainer {
         final CountDownLatch messageLatch = new CountDownLatch(1);
 
         try {
-            final ClientEndpointConfig build = ClientEndpointConfig.Builder.create().decoders(Collections.<Class<? extends Decoder>>singletonList(TextStreamDecoder.class)).build();
+            final ClientEndpointConfig build = ClientEndpointConfig.Builder.create().decoders(
+                    Collections.<Class<? extends Decoder>>singletonList(TextStreamDecoder.class)).build();
 
             ClientManager client = createClient();
             client.connectToServer(new Endpoint() {

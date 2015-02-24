@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -62,18 +62,19 @@ import org.glassfish.tyrus.sample.auction.message.AuctionMessage;
 @ServerEndpoint(
         value = "/auction",
         decoders = {AuctionMessageDecoder.class},
-        encoders = {AuctionMessageEncoder.class}
-)
+        encoders = {AuctionMessageEncoder.class})
 public class AuctionEndpoint {
 
     /*
      * Set of auctions (finished, running, to be started auctions).
      */
-    private static final Set<Auction> auctions = Collections.unmodifiableSet(new HashSet<Auction>() {{
-        add(new Auction(new AuctionItem("Swatch", "Nice Swatch watches, hand made", 100, 20)));
-        add(new Auction(new AuctionItem("Rolex", "Nice Rolex watches, hand made", 200, 20)));
-        add(new Auction(new AuctionItem("Omega", "Nice Omega watches, hand made", 300, 20)));
-    }});
+    private static final Set<Auction> auctions = Collections.unmodifiableSet(new HashSet<Auction>() {
+        {
+            add(new Auction(new AuctionItem("Swatch", "Nice Swatch watches, hand made", 100, 20)));
+            add(new Auction(new AuctionItem("Rolex", "Nice Rolex watches, hand made", 200, 20)));
+            add(new Auction(new AuctionItem("Omega", "Nice Omega watches, hand made", 300, 20)));
+        }
+    });
 
     @OnClose
     public void handleClosedConnection(Session session) {
@@ -99,7 +100,8 @@ public class AuctionEndpoint {
             }
 
             try {
-                session.getBasicRemote().sendObject((new AuctionMessage.AuctionListResponseMessage("0", sb.toString())));
+                session.getBasicRemote().sendObject(
+                        new AuctionMessage.AuctionListResponseMessage("0", sb.toString()));
             } catch (Exception e) {
                 Logger.getLogger(AuctionEndpoint.class.getName()).log(Level.SEVERE, null, e);
             }

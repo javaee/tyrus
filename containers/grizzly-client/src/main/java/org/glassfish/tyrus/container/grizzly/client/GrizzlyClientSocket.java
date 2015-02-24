@@ -129,13 +129,14 @@ public class GrizzlyClientSocket {
      * Sample below demonstrates use of this feature to set preemptive basic proxy authentication:
      * <pre>
      *     final HashMap<String, String> proxyHeaders = new HashMap<String, String>();
-     *     proxyHeaders.put("Proxy-Authorization", "Basic " + Base64Utils.encodeToString("username:password".getBytes(Charset.forName("UTF-8")), false));
+     *     proxyHeaders.put("Proxy-Authorization", "Basic " +
+     *         Base64Utils.encodeToString("username:password".getBytes(Charset.forName("UTF-8")),false));
      *
      *     client.getProperties().put(GrizzlyClientSocket.PROXY_HEADERS, proxyHeaders);
      *     client.connectToServer(...);
      * </pre>
-     * Please note that these headers will be used only when establishing proxy connection, for modifying
-     * WebSocket handshake headers, see {@link javax.websocket.ClientEndpointConfig.Configurator#beforeRequest(java.util.Map)}.
+     * Please note that these headers will be used only when establishing proxy connection, for modifying WebSocket
+     * handshake headers, see {@link javax.websocket.ClientEndpointConfig.Configurator#beforeRequest(java.util.Map)}.
      *
      * @see javax.websocket.ClientEndpointConfig#getUserProperties()
      * @deprecated please use {@link org.glassfish.tyrus.client.ClientProperties#PROXY_HEADERS}
@@ -148,7 +149,8 @@ public class GrizzlyClientSocket {
      * <p/>
      * Value is expected to be instance of {@link ThreadPoolConfig}, can be {@code null} (it won't be used).
      *
-     * @deprecated please use {@link org.glassfish.tyrus.container.grizzly.client.GrizzlyClientProperties#WORKER_THREAD_POOL_CONFIG}.
+     * @deprecated please use {@link org.glassfish.tyrus.container.grizzly.client
+     * .GrizzlyClientProperties#WORKER_THREAD_POOL_CONFIG}.
      */
     @SuppressWarnings("UnusedDeclaration")
     public static final String WORKER_THREAD_POOL_CONFIG = GrizzlyClientProperties.WORKER_THREAD_POOL_CONFIG;
@@ -158,7 +160,8 @@ public class GrizzlyClientSocket {
      * <p/>
      * Value is expected to be instance of {@link ThreadPoolConfig}, can be {@code null} (it won't be used).
      *
-     * @deprecated please use {@link org.glassfish.tyrus.container.grizzly.client.GrizzlyClientProperties#SELECTOR_THREAD_POOL_CONFIG}.
+     * @deprecated please use {@link org.glassfish.tyrus.container.grizzly.client
+     * .GrizzlyClientProperties#SELECTOR_THREAD_POOL_CONFIG}.
      */
     @SuppressWarnings("UnusedDeclaration")
     public static final String SELECTOR_THREAD_POOL_CONFIG = GrizzlyClientProperties.SELECTOR_THREAD_POOL_CONFIG;
@@ -198,7 +201,9 @@ public class GrizzlyClientSocket {
 
         try {
             this.workerThreadPoolConfig = getWorkerThreadPoolConfig(properties);
-            this.selectorThreadPoolConfig = Utils.getProperty(properties, GrizzlyClientProperties.SELECTOR_THREAD_POOL_CONFIG, ThreadPoolConfig.class);
+            this.selectorThreadPoolConfig =
+                    Utils.getProperty(properties, GrizzlyClientProperties.SELECTOR_THREAD_POOL_CONFIG,
+                                      ThreadPoolConfig.class);
 
             Boolean shared = Utils.getProperty(properties, ClientProperties.SHARED_CONTAINER, Boolean.class);
             if (shared == null || !shared) {
@@ -213,9 +218,11 @@ public class GrizzlyClientSocket {
                 GrizzlyTransportTimeoutFilter.touch();
             }
 
-            final Integer sharedTransportTimeoutProperty = Utils.getProperty(properties, ClientProperties.SHARED_CONTAINER_IDLE_TIMEOUT, Integer.class);
+            final Integer sharedTransportTimeoutProperty =
+                    Utils.getProperty(properties, ClientProperties.SHARED_CONTAINER_IDLE_TIMEOUT, Integer.class);
             // default value for shared transport timeout is 30.
-            sharedTransportTimeout = (sharedTransport && sharedTransportTimeoutProperty != null) ? sharedTransportTimeoutProperty : 30;
+            sharedTransportTimeout =
+                    (sharedTransport && sharedTransportTimeoutProperty != null) ? sharedTransportTimeoutProperty : 30;
             this.clientEngine = clientEngine;
         } catch (RuntimeException e) {
             throw new DeploymentException(e.getMessage(), e);
@@ -251,30 +258,37 @@ public class GrizzlyClientSocket {
 
     private ThreadPoolConfig getWorkerThreadPoolConfig(Map<String, Object> properties) {
         if (properties.containsKey(GrizzlyClientProperties.WORKER_THREAD_POOL_CONFIG)) {
-            return Utils.getProperty(properties, GrizzlyClientProperties.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.class);
+            return Utils
+                    .getProperty(properties, GrizzlyClientProperties.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.class);
         } else if (properties.containsKey(ClientProperties.WORKER_THREAD_POOL_CONFIG)) {
-            Object threadPoolConfig = Utils.getProperty(properties, ClientProperties.WORKER_THREAD_POOL_CONFIG, Object.class);
+            Object threadPoolConfig =
+                    Utils.getProperty(properties, ClientProperties.WORKER_THREAD_POOL_CONFIG, Object.class);
 
             if (threadPoolConfig instanceof org.glassfish.tyrus.client.ThreadPoolConfig) {
-                org.glassfish.tyrus.client.ThreadPoolConfig clientThreadPoolConfig = (org.glassfish.tyrus.client.ThreadPoolConfig) threadPoolConfig;
+                org.glassfish.tyrus.client.ThreadPoolConfig clientThreadPoolConfig =
+                        (org.glassfish.tyrus.client.ThreadPoolConfig) threadPoolConfig;
                 ThreadPoolConfig grizzlyThreadPoolConfig = ThreadPoolConfig.defaultConfig();
                 grizzlyThreadPoolConfig.setMaxPoolSize(clientThreadPoolConfig.getMaxPoolSize())
-                        .setCorePoolSize(clientThreadPoolConfig.getCorePoolSize())
-                        .setPriority(clientThreadPoolConfig.getPriority())
-                        .setDaemon(clientThreadPoolConfig.isDaemon())
-                        .setKeepAliveTime(clientThreadPoolConfig.getKeepAliveTime(TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS)
-                        .setInitialClassLoader(clientThreadPoolConfig.getInitialClassLoader())
-                        .setPoolName(clientThreadPoolConfig.getPoolName())
-                        .setQueue(clientThreadPoolConfig.getQueue())
-                        .setQueueLimit(clientThreadPoolConfig.getQueueLimit())
-                        .setThreadFactory(clientThreadPoolConfig.getThreadFactory());
+                                       .setCorePoolSize(clientThreadPoolConfig.getCorePoolSize())
+                                       .setPriority(clientThreadPoolConfig.getPriority())
+                                       .setDaemon(clientThreadPoolConfig.isDaemon())
+                                       .setKeepAliveTime(clientThreadPoolConfig.getKeepAliveTime(TimeUnit.MILLISECONDS),
+                                                         TimeUnit.MILLISECONDS)
+                                       .setInitialClassLoader(clientThreadPoolConfig.getInitialClassLoader())
+                                       .setPoolName(clientThreadPoolConfig.getPoolName())
+                                       .setQueue(clientThreadPoolConfig.getQueue())
+                                       .setQueueLimit(clientThreadPoolConfig.getQueueLimit())
+                                       .setThreadFactory(clientThreadPoolConfig.getThreadFactory());
                 return grizzlyThreadPoolConfig;
             } else if (threadPoolConfig instanceof ThreadPoolConfig) {
                 return (ThreadPoolConfig) threadPoolConfig;
             } else {
-                LOGGER.log(Level.CONFIG, String.format("Invalid type of configuration property of %s (%s), %s cannot be cast to %s or %s",
-                        ClientProperties.WORKER_THREAD_POOL_CONFIG, threadPoolConfig.toString(), threadPoolConfig.getClass().toString(),
-                        ThreadPoolConfig.class.toString(), org.glassfish.tyrus.client.ThreadPoolConfig.class.toString()));
+                LOGGER.log(Level.CONFIG, String.format(
+                        "Invalid type of configuration property of %s (%s), %s cannot be cast to %s or %s",
+                        ClientProperties.WORKER_THREAD_POOL_CONFIG, threadPoolConfig.toString(),
+                        threadPoolConfig.getClass().toString(),
+                        ThreadPoolConfig.class.toString(),
+                        org.glassfish.tyrus.client.ThreadPoolConfig.class.toString()));
             }
         }
         return null;
@@ -318,8 +332,9 @@ public class GrizzlyClientSocket {
                 privateTransport.start();
             }
 
-            final TCPNIOConnectorHandler connectorHandler = new TCPNIOConnectorHandler(sharedTransport ? transport : privateTransport) {
-            };
+            final TCPNIOConnectorHandler connectorHandler =
+                    new TCPNIOConnectorHandler(sharedTransport ? transport : privateTransport) {
+                    };
 
             connectorHandler.setSyncConnectTimeout(timeoutMs, TimeUnit.MILLISECONDS);
 
@@ -346,7 +361,8 @@ public class GrizzlyClientSocket {
                         InetSocketAddress inetSocketAddress = (InetSocketAddress) address;
                         if (inetSocketAddress.isUnresolved()) {
                             // resolve the address.
-                            address = new InetSocketAddress(inetSocketAddress.getHostName(), inetSocketAddress.getPort());
+                            address =
+                                    new InetSocketAddress(inetSocketAddress.getHostName(), inetSocketAddress.getPort());
                         }
                     }
                     connectAddress = address;
@@ -355,14 +371,17 @@ public class GrizzlyClientSocket {
 
             // this will block until the SSL engine handshake is complete, so SSL handshake error can be handled here
             TyrusFuture sslHandshakeFuture = null;
-            ExtendedSSLEngineConfigurator clientSSLEngineConfigurator = getSSLEngineConfigurator(requestURI, properties);
+            ExtendedSSLEngineConfigurator clientSSLEngineConfigurator =
+                    getSSLEngineConfigurator(requestURI, properties);
             if (clientSSLEngineConfigurator != null) {
                 sslHandshakeFuture = new TyrusFuture();
             }
 
-            connectorHandler.setProcessor(createFilterChain(clientEngine, null, clientSSLEngineConfigurator,
-                    !(proxy.type() == Proxy.Type.DIRECT), requestURI, sharedTransport, sharedTransportTimeout,
-                    proxyHeaders, grizzlyConnector, sslHandshakeFuture, upgradeRequest));
+            connectorHandler.setProcessor(
+                    createFilterChain(clientEngine, null, clientSSLEngineConfigurator,
+                                      !(proxy.type() == Proxy.Type.DIRECT), requestURI, sharedTransport,
+                                      sharedTransportTimeout, proxyHeaders, grizzlyConnector, sslHandshakeFuture,
+                                      upgradeRequest));
 
             connectionGrizzlyFuture = connectorHandler.connect(connectAddress);
 
@@ -376,7 +395,8 @@ public class GrizzlyClientSocket {
                     } catch (ExecutionException e) {
                         throw new DeploymentException("SSL handshake has failed", e.getCause());
                     } catch (Exception e) {
-                        throw new DeploymentException(String.format("Connection to '%s' failed.", requestURI), e.getCause());
+                        throw new DeploymentException(String.format("Connection to '%s' failed.", requestURI),
+                                                      e.getCause());
                     }
                 }
 
@@ -408,11 +428,13 @@ public class GrizzlyClientSocket {
         throw new DeploymentException("Connection failed.", exception);
     }
 
-    private static TCPNIOTransport createTransport(ThreadPoolConfig workerThreadPoolConfig, ThreadPoolConfig selectorThreadPoolConfig) {
+    private static TCPNIOTransport createTransport(ThreadPoolConfig workerThreadPoolConfig,
+                                                   ThreadPoolConfig selectorThreadPoolConfig) {
         return createTransport(workerThreadPoolConfig, selectorThreadPoolConfig, false);
     }
 
-    private static TCPNIOTransport createTransport(ThreadPoolConfig workerThreadPoolConfig, ThreadPoolConfig selectorThreadPoolConfig, boolean sharedTransport) {
+    private static TCPNIOTransport createTransport(ThreadPoolConfig workerThreadPoolConfig,
+                                                   ThreadPoolConfig selectorThreadPoolConfig, boolean sharedTransport) {
 
         // TYRUS-188: lots of threads were created for every single client instance.
         TCPNIOTransportBuilder transportBuilder = TCPNIOTransportBuilder.newInstance();
@@ -427,7 +449,8 @@ public class GrizzlyClientSocket {
                 // if the container is shared, we don't want to limit thread pool size by default.
                 transportBuilder.setWorkerThreadPoolConfig(ThreadPoolConfig.defaultConfig());
             } else {
-                transportBuilder.setWorkerThreadPoolConfig(ThreadPoolConfig.defaultConfig().setMaxPoolSize(2).setCorePoolSize(2));
+                transportBuilder.setWorkerThreadPoolConfig(
+                        ThreadPoolConfig.defaultConfig().setMaxPoolSize(2).setCorePoolSize(2));
             }
         } else {
             transportBuilder.setWorkerThreadPoolConfig(workerThreadPoolConfig);
@@ -438,7 +461,8 @@ public class GrizzlyClientSocket {
                 // if the container is shared, we don't want to limit thread pool size by default.
                 transportBuilder.setSelectorThreadPoolConfig(ThreadPoolConfig.defaultConfig());
             } else {
-                transportBuilder.setSelectorThreadPoolConfig(ThreadPoolConfig.defaultConfig().setMaxPoolSize(1).setCorePoolSize(1));
+                transportBuilder.setSelectorThreadPoolConfig(
+                        ThreadPoolConfig.defaultConfig().setMaxPoolSize(1).setCorePoolSize(1));
                 TCPNIOTransport transport = transportBuilder.build();
                 // TODO: remove once setSelectorRunnersCount is in builder
                 transport.setSelectorRunnersCount(1);
@@ -480,7 +504,8 @@ public class GrizzlyClientSocket {
             if (wlsProxyUsername != null && wlsProxyPassword != null) {
                 proxyHeaders = new HashMap<String, String>();
                 proxyHeaders.put("Proxy-Authorization", "Basic " +
-                        Base64Utils.encodeToString((wlsProxyUsername + ":" + wlsProxyPassword).getBytes(Charset.forName("UTF-8")), false));
+                        Base64Utils.encodeToString(
+                                (wlsProxyUsername + ":" + wlsProxyPassword).getBytes(Charset.forName("UTF-8")), false));
             }
         } else {
             boolean proxyAuthPresent = false;
@@ -493,7 +518,8 @@ public class GrizzlyClientSocket {
             // if (proxyAuthPresent == true) then do nothing, proxy authorization header is already added.
             if (!proxyAuthPresent && wlsProxyUsername != null && wlsProxyPassword != null) {
                 proxyHeaders.put("Proxy-Authorization", "Basic " +
-                        Base64Utils.encodeToString((wlsProxyUsername + ":" + wlsProxyPassword).getBytes(Charset.forName("UTF-8")), false));
+                        Base64Utils.encodeToString(
+                                (wlsProxyUsername + ":" + wlsProxyPassword).getBytes(Charset.forName("UTF-8")), false));
             }
         }
         return proxyHeaders;
@@ -522,7 +548,8 @@ public class GrizzlyClientSocket {
         }
 
         if (wlsProxyHost != null) {
-            proxies.add(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(wlsProxyHost, wlsProxyPort == null ? 80 : wlsProxyPort)));
+            proxies.add(new Proxy(Proxy.Type.HTTP,
+                                  new InetSocketAddress(wlsProxyHost, wlsProxyPort == null ? 80 : wlsProxyPort)));
         } else {
             Object proxyString = properties.get(ClientProperties.PROXY_URI);
             try {
@@ -577,7 +604,9 @@ public class GrizzlyClientSocket {
                     proxies.add(p);
                     break;
                 case SOCKS:
-                    LOGGER.log(Level.INFO, String.format("Socks proxy is not supported, please file new issue at https://java.net/jira/browse/TYRUS. Proxy '%s' will be ignored.", p));
+                    LOGGER.log(Level.INFO, String.format(
+                            "Socks proxy is not supported, please file new issue at https://java" +
+                                    ".net/jira/browse/TYRUS. Proxy '%s' will be ignored.", p));
                     break;
                 default:
                     break;
@@ -595,7 +624,8 @@ public class GrizzlyClientSocket {
      */
     private URI getProxyUri(URI wsUri, String scheme) {
         try {
-            return new URI(scheme, wsUri.getUserInfo(), wsUri.getHost(), wsUri.getPort(), wsUri.getPath(), wsUri.getQuery(), wsUri.getFragment());
+            return new URI(scheme, wsUri.getUserInfo(), wsUri.getHost(), wsUri.getPort(), wsUri.getPath(),
+                           wsUri.getQuery(), wsUri.getFragment());
         } catch (URISyntaxException e) {
             LOGGER.log(Level.WARNING, String.format("Exception during generating proxy URI '%s'", wsUri), e);
             return wsUri;
@@ -632,8 +662,11 @@ public class GrizzlyClientSocket {
 
                             // apply a custom host name verifier if present
                             HostnameVerifier customHostnameVerifier = clientSSLEngineConfigurator.hostnameVerifier;
-                            if (customHostnameVerifier != null && !customHostnameVerifier.verify(uri.getHost(), sslEngine.getSession())) {
-                                sslHandshakeFuture.setFailure(new SSLException("Server host name verification using " + customHostnameVerifier.getClass() + " has failed"));
+                            if (customHostnameVerifier != null &&
+                                    !customHostnameVerifier.verify(uri.getHost(), sslEngine.getSession())) {
+                                sslHandshakeFuture.setFailure(new SSLException(
+                                        "Server host name verification using " + customHostnameVerifier.getClass() +
+                                                " has failed"));
                                 connection.terminateSilently();
                             } else {
                                 sslHandshakeFuture.setResult(null);
@@ -664,7 +697,8 @@ public class GrizzlyClientSocket {
 
 
         clientFilterChainBuilder.add(new GrizzlyClientFilter(engine, proxy,
-                sslFilter, httpCodecFilter, uri, sharedTransport, proxyHeaders, grizzlyConnector, upgradeRequest));
+                                                             sslFilter, httpCodecFilter, uri, sharedTransport,
+                                                             proxyHeaders, grizzlyConnector, upgradeRequest));
 
         return clientFilterChainBuilder.build();
     }
@@ -674,12 +708,14 @@ public class GrizzlyClientSocket {
             try {
                 transport.shutdownNow();
             } catch (IOException e) {
-                Logger.getLogger(GrizzlyClientSocket.class.getName()).log(Level.INFO, "Exception thrown when closing Grizzly transport: " + e.getMessage(), e);
+                Logger.getLogger(GrizzlyClientSocket.class.getName())
+                      .log(Level.INFO, "Exception thrown when closing Grizzly transport: " + e.getMessage(), e);
             }
         }
     }
 
-    private static TCPNIOTransport getOrCreateSharedTransport(ThreadPoolConfig workerThreadPoolConfig, ThreadPoolConfig selectorThreadPoolConfig) throws IOException {
+    private static TCPNIOTransport getOrCreateSharedTransport(
+            ThreadPoolConfig workerThreadPoolConfig, ThreadPoolConfig selectorThreadPoolConfig) throws IOException {
         synchronized (TRANSPORT_LOCK) {
             if (transport == null) {
                 Logger.getLogger(GrizzlyClientSocket.class.getName()).log(Level.FINE, "Starting shared container.");
@@ -698,7 +734,8 @@ public class GrizzlyClientSocket {
                     Logger.getLogger(GrizzlyClientSocket.class.getName()).log(Level.FINE, "Stopping shared container.");
                     transport.shutdownNow();
                 } catch (IOException e) {
-                    Logger.getLogger(GrizzlyClientSocket.class.getName()).log(Level.INFO, "Exception thrown when closing Grizzly transport: " + e.getMessage(), e);
+                    Logger.getLogger(GrizzlyClientSocket.class.getName())
+                          .log(Level.INFO, "Exception thrown when closing Grizzly transport: " + e.getMessage(), e);
                 }
             }
             transport = null;
@@ -729,15 +766,17 @@ public class GrizzlyClientSocket {
         }
 
         // if we have reached here the ssl engine configuration property is set, but is of incompatible type
-        LOGGER.log(Level.CONFIG, String.format("Invalid type of configuration property of %s (%s), %s cannot be cast to %s or %s",
-                ClientProperties.SSL_ENGINE_CONFIGURATOR, configuratorObject.toString(), configuratorObject.getClass().toString(),
-                SSLEngineConfigurator.class.toString(), SslEngineConfigurator.class.toString()));
+        LOGGER.log(Level.CONFIG,
+                   String.format("Invalid type of configuration property of %s (%s), %s cannot be cast to %s or %s",
+                                 ClientProperties.SSL_ENGINE_CONFIGURATOR, configuratorObject.toString(),
+                                 configuratorObject.getClass().toString(),
+                                 SSLEngineConfigurator.class.toString(), SslEngineConfigurator.class.toString()));
         return null;
     }
 
     /**
-     * {@link SSLFilter} wrapper used for proxied connections. SSL filter gets "enabled" after initial proxy communication,
-     * so after connection is established and SSL layer should start handling reading/writing messages.
+     * {@link SSLFilter} wrapper used for proxied connections. SSL filter gets "enabled" after initial proxy
+     * communication, so after connection is established and SSL layer should start handling reading/writing messages.
      */
     static class FilterWrapper implements Filter {
 
@@ -836,14 +875,16 @@ public class GrizzlyClientSocket {
         }
 
         ExtendedSSLEngineConfigurator(SSLEngineConfigurator sslEngineConfigurator, String peerHost) {
-            super(sslEngineConfigurator.getSslContext(), sslEngineConfigurator.isClientMode(), sslEngineConfigurator.isNeedClientAuth(), sslEngineConfigurator.isWantClientAuth());
+            super(sslEngineConfigurator.getSslContext(), sslEngineConfigurator.isClientMode(),
+                  sslEngineConfigurator.isNeedClientAuth(), sslEngineConfigurator.isWantClientAuth());
             this.hostnameVerifier = null;
             this.hostVerificationEnabled = true;
             this.peerHost = peerHost;
         }
 
         ExtendedSSLEngineConfigurator(SslEngineConfigurator sslEngineConfigurator, String peerHost) {
-            super(sslEngineConfigurator.getSslContext(), sslEngineConfigurator.isClientMode(), sslEngineConfigurator.isNeedClientAuth(), sslEngineConfigurator.isWantClientAuth());
+            super(sslEngineConfigurator.getSslContext(), sslEngineConfigurator.isClientMode(),
+                  sslEngineConfigurator.isNeedClientAuth(), sslEngineConfigurator.isWantClientAuth());
             this.hostnameVerifier = sslEngineConfigurator.getHostnameVerifier();
             this.hostVerificationEnabled = sslEngineConfigurator.isHostVerificationEnabled();
             this.peerHost = peerHost;
@@ -851,8 +892,8 @@ public class GrizzlyClientSocket {
 
         @Override
         public SSLEngine createSSLEngine() {
-            /* the port is not part of host name verification, it is present in the constructor because of Kerberos (which is not
-            supported by Tyrus) */
+            /* the port is not part of host name verification, it is present in the constructor because of Kerberos
+            (which is not supported by Tyrus) */
             SSLEngine sslEngine = super.createSSLEngine(peerHost, -1);
 
             if (hostVerificationEnabled && hostnameVerifier == null) {
@@ -867,13 +908,16 @@ public class GrizzlyClientSocket {
 
                     SSLParameters sslParameters = sslEngine.getSSLParameters();
                     try {
-                        SSLParameters.class.getMethod("setEndpointIdentificationAlgorithm", String.class).invoke(sslParameters, "HTTPS");
+                        SSLParameters.class.getMethod("setEndpointIdentificationAlgorithm", String.class)
+                                           .invoke(sslParameters, "HTTPS");
                         sslEngine.setSSLParameters(sslParameters);
                     } catch (Exception exc) {
-                        LOGGER.log(Level.CONFIG, "An error has occurred during SSL configuration, host name verification might not be configured properly", exc);
+                        LOGGER.log(Level.CONFIG, "An error has occurred during SSL configuration, host name " +
+                                "verification might not be configured properly", exc);
                     }
                 } catch (Exception e) {
-                    LOGGER.log(Level.CONFIG, "An error has occurred during SSL configuration, host name verification might not be configured properly", e);
+                    LOGGER.log(Level.CONFIG, "An error has occurred during SSL configuration, host name verification " +
+                            "might not be configured properly", e);
                 }
             }
 

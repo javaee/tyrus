@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -63,12 +63,13 @@ public class MyServletContextListenerProgrammatic extends Endpoint implements Se
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        final ServerContainer serverContainer = (ServerContainer) sce.getServletContext().getAttribute("javax.websocket.server.ServerContainer");
+        final ServerContainer serverContainer =
+                (ServerContainer) sce.getServletContext().getAttribute("javax.websocket.server.ServerContainer");
 
         try {
             // this is the important call
             serverContainer.addEndpoint(ServerEndpointConfig.Builder.create(MyServletContextListenerProgrammatic.class,
-                    "/programmatic").build());
+                                                                            "/programmatic").build());
         } catch (DeploymentException e) {
             e.printStackTrace();
         }

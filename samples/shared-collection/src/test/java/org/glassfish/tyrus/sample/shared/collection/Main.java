@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -57,7 +57,8 @@ public class Main {
         final Map<String, Object> serverProperties = new HashMap<String, Object>();
         serverProperties.put(Server.STATIC_CONTENT_ROOT, "./src/main/webapp");
 
-        final Server server = new Server("localhost", 8025, "/sample-shared-collection", serverProperties, SharedCollectionEndpoint.class);
+        final Server server = new Server("localhost", 8025, "/sample-shared-collection", serverProperties,
+                                         SharedCollectionEndpoint.class);
         server.start();
 
         System.out.println("Press any key to stop the server and quit..");

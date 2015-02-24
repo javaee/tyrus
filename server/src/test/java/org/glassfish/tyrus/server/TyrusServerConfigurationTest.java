@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -63,15 +63,18 @@ public class TyrusServerConfigurationTest {
 
     @Test
     public void testNoServerApplicationConfig() {
-        Set<Class<?>> scanned = new HashSet<Class<?>>() {{
-            add(AnnotatedA.class);
-            add(AnnotatedB.class);
-            add(ProgrammaticConfA.class);
-            add(ProgrammaticConfB.class);
-            add(Other.class);
-        }};
+        Set<Class<?>> scanned = new HashSet<Class<?>>() {
+            {
+                add(AnnotatedA.class);
+                add(AnnotatedB.class);
+                add(ProgrammaticConfA.class);
+                add(ProgrammaticConfB.class);
+                add(Other.class);
+            }
+        };
 
-        TyrusServerConfiguration configuration = new TyrusServerConfiguration(scanned, Collections.<ServerEndpointConfig>emptySet());
+        TyrusServerConfiguration configuration = new TyrusServerConfiguration(scanned, Collections
+                .<ServerEndpointConfig>emptySet());
 
         Assert.assertEquals(2, configuration.getAnnotatedEndpointClasses(null).size());
         Assert.assertTrue(configuration.getAnnotatedEndpointClasses(null).contains(AnnotatedA.class));
@@ -85,14 +88,17 @@ public class TyrusServerConfigurationTest {
 
     @Test
     public void testOneServerApplicationConfig() {
-        Set<Class<?>> scanned = new HashSet<Class<?>>() {{
-            add(ApplicationConfA.class);
-            add(ProgrammaticConfB.class);
-            add(AnnotatedB.class);
-            add(Other.class);
-        }};
+        Set<Class<?>> scanned = new HashSet<Class<?>>() {
+            {
+                add(ApplicationConfA.class);
+                add(ProgrammaticConfB.class);
+                add(AnnotatedB.class);
+                add(Other.class);
+            }
+        };
 
-        TyrusServerConfiguration configuration = new TyrusServerConfiguration(scanned, Collections.<ServerEndpointConfig>emptySet());
+        TyrusServerConfiguration configuration = new TyrusServerConfiguration(scanned, Collections
+                .<ServerEndpointConfig>emptySet());
 
         Assert.assertEquals(1, configuration.getAnnotatedEndpointClasses(null).size());
         Assert.assertTrue(configuration.getAnnotatedEndpointClasses(null).contains(AnnotatedA.class));
@@ -104,16 +110,19 @@ public class TyrusServerConfigurationTest {
 
     @Test
     public void testTwoServerApplicationConfig() {
-        Set<Class<?>> scanned = new HashSet<Class<?>>() {{
-            add(ApplicationConfA.class);
-            add(ApplicationConfB.class);
-            add(AnnotatedC.class);
-            add(ProgrammaticC.class);
-            add(ProgrammaticConfC.class);
-            add(Other.class);
-        }};
+        Set<Class<?>> scanned = new HashSet<Class<?>>() {
+            {
+                add(ApplicationConfA.class);
+                add(ApplicationConfB.class);
+                add(AnnotatedC.class);
+                add(ProgrammaticC.class);
+                add(ProgrammaticConfC.class);
+                add(Other.class);
+            }
+        };
 
-        TyrusServerConfiguration configuration = new TyrusServerConfiguration(scanned, Collections.<ServerEndpointConfig>emptySet());
+        TyrusServerConfiguration configuration = new TyrusServerConfiguration(scanned, Collections
+                .<ServerEndpointConfig>emptySet());
 
         Assert.assertEquals(1, configuration.getAnnotatedEndpointClasses(null).size());
         Assert.assertTrue(configuration.getAnnotatedEndpointClasses(null).contains(AnnotatedA.class));
@@ -180,33 +189,41 @@ public class TyrusServerConfigurationTest {
     public static class ApplicationConfA implements ServerApplicationConfig {
         @Override
         public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> scanned) {
-            return new HashSet<ServerEndpointConfig>() {{
-                add(new ProgrammaticConfA());
-            }};
+            return new HashSet<ServerEndpointConfig>() {
+                {
+                    add(new ProgrammaticConfA());
+                }
+            };
 
         }
 
         @Override
         public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> scanned) {
-            return new HashSet<Class<?>>() {{
-                add(AnnotatedA.class);
-            }};
+            return new HashSet<Class<?>>() {
+                {
+                    add(AnnotatedA.class);
+                }
+            };
         }
     }
 
     public static class ApplicationConfB implements ServerApplicationConfig {
         @Override
         public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> scanned) {
-            return new HashSet<ServerEndpointConfig>() {{
-                add(new ProgrammaticConfA());
-            }};
+            return new HashSet<ServerEndpointConfig>() {
+                {
+                    add(new ProgrammaticConfA());
+                }
+            };
         }
 
         @Override
         public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> scanned) {
-            return new HashSet<Class<?>>() {{
-                add(AnnotatedA.class);
-            }};
+            return new HashSet<Class<?>>() {
+                {
+                    add(AnnotatedA.class);
+                }
+            };
         }
     }
 }

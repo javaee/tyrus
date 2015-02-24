@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -81,11 +81,13 @@ public class ErrorTest extends TestContainer {
 
     public static class ServerDeployApplicationConfig extends TyrusServerConfiguration {
         public ServerDeployApplicationConfig() {
-            super(new HashSet<Class<?>>() {{
-                add(OnOpenErrorTestEndpoint.class);
-                add(OnCloseErrorTestEndpoint.class);
-                add(ServiceEndpoint.class);
-            }}, Collections.<ServerEndpointConfig>emptySet());
+            super(new HashSet<Class<?>>() {
+                {
+                    add(OnOpenErrorTestEndpoint.class);
+                    add(OnCloseErrorTestEndpoint.class);
+                    add(ServiceEndpoint.class);
+                }
+            }, Collections.<ServerEndpointConfig>emptySet());
         }
     }
 
@@ -201,7 +203,8 @@ public class ErrorTest extends TestContainer {
 
     @Test
     public void testErrorOnCloseProgrammatic() throws DeploymentException {
-        Server server = startServer(OnCloseExceptionEndpointServerApplicationConfig.class, ServerDeployApplicationConfig.class);
+        Server server = startServer(OnCloseExceptionEndpointServerApplicationConfig.class,
+                                    ServerDeployApplicationConfig.class);
 
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
@@ -260,7 +263,8 @@ public class ErrorTest extends TestContainer {
 
                 final boolean await = OnMessageExceptionEndpoint.ON_ERROR_LATCH.await(3, TimeUnit.SECONDS);
 
-                if (await && OnMessageExceptionEndpoint.throwable != null && OnMessageExceptionEndpoint.session != null) {
+                if (await && OnMessageExceptionEndpoint.throwable != null &&
+                        OnMessageExceptionEndpoint.session != null) {
                     return POSITIVE;
                 }
             }
@@ -271,8 +275,8 @@ public class ErrorTest extends TestContainer {
 
     public static class OnCloseExceptionEndpointServerApplicationConfig extends TyrusServerConfiguration {
         public OnCloseExceptionEndpointServerApplicationConfig() {
-            super(Collections.<Class<?>>emptySet(),
-                    Collections.singleton(ServerEndpointConfig.Builder.create(OnCloseExceptionEndpoint.class, "/closeprogrammatic").build()));
+            super(Collections.<Class<?>>emptySet(), Collections.singleton(
+                    ServerEndpointConfig.Builder.create(OnCloseExceptionEndpoint.class, "/closeprogrammatic").build()));
         }
     }
 
@@ -305,8 +309,8 @@ public class ErrorTest extends TestContainer {
 
     public static class OnOpenExceptionEndpointServerApplicationConfig extends TyrusServerConfiguration {
         public OnOpenExceptionEndpointServerApplicationConfig() {
-            super(Collections.<Class<?>>emptySet(),
-                    Collections.singleton(ServerEndpointConfig.Builder.create(OnOpenExceptionEndpoint.class, "/openprogrammatic").build()));
+            super(Collections.<Class<?>>emptySet(), Collections.singleton(ServerEndpointConfig.Builder.create
+                    (OnOpenExceptionEndpoint.class, "/openprogrammatic").build()));
         }
     }
 
@@ -335,7 +339,8 @@ public class ErrorTest extends TestContainer {
 
     @Test
     public void testErrorOnOpenProgrammatic() throws DeploymentException {
-        Server server = startServer(OnOpenExceptionEndpointServerApplicationConfig.class, ServerDeployApplicationConfig.class);
+        Server server = startServer(OnOpenExceptionEndpointServerApplicationConfig.class,
+                                    ServerDeployApplicationConfig.class);
 
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
@@ -364,8 +369,8 @@ public class ErrorTest extends TestContainer {
 
     public static class OnMessageExceptionEndpointServerApplicationConfig extends TyrusServerConfiguration {
         public OnMessageExceptionEndpointServerApplicationConfig() {
-            super(Collections.<Class<?>>emptySet(),
-                    Collections.singleton(ServerEndpointConfig.Builder.create(OnMessageExceptionEndpoint.class, "/openonmessageexception").build()));
+            super(Collections.<Class<?>>emptySet(), Collections.singleton(ServerEndpointConfig.Builder.create
+                    (OnMessageExceptionEndpoint.class, "/openonmessageexception").build()));
         }
     }
 
@@ -399,7 +404,8 @@ public class ErrorTest extends TestContainer {
 
     @Test
     public void testErrorOnMessageProgrammatic() throws DeploymentException {
-        Server server = startServer(OnMessageExceptionEndpointServerApplicationConfig.class, ServerDeployApplicationConfig.class);
+        Server server = startServer(OnMessageExceptionEndpointServerApplicationConfig.class,
+                                    ServerDeployApplicationConfig.class);
 
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();

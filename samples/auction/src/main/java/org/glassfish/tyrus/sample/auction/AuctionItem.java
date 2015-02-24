@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 - 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -73,7 +73,8 @@ public class AuctionItem {
 
     @Override
     public String toString() {
-        return name + Auction.SEPARATOR + description + Auction.SEPARATOR + price + Auction.SEPARATOR + "0" + Auction.SEPARATOR + bidTimeoutS + " seconds";
+        return name + Auction.SEPARATOR + description + Auction.SEPARATOR + price + Auction.SEPARATOR + "0" + Auction
+                .SEPARATOR + bidTimeoutS + " seconds";
     }
 
     public int getBidTimeoutS() {
@@ -84,7 +85,7 @@ public class AuctionItem {
         return price;
     }
 
-    public void setPrice(double price){
+    public void setPrice(double price) {
         this.price = price;
     }
 

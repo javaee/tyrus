@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -81,7 +81,8 @@ public class PingPongTest extends TestContainer {
 
         @OnMessage
         public void onPong(PongMessage pongMessage, Session session) {
-            System.out.println("### PingPongEndpoint - received pong \"" + new String(pongMessage.getApplicationData().array()) + "\"");
+            System.out.println("### PingPongEndpoint - received pong \"" +
+                                       new String(pongMessage.getApplicationData().array()) + "\"");
             if (pongMessage.getApplicationData().equals(ByteBuffer.wrap("ping message server".getBytes()))) {
                 try {
                     session.getBasicRemote().sendText(PONG_RECEIVED);
@@ -113,8 +114,10 @@ public class PingPongTest extends TestContainer {
                         session.addMessageHandler(new MessageHandler.Whole<PongMessage>() {
                             @Override
                             public void onMessage(PongMessage message) {
-                                System.out.println("### Client - received pong \"" + new String(message.getApplicationData().array()) + "\"");
-                                if (message.getApplicationData().equals(ByteBuffer.wrap("ping message client".getBytes()))) {
+                                System.out.println("### Client - received pong \"" +
+                                                           new String(message.getApplicationData().array()) + "\"");
+                                if (message.getApplicationData()
+                                           .equals(ByteBuffer.wrap("ping message client".getBytes()))) {
                                     messageLatch.countDown();
                                 }
                             }
@@ -191,7 +194,8 @@ public class PingPongTest extends TestContainer {
                         session.addMessageHandler(new MessageHandler.Whole<PongMessage>() {
                             @Override
                             public void onMessage(PongMessage message) {
-                                System.out.println("### Client - received pong \"" + new String(message.getApplicationData().array()) + "\"");
+                                System.out.println("### Client - received pong \"" +
+                                                           new String(message.getApplicationData().array()) + "\"");
                                 if (message.getApplicationData().equals(ByteBuffer.wrap("".getBytes()))) {
                                     messageLatch.countDown();
                                 }
@@ -261,7 +265,9 @@ public class PingPongTest extends TestContainer {
 
         @OnMessage
         public void onPong(PongMessage pongMessage, Session session) {
-            System.out.println("### PingPongEndpoint - received pong \"" + new String(pongMessage.getApplicationData().array()) + "\"");
+            System.out.println(
+                    "### PingPongEndpoint - received pong \"" + new String(pongMessage.getApplicationData().array()) +
+                            "\"");
             if (pongMessage.getApplicationData().equals(ByteBuffer.wrap("".getBytes()))) {
                 try {
                     session.getBasicRemote().sendText(PONG_RECEIVED);
@@ -292,16 +298,24 @@ public class PingPongTest extends TestContainer {
                 }
             }, ClientEndpointConfig.Builder.create().build(), getURI(PingPongEndpoint.class));
 
-            session.getBasicRemote().sendPing(ByteBuffer.wrap("12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345".getBytes()));
+            session.getBasicRemote().sendPing(
+                    ByteBuffer.wrap(("1234567890123456789012345678901234567890123456789012345678901234567890123456789" +
+                            "0123456789012345678901234567890123456789012345").getBytes()));
             try {
-                session.getBasicRemote().sendPing(ByteBuffer.wrap("123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456".getBytes()));
+                session.getBasicRemote().sendPing(
+                        ByteBuffer.wrap(("123456789012345678901234567890123456789012345678901234567890123456789012345" +
+                                "678901234567890123456789012345678901234567890123456").getBytes()));
                 fail();
             } catch (IllegalArgumentException e) {
                 // ignore
             }
-            session.getBasicRemote().sendPong(ByteBuffer.wrap("12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345".getBytes()));
+            session.getBasicRemote().sendPong(
+                    ByteBuffer.wrap(("1234567890123456789012345678901234567890123456789012345678901234567890123456789" +
+                            "0123456789012345678901234567890123456789012345").getBytes()));
             try {
-                session.getBasicRemote().sendPong(ByteBuffer.wrap("123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456".getBytes()));
+                session.getBasicRemote().sendPong(
+                        ByteBuffer.wrap(("123456789012345678901234567890123456789012345678901234567890123456789012345" +
+                                "678901234567890123456789012345678901234567890123456").getBytes()));
                 fail();
             } catch (IllegalArgumentException e) {
                 // ignore

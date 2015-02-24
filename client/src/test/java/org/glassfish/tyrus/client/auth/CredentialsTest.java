@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -49,9 +49,9 @@ import static org.junit.Assert.assertEquals;
  */
 public class CredentialsTest {
 
-    private final static String USERNAME = "username";
-    private final static String PASSWORD_STRING = "password";
-    private final static byte[] PASSWORD_BYTE_ARRAY = {0x01, 0x02, 0x03, 0x04};
+    private static final String USERNAME = "username";
+    private static final String PASSWORD_STRING = "password";
+    private static final byte[] PASSWORD_BYTE_ARRAY = {0x01, 0x02, 0x03, 0x04};
 
     @Test
     public void testGetUsername() throws Exception {

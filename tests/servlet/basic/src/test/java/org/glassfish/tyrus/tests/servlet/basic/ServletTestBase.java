@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -68,7 +68,7 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * Primarily meant to test servlet integration, might be someday used for simple stress testing.
- *
+ * <p/>
  * Tests are executed from descendant classes, which must implement {@link #getScheme()} method. This is used to enable
  * testing with {@code ws} and {@code wss} schemes.
  *
@@ -109,7 +109,9 @@ public abstract class ServletTestBase extends TestContainer {
                         // do nothing
                     }
                 }
-            }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value(), getScheme()));
+            }, ClientEndpointConfig.Builder.create().build(),
+                                   getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value(),
+                                          getScheme()));
 
             messageLatch.await(1, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
@@ -145,7 +147,9 @@ public abstract class ServletTestBase extends TestContainer {
                         // do nothing
                     }
                 }
-            }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value(), getScheme()));
+            }, ClientEndpointConfig.Builder.create().build(),
+                                   getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value(),
+                                          getScheme()));
 
             messageLatch.await(20, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
@@ -180,7 +184,9 @@ public abstract class ServletTestBase extends TestContainer {
                             // do nothing
                         }
                     }
-                }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value(), getScheme()));
+                }, ClientEndpointConfig.Builder.create().build(),
+                                       getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value(),
+                                              getScheme()));
 
                 // TODO - remove when possible.
                 Thread.sleep(100);
@@ -194,7 +200,8 @@ public abstract class ServletTestBase extends TestContainer {
     }
 
     @Test
-    public void testPlainEchoShort10SequenceReturnedSession() throws DeploymentException, InterruptedException, IOException {
+    public void testPlainEchoShort10SequenceReturnedSession() throws DeploymentException, InterruptedException,
+            IOException {
         final Server server = startServer(PlainEchoEndpoint.class);
 
         final CountDownLatch messageLatch = new CountDownLatch(10);
@@ -213,7 +220,9 @@ public abstract class ServletTestBase extends TestContainer {
                             }
                         });
                     }
-                }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value(), getScheme()));
+                }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEchoEndpoint.class
+                                                                                 .getAnnotation(ServerEndpoint.class)
+                                                                                 .value(), getScheme()));
 
                 session.getBasicRemote().sendText("Do or do not, there is no try.");
                 // TODO - remove when possible.
@@ -267,7 +276,9 @@ public abstract class ServletTestBase extends TestContainer {
                         // do nothing
                     }
                 }
-            }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value(), getScheme()));
+            }, ClientEndpointConfig.Builder.create().build(),
+                                   getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value(),
+                                          getScheme()));
 
             messageLatch.await(1, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
@@ -303,7 +314,9 @@ public abstract class ServletTestBase extends TestContainer {
                         // do nothing
                     }
                 }
-            }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value(), getScheme()));
+            }, ClientEndpointConfig.Builder.create().build(),
+                                   getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value(),
+                                          getScheme()));
 
             messageLatch.await(10, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
@@ -338,7 +351,9 @@ public abstract class ServletTestBase extends TestContainer {
                             // do nothing
                         }
                     }
-                }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value(), getScheme()));
+                }, ClientEndpointConfig.Builder.create().build(),
+                                       getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value(),
+                                              getScheme()));
 
                 // TODO - remove when possible.
                 Thread.sleep(300);
@@ -445,7 +460,9 @@ public abstract class ServletTestBase extends TestContainer {
                         }
                     });
                 }
-            }, ClientEndpointConfig.Builder.create().build(), getURI(MultiEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value(), getScheme()));
+            }, ClientEndpointConfig.Builder.create().build(), getURI(MultiEchoEndpoint.class
+                                                                             .getAnnotation(ServerEndpoint.class)
+                                                                             .value(), getScheme()));
 
             session.getBasicRemote().sendText(text);
 
@@ -485,7 +502,9 @@ public abstract class ServletTestBase extends TestContainer {
                             }
                         });
                     }
-                }, ClientEndpointConfig.Builder.create().build(), getURI(TyrusBroadcastEndpoint.class.getAnnotation(ServerEndpoint.class).value(), getScheme()));
+                }, ClientEndpointConfig.Builder.create().build(), getURI(TyrusBroadcastEndpoint.class
+                                                                                 .getAnnotation(ServerEndpoint.class)
+                                                                                 .value(), getScheme()));
                 System.out.println("Client " + i + " connected.");
                 sessions.add(session);
             }
@@ -544,7 +563,9 @@ public abstract class ServletTestBase extends TestContainer {
 
 
                     }
-                }, ClientEndpointConfig.Builder.create().build(), getURI(TyrusBroadcastEndpoint.class.getAnnotation(ServerEndpoint.class).value(), getScheme()));
+                }, ClientEndpointConfig.Builder.create().build(), getURI(TyrusBroadcastEndpoint.class
+                                                                                 .getAnnotation(ServerEndpoint.class)
+                                                                                 .value(), getScheme()));
                 System.out.println("Client " + i + " connected.");
                 sessions.add(session);
             }
@@ -596,7 +617,9 @@ public abstract class ServletTestBase extends TestContainer {
                             }
                         });
                     }
-                }, ClientEndpointConfig.Builder.create().build(), getURI(WebSocketBroadcastEndpoint.class.getAnnotation(ServerEndpoint.class).value(), getScheme()));
+                }, ClientEndpointConfig.Builder.create().build(), getURI(WebSocketBroadcastEndpoint.class
+                                                                                 .getAnnotation(ServerEndpoint.class)
+                                                                                 .value(), getScheme()));
                 System.out.println("Client " + i + " connected.");
                 sessions.add(session);
             }
@@ -623,7 +646,8 @@ public abstract class ServletTestBase extends TestContainer {
 
     // "performance" test; 20 clients, endpoint broadcasts.
     @Test
-    public void testTyrusBroadcastStringSharedClientContainer() throws IOException, DeploymentException, InterruptedException {
+    public void testTyrusBroadcastStringSharedClientContainer() throws IOException, DeploymentException,
+            InterruptedException {
         final Server server = startServer(TyrusBroadcastEndpoint.class);
 
         final int LENGTH = 587952;
@@ -651,7 +675,9 @@ public abstract class ServletTestBase extends TestContainer {
                             }
                         });
                     }
-                }, ClientEndpointConfig.Builder.create().build(), getURI(TyrusBroadcastEndpoint.class.getAnnotation(ServerEndpoint.class).value(), getScheme()));
+                }, ClientEndpointConfig.Builder.create().build(), getURI(TyrusBroadcastEndpoint.class
+                                                                                 .getAnnotation(ServerEndpoint.class)
+                                                                                 .value(), getScheme()));
                 System.out.println("Client " + i + " connected.");
                 sessions.add(session);
             }
@@ -676,7 +702,8 @@ public abstract class ServletTestBase extends TestContainer {
 
     // "performance" test; 20 clients, endpoint broadcasts.
     @Test
-    public void testTyrusBroadcastBinarySharedClientContainer() throws IOException, DeploymentException, InterruptedException {
+    public void testTyrusBroadcastBinarySharedClientContainer() throws IOException, DeploymentException,
+            InterruptedException {
         final Server server = startServer(TyrusBroadcastEndpoint.class);
 
         final int LENGTH = 587952;
@@ -704,7 +731,9 @@ public abstract class ServletTestBase extends TestContainer {
                             }
                         });
                     }
-                }, ClientEndpointConfig.Builder.create().build(), getURI(TyrusBroadcastEndpoint.class.getAnnotation(ServerEndpoint.class).value(), getScheme()));
+                }, ClientEndpointConfig.Builder.create().build(), getURI(TyrusBroadcastEndpoint.class
+                                                                                 .getAnnotation(ServerEndpoint.class)
+                                                                                 .value(), getScheme()));
                 System.out.println("Client " + i + " connected.");
                 sessions.add(session);
             }
@@ -729,7 +758,8 @@ public abstract class ServletTestBase extends TestContainer {
 
     // "performance" test; 20 clients, endpoint broadcasts.
     @Test
-    public void testWebSocketBroadcastSharedClientContainer() throws IOException, DeploymentException, InterruptedException {
+    public void testWebSocketBroadcastSharedClientContainer() throws IOException, DeploymentException,
+            InterruptedException {
         final Server server = startServer(WebSocketBroadcastEndpoint.class);
 
         final int LENGTH = 587952;
@@ -757,7 +787,9 @@ public abstract class ServletTestBase extends TestContainer {
                             }
                         });
                     }
-                }, ClientEndpointConfig.Builder.create().build(), getURI(WebSocketBroadcastEndpoint.class.getAnnotation(ServerEndpoint.class).value(), getScheme()));
+                }, ClientEndpointConfig.Builder.create().build(), getURI(WebSocketBroadcastEndpoint.class
+                                                                                 .getAnnotation(ServerEndpoint.class)
+                                                                                 .value(), getScheme()));
                 System.out.println("Client " + i + " connected.");
                 sessions.add(session);
             }

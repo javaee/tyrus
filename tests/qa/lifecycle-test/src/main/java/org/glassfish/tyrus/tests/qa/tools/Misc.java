@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -49,11 +49,11 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
 /**
- *
  * @author michal.conos at oracle.com
  */
 public class Misc {
@@ -63,10 +63,9 @@ public class Misc {
     private static final char WINDOWS_SEPARATOR = '\\';
 
     /**
-     * Copy file set to the target directory. If the directory does not exist it
-     * is created.
+     * Copy file set to the target directory. If the directory does not exist it is created.
      *
-     * @param fileSet set of files to be copied
+     * @param fileSet      set of files to be copied
      * @param dstDirectory destination where the files are copied
      */
     public static void copyFiles(Set<File> fileSet, File dstDirectory, String regex, String move) throws IOException {
@@ -109,7 +108,7 @@ public class Misc {
             @Override
             public void run() {
                 try {
-                    for (;;) {
+                    for (; ; ) {
                         if (path.delete()) {
                             timer.countDown();
                             break;

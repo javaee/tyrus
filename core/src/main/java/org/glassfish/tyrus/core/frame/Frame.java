@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -87,7 +87,8 @@ public class Frame {
         this.controlFrame = (opcode & 0x08) == 0x08;
     }
 
-    private Frame(boolean fin, boolean rsv1, boolean rsv2, boolean rsv3, boolean mask, byte opcode, long payloadLength, Integer maskingKey, byte[] payloadData) {
+    private Frame(boolean fin, boolean rsv1, boolean rsv2, boolean rsv3, boolean mask, byte opcode, long payloadLength,
+                  Integer maskingKey, byte[] payloadData) {
         this.fin = fin;
         this.rsv1 = rsv1;
         this.rsv2 = rsv2;
@@ -176,9 +177,9 @@ public class Frame {
     /**
      * Get payload data.
      * <p/>
-     * Changes done to returned array won't be propagated to current {@link Frame} instance. If you need to modify payload,
-     * you have to create new instance, see {@link Frame.Builder#Frame(Frame)}. Length of returned
-     * array will be always same as {@link #getPayloadLength()}.
+     * Changes done to returned array won't be propagated to current {@link Frame} instance. If you need to modify
+     * payload, you have to create new instance, see {@link Frame.Builder#Frame(Frame)}. Length of returned array will
+     * be always same as {@link #getPayloadLength()}.
      *
      * @return payload data.
      */
@@ -234,7 +235,7 @@ public class Frame {
     /**
      * Frame builder.
      */
-    public final static class Builder {
+    public static final class Builder {
 
         private boolean fin;
         private boolean rsv1;

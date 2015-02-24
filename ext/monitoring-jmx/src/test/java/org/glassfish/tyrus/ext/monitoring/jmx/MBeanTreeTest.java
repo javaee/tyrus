@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -67,7 +67,8 @@ import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
 /**
- * Tests that MXBean tree can be traversed - all MXBeans can be accessed from {@link org.glassfish.tyrus.ext.monitoring.jmx.ApplicationMXBean}
+ * Tests that MXBean tree can be traversed - all MXBeans can be accessed from {@link
+ * org.glassfish.tyrus.ext.monitoring.jmx.ApplicationMXBean}
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
@@ -117,14 +118,17 @@ public class MBeanTreeTest extends TestContainer {
 
             CountDownLatch receivedMessagesLatch = new CountDownLatch(6);
 
-            ApplicationEventListener applicationEventListener = new TestApplicationEventListener(applicationMonitor, null, null, null, receivedMessagesLatch, null);
+            ApplicationEventListener applicationEventListener =
+                    new TestApplicationEventListener(applicationMonitor, null, null, null, receivedMessagesLatch, null);
             getServerProperties().put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, applicationEventListener);
             server = startServer(AnnotatedServerEndpoint.class);
 
             ClientManager client = createClient();
-            Session session = client.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
+            Session session =
+                    client.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
 
-            // send different number of messages of each type so that it can be verified that a correct MXBean is accessed
+            // send different number of messages of each type so that it can be verified that a correct MXBean is
+            // accessed
             session.getBasicRemote().sendBinary(ByteBuffer.wrap("Hello".getBytes()));
             session.getBasicRemote().sendText("Hello 1");
             session.getBasicRemote().sendText("Hello 2");
@@ -136,7 +140,8 @@ public class MBeanTreeTest extends TestContainer {
 
             String applicationMxBeanName = "org.glassfish.tyrus:type=/mBeanTreeTestApp";
             MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-            ApplicationMXBean applicationMXBean = JMX.newMXBeanProxy(mBeanServer, new ObjectName(applicationMxBeanName), ApplicationMXBean.class);
+            ApplicationMXBean applicationMXBean =
+                    JMX.newMXBeanProxy(mBeanServer, new ObjectName(applicationMxBeanName), ApplicationMXBean.class);
 
             assertEquals(1, applicationMXBean.getBinaryMessageStatisticsMXBean().getReceivedMessagesCount());
             assertEquals(2, applicationMXBean.getTextMessageStatisticsMXBean().getReceivedMessagesCount());

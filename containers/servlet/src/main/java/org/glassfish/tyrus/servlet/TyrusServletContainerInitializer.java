@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -75,15 +75,16 @@ import org.glassfish.tyrus.spi.WebSocketEngine;
  */
 @HandlesTypes({ServerEndpoint.class, ServerApplicationConfig.class, Endpoint.class})
 public class TyrusServletContainerInitializer implements ServletContainerInitializer {
-    private static final Logger LOGGER =
-            Logger.getLogger(TyrusServletContainerInitializer.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(TyrusServletContainerInitializer.class.getName());
 
     /**
      * Tyrus classes scanned by container will be filtered.
      */
-    private static final Set<Class<?>> FILTERED_CLASSES = new HashSet<Class<?>>() {{
-        add(org.glassfish.tyrus.server.TyrusServerConfiguration.class);
-    }};
+    private static final Set<Class<?>> FILTERED_CLASSES = new HashSet<Class<?>>() {
+        {
+            add(org.glassfish.tyrus.server.TyrusServerConfiguration.class);
+        }
+    };
 
     @Override
     public void onStartup(Set<Class<?>> classes, final ServletContext ctx) throws ServletException {
@@ -95,23 +96,23 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
 
         final Integer incomingBufferSize = getIntContextParam(ctx, TyrusHttpUpgradeHandler.FRAME_BUFFER_SIZE);
         final Integer maxSessionsPerApp = getIntContextParam(ctx, TyrusWebSocketEngine.MAX_SESSIONS_PER_APP);
-        final Integer maxSessionsPerRemoteAddr = getIntContextParam(ctx, TyrusWebSocketEngine.MAX_SESSIONS_PER_REMOTE_ADDR);
-        final Boolean parallelBroadcastEnabled = getBooleanContextParam(ctx, TyrusWebSocketEngine.PARALLEL_BROADCAST_ENABLED);
-        final DebugContext.TracingType tracingType = getEnumContextParam(ctx, TyrusWebSocketEngine.TRACING_TYPE, DebugContext.TracingType.class, DebugContext.TracingType.OFF);
-        final DebugContext.TracingThreshold tracingThreshold = getEnumContextParam(ctx, TyrusWebSocketEngine.TRACING_THRESHOLD, DebugContext.TracingThreshold.class, DebugContext.TracingThreshold.TRACE);
+        final Integer maxSessionsPerRemoteAddr = getIntContextParam(
+                ctx, TyrusWebSocketEngine.MAX_SESSIONS_PER_REMOTE_ADDR);
+        final Boolean parallelBroadcastEnabled = getBooleanContextParam(
+                ctx, TyrusWebSocketEngine.PARALLEL_BROADCAST_ENABLED);
+        final DebugContext.TracingType tracingType = getEnumContextParam(
+                ctx, TyrusWebSocketEngine.TRACING_TYPE, DebugContext.TracingType.class, DebugContext.TracingType.OFF);
+        final DebugContext.TracingThreshold tracingThreshold =
+                getEnumContextParam(ctx, TyrusWebSocketEngine.TRACING_THRESHOLD, DebugContext.TracingThreshold.class,
+                                    DebugContext.TracingThreshold.TRACE);
 
         final ApplicationEventListener applicationEventListener = createApplicationEventListener(ctx);
         final TyrusServerContainer serverContainer = new TyrusServerContainer(classes) {
 
-            private final WebSocketEngine engine = TyrusWebSocketEngine.builder(this)
-                    .applicationEventListener(applicationEventListener)
-                    .incomingBufferSize(incomingBufferSize)
-                    .maxSessionsPerApp(maxSessionsPerApp)
-                    .maxSessionsPerRemoteAddr(maxSessionsPerRemoteAddr)
-                    .parallelBroadcastEnabled(parallelBroadcastEnabled)
-                    .tracingType(tracingType)
-                    .tracingThreshold(tracingThreshold)
-                    .build();
+            private final WebSocketEngine engine = TyrusWebSocketEngine.builder(this).applicationEventListener
+                    (applicationEventListener).incomingBufferSize(incomingBufferSize).maxSessionsPerApp
+                    (maxSessionsPerApp).maxSessionsPerRemoteAddr(maxSessionsPerRemoteAddr).parallelBroadcastEnabled
+                    (parallelBroadcastEnabled).tracingType(tracingType).tracingThreshold(tracingThreshold).build();
 
             @Override
             public void register(Class<?> endpointClass) throws DeploymentException {
@@ -135,8 +136,8 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
         }
         LOGGER.config("WSADL enabled: " + wsadlEnabled);
 
-        TyrusServletFilter filter = new TyrusServletFilter((TyrusWebSocketEngine) serverContainer.getWebSocketEngine(),
-                wsadlEnabled);
+        TyrusServletFilter filter =
+                new TyrusServletFilter((TyrusWebSocketEngine) serverContainer.getWebSocketEngine(), wsadlEnabled);
 
         // HttpSessionListener registration
         ctx.addListener(filter);
@@ -165,7 +166,8 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
             try {
                 return Integer.parseInt(initParameter);
             } catch (NumberFormatException e) {
-                LOGGER.log(Level.CONFIG, "Invalid configuration value [" + paramName + " = " + initParameter + "], integer expected");
+                LOGGER.log(Level.CONFIG, "Invalid configuration value [" + paramName + " = " + initParameter + "], " +
+                        "integer expected");
             }
         }
 
@@ -177,8 +179,8 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
      *
      * @param ctx       used to retrieve init parameter.
      * @param paramName parameter name.
-     * @return parsed {@link java.lang.Boolean} value or {@code null} when the value is not boolean or when the init parameter is
-     * not present.
+     * @return parsed {@link java.lang.Boolean} value or {@code null} when the value is not boolean or when the init
+     * parameter is not present.
      */
     private Boolean getBooleanContextParam(ServletContext ctx, String paramName) {
         String initParameter = ctx.getInitParameter(paramName);
@@ -191,14 +193,16 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
                 return false;
             }
 
-            LOGGER.log(Level.CONFIG, "Invalid configuration value [" + paramName + " = " + initParameter + "], boolean expected");
+            LOGGER.log(Level.CONFIG, "Invalid configuration value [" + paramName + " = " + initParameter + "], " +
+                    "boolean expected");
             return null;
         }
 
         return null;
     }
 
-    private <T extends Enum<T>> T getEnumContextParam(ServletContext ctx, String paramName, Class<T> type, T defaultValue) {
+    private <T extends Enum<T>> T getEnumContextParam(ServletContext ctx, String paramName, Class<T> type, T
+            defaultValue) {
         String initParameter = ctx.getInitParameter(paramName);
 
         if (initParameter == null) {
@@ -227,14 +231,14 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
             if (o instanceof ApplicationEventListener) {
                 return (ApplicationEventListener) o;
             } else {
-                LOGGER.log(Level.WARNING, "Class " + listenerClassName + " does not implement ApplicationEventListener");
+                LOGGER.log(Level.WARNING, "Class " + listenerClassName + " does not implement " +
+                        "ApplicationEventListener");
             }
         } catch (ClassNotFoundException e) {
             LOGGER.log(Level.WARNING, "ApplicationEventListener implementation " + listenerClassName + " not found", e);
-        } catch (InstantiationException e) {
-            LOGGER.log(Level.WARNING, "ApplicationEventListener implementation " + listenerClassName + " could not have been instantiated", e);
-        } catch (IllegalAccessException e) {
-            LOGGER.log(Level.WARNING, "ApplicationEventListener implementation " + listenerClassName + " could not have been instantiated", e);
+        } catch (InstantiationException | IllegalAccessException e) {
+            LOGGER.log(Level.WARNING, "ApplicationEventListener implementation " + listenerClassName + " could not " +
+                    "have been instantiated", e);
         }
         return null;
     }

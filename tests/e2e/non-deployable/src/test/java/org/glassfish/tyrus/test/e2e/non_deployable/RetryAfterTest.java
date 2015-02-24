@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -74,8 +74,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
- * RetryAfter tests.
- * Cannot be moved to standard tests due the need of programmatic configuration of HTTP response.
+ * RetryAfter tests. Cannot be moved to standard tests due the need of programmatic configuration of HTTP response.
  *
  * @author Ondrej Kosatka (ondrej.kosatka at oracle.com)
  */
@@ -90,12 +89,15 @@ public class RetryAfterTest extends TestContainer {
     }
 
     @Test
-    public void testServiceUnavailableWithDate() throws InterruptedException, DeploymentException, AuthenticationException, IOException {
+    public void testServiceUnavailableWithDate() throws InterruptedException, DeploymentException,
+            AuthenticationException, IOException {
         Server server = null;
         try {
             server = startServer(RetryAfterEchoEndpoint.class);
 
-            testRetryAfter(new java.text.SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz").format(new Date(System.currentTimeMillis() + 1000)));
+            testRetryAfter(
+                    new java.text.SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz")
+                            .format(new Date(System.currentTimeMillis() + 1000)));
 
         } finally {
             if (server != null) {
@@ -105,7 +107,8 @@ public class RetryAfterTest extends TestContainer {
     }
 
     @Test
-    public void testServiceUnavailableWithSeconds() throws InterruptedException, DeploymentException, AuthenticationException, IOException {
+    public void testServiceUnavailableWithSeconds() throws InterruptedException, DeploymentException,
+            AuthenticationException, IOException {
         Server server = null;
         try {
             server = startServer(RetryAfterEchoEndpoint.class);
@@ -119,11 +122,14 @@ public class RetryAfterTest extends TestContainer {
         }
     }
 
-    private void testRetryAfter(String retryAfter) throws DeploymentException, InterruptedException, IOException, AuthenticationException {
+    private void testRetryAfter(String retryAfter) throws DeploymentException, InterruptedException, IOException,
+            AuthenticationException {
         HttpServer httpServer = null;
         try {
 
-            httpServer = startHttpServer(REDIRECTION_PORT, new MultipleRetryAfterHandler(1, retryAfter, "ws://localhost:8025/retry-after-echo/echo"));
+            httpServer = startHttpServer(
+                    REDIRECTION_PORT,
+                    new MultipleRetryAfterHandler(1, retryAfter, "ws://localhost:8025/retry-after-echo/echo"));
 
             final ClientManager client = ClientManager.createClient();
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
@@ -162,7 +168,8 @@ public class RetryAfterTest extends TestContainer {
     }
 
     @Test
-    public void testServiceUnavailableDisabled() throws InterruptedException, DeploymentException, AuthenticationException, IOException {
+    public void testServiceUnavailableDisabled() throws InterruptedException, DeploymentException,
+            AuthenticationException, IOException {
         Server server = null;
         try {
             server = startServer(RetryAfterEchoEndpoint.class);
@@ -177,7 +184,8 @@ public class RetryAfterTest extends TestContainer {
     }
 
     @Test
-    public void testServiceUnavailableNotSet() throws InterruptedException, DeploymentException, AuthenticationException, IOException {
+    public void testServiceUnavailableNotSet() throws InterruptedException, DeploymentException,
+            AuthenticationException, IOException {
         Server server = null;
         try {
             server = startServer(RetryAfterEchoEndpoint.class);
@@ -192,7 +200,8 @@ public class RetryAfterTest extends TestContainer {
     }
 
     @Test
-    public void testServiceUnavailableInvalidValue() throws InterruptedException, DeploymentException, AuthenticationException, IOException {
+    public void testServiceUnavailableInvalidValue() throws InterruptedException, DeploymentException,
+            AuthenticationException, IOException {
         Server server = null;
         try {
             server = startServer(RetryAfterEchoEndpoint.class);
@@ -207,7 +216,8 @@ public class RetryAfterTest extends TestContainer {
     }
 
     @Test
-    public void testServiceUnavailableEmptyValue() throws InterruptedException, DeploymentException, AuthenticationException, IOException {
+    public void testServiceUnavailableEmptyValue() throws InterruptedException, DeploymentException,
+            AuthenticationException, IOException {
         Server server = null;
         try {
             server = startServer(RetryAfterEchoEndpoint.class);
@@ -222,7 +232,8 @@ public class RetryAfterTest extends TestContainer {
     }
 
     @Test
-    public void testServiceUnavailableNullValue() throws InterruptedException, DeploymentException, AuthenticationException, IOException {
+    public void testServiceUnavailableNullValue() throws InterruptedException, DeploymentException,
+            AuthenticationException, IOException {
         Server server = null;
         try {
             server = startServer(RetryAfterEchoEndpoint.class);
@@ -237,7 +248,8 @@ public class RetryAfterTest extends TestContainer {
     }
 
     @Test
-    public void testServiceUnavailableTooLongValue() throws InterruptedException, DeploymentException, AuthenticationException, IOException {
+    public void testServiceUnavailableTooLongValue() throws InterruptedException, DeploymentException,
+            AuthenticationException, IOException {
         Server server = null;
         try {
             server = startServer(RetryAfterEchoEndpoint.class);
@@ -252,7 +264,8 @@ public class RetryAfterTest extends TestContainer {
     }
 
     @Test
-    public void testServiceUnavailableThreshold() throws InterruptedException, DeploymentException, AuthenticationException, IOException {
+    public void testServiceUnavailableThreshold() throws InterruptedException, DeploymentException,
+            AuthenticationException, IOException {
         Server server = null;
         try {
             server = startServer(RetryAfterEchoEndpoint.class);
@@ -266,13 +279,17 @@ public class RetryAfterTest extends TestContainer {
         }
     }
 
-    private void testRetryAfterWrongHeader(String retryAfter, Boolean retryAfterEnabled, int numberOfRetries) throws DeploymentException, InterruptedException, IOException, AuthenticationException {
+    private void testRetryAfterWrongHeader(String retryAfter, Boolean retryAfterEnabled, int numberOfRetries) throws
+            DeploymentException, InterruptedException, IOException, AuthenticationException {
         final CountDownLatch latch = new CountDownLatch(1);
 
         HttpServer httpServer = null;
         try {
 
-            httpServer = startHttpServer(REDIRECTION_PORT, new MultipleRetryAfterHandler(numberOfRetries, retryAfter, "ws://localhost:8025/retry-after-echo/echo"));
+            httpServer = startHttpServer(
+                    REDIRECTION_PORT,
+                    new MultipleRetryAfterHandler(numberOfRetries, retryAfter,
+                                                  "ws://localhost:8025/retry-after-echo/echo"));
 
             final ClientManager client = ClientManager.createClient();
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
@@ -303,7 +320,8 @@ public class RetryAfterTest extends TestContainer {
 
             fail("Connection to the endpoint should fail");
         } catch (Exception e) {
-            if (e.getCause() != null && e.getCause() instanceof RetryAfterException && ((RetryAfterException) e.getCause()).getDelay() == null) {
+            if (e.getCause() != null && e.getCause() instanceof RetryAfterException && ((RetryAfterException) e
+                    .getCause()).getDelay() == null) {
                 latch.countDown();
             } else {
                 fail("Connect should throw RetryAfterException with null delay");
@@ -317,13 +335,16 @@ public class RetryAfterTest extends TestContainer {
         assertTrue("Exception should be caught", latch.await(3, TimeUnit.SECONDS));
     }
 
-    private void testRetryAfterConnectFail(String retryAfter, Boolean retryAfterEnabled, int numberOfRetries) throws DeploymentException, InterruptedException, IOException, AuthenticationException {
+    private void testRetryAfterConnectFail(String retryAfter, Boolean retryAfterEnabled, int numberOfRetries) throws
+            DeploymentException, InterruptedException, IOException, AuthenticationException {
         final CountDownLatch latch = new CountDownLatch(1);
 
         HttpServer httpServer = null;
         try {
 
-            httpServer = startHttpServer(REDIRECTION_PORT, new MultipleRetryAfterHandler(numberOfRetries, retryAfter, "ws://localhost:8025/retry-after-echo/echo"));
+            httpServer = startHttpServer(
+                    REDIRECTION_PORT, new MultipleRetryAfterHandler(numberOfRetries, retryAfter,
+                                                                    "ws://localhost:8025/retry-after-echo/echo"));
 
             final ClientManager client = ClientManager.createClient();
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
@@ -369,7 +390,8 @@ public class RetryAfterTest extends TestContainer {
     }
 
     @Test
-    public void testServiceUnavailableTwice() throws InterruptedException, DeploymentException, AuthenticationException, IOException {
+    public void testServiceUnavailableTwice() throws InterruptedException, DeploymentException,
+            AuthenticationException, IOException {
         Server server = null;
         try {
             server = startServer(RetryAfterEchoEndpoint.class);
@@ -383,11 +405,14 @@ public class RetryAfterTest extends TestContainer {
         }
     }
 
-    private void testRetryAfterTwice(String retryAfter) throws DeploymentException, InterruptedException, IOException, AuthenticationException {
+    private void testRetryAfterTwice(String retryAfter) throws DeploymentException, InterruptedException,
+            IOException, AuthenticationException {
         HttpServer httpServer = null;
         try {
 
-            httpServer = startHttpServer(REDIRECTION_PORT, new MultipleRetryAfterHandler(2, retryAfter, "ws://localhost:8025/retry-after-echo/echo"));
+            httpServer = startHttpServer(
+                    REDIRECTION_PORT,
+                    new MultipleRetryAfterHandler(2, retryAfter, "ws://localhost:8025/retry-after-echo/echo"));
 
             final ClientManager client = ClientManager.createClient();
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
@@ -426,7 +451,8 @@ public class RetryAfterTest extends TestContainer {
     }
 
     @Test
-    public void testServiceUnavailableUserDefinedHandler() throws InterruptedException, DeploymentException, AuthenticationException, IOException {
+    public void testServiceUnavailableUserDefinedHandler() throws InterruptedException, DeploymentException,
+            AuthenticationException, IOException {
         Server server = null;
         try {
             server = startServer(RetryAfterEchoEndpoint.class);
@@ -440,11 +466,14 @@ public class RetryAfterTest extends TestContainer {
         }
     }
 
-    private void testRetryAfterUserDefinedHandler(String retryAfter) throws DeploymentException, InterruptedException, IOException, AuthenticationException {
+    private void testRetryAfterUserDefinedHandler(String retryAfter) throws DeploymentException,
+            InterruptedException, IOException, AuthenticationException {
         HttpServer httpServer = null;
         try {
 
-            httpServer = startHttpServer(REDIRECTION_PORT, new MultipleRetryAfterHandler(6, retryAfter, "ws://localhost:8025/retry-after-echo/echo"));
+            httpServer = startHttpServer(
+                    REDIRECTION_PORT, new MultipleRetryAfterHandler(6, retryAfter,
+                                                                    "ws://localhost:8025/retry-after-echo/echo"));
 
             final ClientManager client = ClientManager.createClient();
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
@@ -457,7 +486,8 @@ public class RetryAfterTest extends TestContainer {
             client.getProperties().put(ClientProperties.RECONNECT_HANDLER, new ClientManager.ReconnectHandler() {
                 @Override
                 public boolean onConnectFailure(Exception e) {
-                    if (e != null && e.getCause() instanceof RetryAfterException && ((RetryAfterException) e.getCause()).getDelay() != null) {
+                    if (e != null && e.getCause() instanceof RetryAfterException && ((RetryAfterException) e.getCause
+                            ()).getDelay() != null) {
                         System.out.println("RetryAfterException received.");
                         reconnectHandlerLatch.countDown();
                         return true;
@@ -488,7 +518,8 @@ public class RetryAfterTest extends TestContainer {
             }, cec, URI.create("ws://localhost:8026/retry-after-echo/echo"));
 
             assertTrue("Message has not been received", messageLatch.await(1, TimeUnit.SECONDS));
-            assertTrue("User-defined ReconnectHandler was not called", reconnectHandlerLatch.await(1, TimeUnit.SECONDS));
+            assertTrue("User-defined ReconnectHandler was not called", reconnectHandlerLatch.await(1, TimeUnit
+                    .SECONDS));
         } finally {
             if (httpServer != null) {
                 httpServer.shutdownNow();
@@ -509,10 +540,7 @@ public class RetryAfterTest extends TestContainer {
     private HttpServer createHttpServer(int port) throws IOException {
         HttpServer httpServer = new HttpServer();
 
-        final NetworkListener listener =
-                new NetworkListener("grizzly",
-                        "0.0.0.0",
-                        port);
+        final NetworkListener listener = new NetworkListener("grizzly", "0.0.0.0", port);
         httpServer.addListener(listener);
 
         return httpServer;

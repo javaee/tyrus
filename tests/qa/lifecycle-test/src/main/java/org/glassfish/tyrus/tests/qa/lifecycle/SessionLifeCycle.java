@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -95,16 +95,17 @@ abstract public class SessionLifeCycle<T> {
     public void onServerClose(Session s, CloseReason reason) {
         logger.log(Level.INFO, "Closing the session: {0}", s.toString());
         logger.log(Level.INFO, "Closing the session with reason: {0}", reason);
-        
+
         if (!IssueTests.checkTyrus101(reason)) {
             sc.setState("server.TYRUS101");
         }
-        
+
         if (!IssueTests.checkTyrus104(s)) {
             sc.setState("server.TYRUS104");
         }
 
-        if (reason != null && reason.getCloseCode().equals(CloseReason.CloseCodes.GOING_AWAY) && reason.getReasonPhrase() != null && reason.getReasonPhrase().equals("Going away")) {
+        if (reason != null && reason.getCloseCode().equals(CloseReason.CloseCodes.GOING_AWAY) &&
+                reason.getReasonPhrase() != null && reason.getReasonPhrase().equals("Going away")) {
             sc.serverOnClose();
         }
         throw new MyException("going onError");
@@ -119,7 +120,8 @@ abstract public class SessionLifeCycle<T> {
         if (thr instanceof InvocationTargetException) {
             logger.log(Level.INFO, "TYRUS-94: should be runtime exception!");
             Throwable cause = thr.getCause();
-            boolean res = cause instanceof RuntimeException && cause.getMessage() != null && "going onError".equals(cause.getMessage());
+            boolean res = cause instanceof RuntimeException && cause.getMessage() != null &&
+                    "going onError".equals(cause.getMessage());
             logger.log(Level.INFO, "At least RuntimeException", thr);
             logger.log(Level.INFO, "RuntimeException.getMessage()=={0}", cause.getMessage());
             return res;
@@ -166,7 +168,7 @@ abstract public class SessionLifeCycle<T> {
     }
 
     public void onClientOpen(Session s, EndpointConfig config) {
-        
+
         if (!IssueTests.checkTyrus93(s)) {
             sc.setState("TYRUS_93_FAIL");
         }

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -57,6 +57,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
+@SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
 public class TestSharedCollectionEndpoint extends TestContainer {
 
     public TestSharedCollectionEndpoint() {
@@ -70,12 +71,13 @@ public class TestSharedCollectionEndpoint extends TestContainer {
         try {
             final CountDownLatch updateLatch = new CountDownLatch(1);
 
-            final SharedMap sharedMap1 = new SharedMap(createClient(), getURI(SharedCollectionEndpoint.class), new SharedMap.UpdateListener() {
-                @Override
-                public void onUpdate() {
-                    updateLatch.countDown();
-                }
-            });
+            final SharedMap sharedMap1 = new SharedMap(createClient(), getURI(SharedCollectionEndpoint.class),
+                                                       new SharedMap.UpdateListener() {
+                                                           @Override
+                                                           public void onUpdate() {
+                                                               updateLatch.countDown();
+                                                           }
+                                                       });
 
             assertTrue(updateLatch.await(5, TimeUnit.SECONDS));
 
@@ -97,20 +99,24 @@ public class TestSharedCollectionEndpoint extends TestContainer {
             // init, put
             final CountDownLatch updateLatch2 = new CountDownLatch(2);
 
-            final SharedMap sharedMap1 = new SharedMap(createClient(), getURI(SharedCollectionEndpoint.class), new SharedMap.UpdateListener() {
-                @Override
-                public void onUpdate() {
-                    updateLatch1.countDown();
-                }
-            });
+            final SharedMap sharedMap1 = new SharedMap(
+                    createClient(), getURI(SharedCollectionEndpoint.class),
+                    new SharedMap.UpdateListener() {
+                        @Override
+                        public void onUpdate() {
+                            updateLatch1.countDown();
+                        }
+                    });
 
-            final SharedMap sharedMap2 = new SharedMap(createClient(), getURI(SharedCollectionEndpoint.class), new SharedMap.UpdateListener() {
-                @Override
-                public void onUpdate() {
-                    updateLatch1.countDown();
-                    updateLatch2.countDown();
-                }
-            });
+            final SharedMap sharedMap2 = new SharedMap(
+                    createClient(), getURI(SharedCollectionEndpoint.class),
+                    new SharedMap.UpdateListener() {
+                        @Override
+                        public void onUpdate() {
+                            updateLatch1.countDown();
+                            updateLatch2.countDown();
+                        }
+                    });
 
             // waiting for init - connect + initial values
             assertTrue(updateLatch1.await(5, TimeUnit.SECONDS));
@@ -136,20 +142,24 @@ public class TestSharedCollectionEndpoint extends TestContainer {
             // init, put
             final CountDownLatch updateLatch2 = new CountDownLatch(2);
 
-            final SharedMap sharedMap1 = new SharedMap(createClient(), getURI(SharedCollectionEndpoint.class), new SharedMap.UpdateListener() {
-                @Override
-                public void onUpdate() {
-                    updateLatch1.countDown();
-                }
-            });
+            final SharedMap sharedMap1 = new SharedMap(
+                    createClient(), getURI(SharedCollectionEndpoint.class),
+                    new SharedMap.UpdateListener() {
+                        @Override
+                        public void onUpdate() {
+                            updateLatch1.countDown();
+                        }
+                    });
 
-            final SharedMap sharedMap2 = new SharedMap(createClient(), getURI(SharedCollectionEndpoint.class), new SharedMap.UpdateListener() {
-                @Override
-                public void onUpdate() {
-                    updateLatch1.countDown();
-                    updateLatch2.countDown();
-                }
-            });
+            final SharedMap sharedMap2 = new SharedMap(
+                    createClient(), getURI(SharedCollectionEndpoint.class),
+                    new SharedMap.UpdateListener() {
+                        @Override
+                        public void onUpdate() {
+                            updateLatch1.countDown();
+                            updateLatch2.countDown();
+                        }
+                    });
 
             // waiting for init - connect + initial values
             assertTrue(updateLatch1.await(5, TimeUnit.SECONDS));

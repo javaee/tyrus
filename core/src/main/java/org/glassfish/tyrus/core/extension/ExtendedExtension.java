@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -53,7 +53,8 @@ import org.glassfish.tyrus.core.frame.Frame;
  * Capable of parameters negotiation, incoming and outgoing frames processing.
  * <p/>
  * Extensions are ordered as they appear in handshake response headers, as per RFC 6455, chapter 9.1. It does not state
- * any ordering in regards of sender/receiver side and current implementation reflects that. See TODO below for possible
+ * any ordering in regards of sender/receiver side and current implementation reflects that. See TODO below for
+ * possible
  * issue related to ordering.
  * <p/>
  * Let's say we have negotiated two extensions, ext1 and ext2 in this order without parameters, so handshake response
@@ -75,7 +76,9 @@ import org.glassfish.tyrus.core.frame.Frame;
  * </pre>
  * <p/>
  * Any exception thrown from processIncoming or processOutgoing will be logged. Rest of extension chain will be invoked
- * without any modifications done in "faulty" extension. {@link javax.websocket.OnError} won't be triggered. (this might change).
+ * without any modifications done in "faulty" extension. {@link javax.websocket.OnError} won't be triggered. (this
+ * might
+ * change).
  * <p/>
  * <p/>
  * <pre>TODO:
@@ -152,18 +155,18 @@ public interface ExtendedExtension extends Extension {
      * Context present as a parameter in all {@link ExtendedExtension} methods. Maintains per
      * connection state of current extension.
      * <p/>
-     * Context is created right before {@link #onExtensionNegotiation(ExtendedExtension.ExtensionContext, java.util.List)} method
-     * call (server-side) or {@link #onHandshakeResponse(ExtendedExtension.ExtensionContext, java.util.List)} method call (client-side).
-     * Last chance to access it is within {@link #destroy(ExtendedExtension.ExtensionContext)}
-     * method invocation.
+     * Context is created right before {@link #onExtensionNegotiation(ExtendedExtension.ExtensionContext,
+     * java.util.List)} method call (server-side) or {@link #onHandshakeResponse(ExtendedExtension.ExtensionContext,
+     * java.util.List)} method call (client-side). Last chance to access it is within {@link
+     * #destroy(ExtendedExtension.ExtensionContext)} method invocation.
      */
     interface ExtensionContext {
 
         /**
          * Mutable, not synchronised property map.
          * <p/>
-         * Synchronisation is not necessary if you are accessing this map only during {@link ExtendedExtension}
-         * methods invocation.
+         * Synchronisation is not necessary if you are accessing this map only during {@link ExtendedExtension} methods
+         * invocation.
          *
          * @return property map.
          */

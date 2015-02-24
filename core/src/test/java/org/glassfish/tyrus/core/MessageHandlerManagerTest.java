@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -127,7 +127,8 @@ public class MessageHandlerManagerTest {
 
     @Test(expected = IllegalStateException.class)
     public void multipleTextHandlersWithDecoder() {
-        MessageHandlerManager messageHandlerManager = MessageHandlerManager.fromDecoderInstances(Arrays.<Decoder>asList(new CoderWrapper<Decoder>(new TestTextDecoder(), MessageHandlerManagerTest.class)));
+        MessageHandlerManager messageHandlerManager = MessageHandlerManager.fromDecoderInstances(Arrays.<Decoder>asList(
+                new CoderWrapper<Decoder>(new TestTextDecoder(), MessageHandlerManagerTest.class)));
 
         messageHandlerManager.addMessageHandler(new MessageHandler.Whole<MessageHandlerManagerTest>() {
             @Override
@@ -158,7 +159,8 @@ public class MessageHandlerManagerTest {
             fail("IllegalStateException was expected.");
         } catch (IllegalStateException e) {
             assertNotNull(e.getMessage());
-            assertTrue(e.getMessage().equals(LocalizationMessages.MESSAGE_HANDLER_DECODER_NOT_REGISTERED(MessageHandlerManagerTest.class)));
+            assertTrue(e.getMessage().equals(LocalizationMessages.MESSAGE_HANDLER_DECODER_NOT_REGISTERED(
+                    MessageHandlerManagerTest.class)));
         }
     }
 
@@ -279,7 +281,8 @@ public class MessageHandlerManagerTest {
 
     @Test(expected = IllegalStateException.class)
     public void multipleBasicDecodable() {
-        MessageHandlerManager messageHandlerManager = new MessageHandlerManager(Collections.<Class<? extends Decoder>>singletonList(TestTextDecoder.class));
+        MessageHandlerManager messageHandlerManager =
+                new MessageHandlerManager(Collections.<Class<? extends Decoder>>singletonList(TestTextDecoder.class));
 
         messageHandlerManager.addMessageHandler(new MessageHandler.Whole<MessageHandlerManagerTest>() {
             @Override
@@ -408,7 +411,8 @@ public class MessageHandlerManagerTest {
 
     @Test
     public void addRemoveAddHandlers() {
-        MessageHandlerManager messageHandlerManager = new MessageHandlerManager(Collections.<Class<? extends Decoder>>singletonList(TestTextDecoder.class));
+        MessageHandlerManager messageHandlerManager =
+                new MessageHandlerManager(Collections.<Class<? extends Decoder>>singletonList(TestTextDecoder.class));
 
 
         final MessageHandler.Whole<String> handler1 = new MessageHandler.Whole<String>() {
@@ -429,11 +433,12 @@ public class MessageHandlerManagerTest {
             }
         };
 
-        final MessageHandler.Whole<MessageHandlerManagerTest> handler4 = new MessageHandler.Whole<MessageHandlerManagerTest>() {
-            @Override
-            public void onMessage(MessageHandlerManagerTest message) {
-            }
-        };
+        final MessageHandler.Whole<MessageHandlerManagerTest> handler4 =
+                new MessageHandler.Whole<MessageHandlerManagerTest>() {
+                    @Override
+                    public void onMessage(MessageHandlerManagerTest message) {
+                    }
+                };
 
         messageHandlerManager.addMessageHandler(handler1);
         messageHandlerManager.addMessageHandler(handler2);

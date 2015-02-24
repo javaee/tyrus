@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -65,11 +65,13 @@ public class AnnotatedSubprotocols {
 
     @ServerEndpoint(value = LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH, subprotocols =
             {
-                    "mikc21", "mikc22", "mikc23", "mikc24.111", "mikc25/0", "mikc26-0", "mikc27+0", "mikc28*9", "mikc291", "mikc210",
-                    "mikc21", "mikc22", "mikc23", "mikc24.111", "mikc25/0", "mikc26-0", "mikc27+0", "mikc28*9", "mikc291", "mikc210",
-                    "mikc21", "mikc22", "mikc23", "mikc24.111", "mikc25/0", "mikc26-0", "mikc27+0", "mikc28*9", "mikc291", "mikc210",
-                    "mikc21", "mikc22", "mikc23", "mikc24.111", "mikc25/0", "mikc26-0", "mikc27+0", "mikc28*9", "mikc291", "mikc210",
-                    "mikc21", "mikc22", "mikc23", "mikc24.111", "mikc25/0", "mikc26-0", "mikc27+0", "mikc28*9", "mikc291", "mikc10", "mikc10"
+                    "mikc21", "mikc22", "mikc23", "mikc24.111", "mikc25/0", "mikc26-0", "mikc27+0", "mikc28*9",
+                    "mikc291", "mikc210", "mikc21", "mikc22", "mikc23", "mikc24.111", "mikc25/0", "mikc26-0",
+                    "mikc27+0", "mikc28*9", "mikc291", "mikc210", "mikc21", "mikc22", "mikc23", "mikc24.111",
+                    "mikc25/0", "mikc26-0", "mikc27+0", "mikc28*9", "mikc291", "mikc210", "mikc21", "mikc22", "mikc23",
+                    "mikc24.111", "mikc25/0", "mikc26-0", "mikc27+0", "mikc28*9", "mikc291", "mikc210", "mikc21",
+                    "mikc22", "mikc23", "mikc24.111", "mikc25/0", "mikc26-0", "mikc27+0", "mikc28*9", "mikc291",
+                    "mikc10", "mikc10"
             })
     static public class Server extends AnnotatedEndpoint {
 
@@ -118,31 +120,34 @@ public class AnnotatedSubprotocols {
 
     @ClientEndpoint(subprotocols =
             {
-                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10"
+                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91",
+                    "mikc10", "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9",
+                    "mikc91", "mikc10", "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0",
+                    "mikc8*9", "mikc91", "mikc10", "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0",
+                    "mikc7+0", "mikc8*9", "mikc91", "mikc10", "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0",
+                    "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10", "mikc1", "mikc2", "mikc3", "mikc4.111",
+                    "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10", "mikc1", "mikc2", "mikc3",
+                    "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10", "mikc1", "mikc2",
+                    "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10", "mikc1",
+                    "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
+                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91",
+                    "mikc10", "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9",
+                    "mikc91", "mikc10", "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0",
+                    "mikc8*9", "mikc91", "mikc10", "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0",
+                    "mikc7+0", "mikc8*9", "mikc91", "mikc10", "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0",
+                    "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10", "mikc1", "mikc2", "mikc3", "mikc4.111",
+                    "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10", "mikc1", "mikc2", "mikc3",
+                    "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10", "mikc1", "mikc2",
+                    "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10", "mikc1",
+                    "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
+                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91",
+                    "mikc10", "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9",
+                    "mikc91", "mikc10", "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0",
+                    "mikc8*9", "mikc91", "mikc10", "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0",
+                    "mikc7+0", "mikc8*9", "mikc91", "mikc10", "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0",
+                    "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10", "mikc1", "mikc2", "mikc3", "mikc4.111",
+                    "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10", "mikc1", "mikc2", "mikc3",
+                    "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10"
             }
     )
     static public class Client extends AnnotatedEndpoint {
@@ -163,7 +168,6 @@ public class AnnotatedSubprotocols {
             createLifeCycle();
             lifeCycle.setSessionController(sc);
             lifeCycle.onClientOpen(session, ec);
-
         }
 
         @OnMessage

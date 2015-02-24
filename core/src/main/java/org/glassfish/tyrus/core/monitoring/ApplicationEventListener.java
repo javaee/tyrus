@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -42,8 +42,8 @@ package org.glassfish.tyrus.core.monitoring;
 import org.glassfish.tyrus.core.Beta;
 
 /**
- * Listens to application-level events that are interesting for monitoring.
- * Only one listener per application can be registered.
+ * Listens to application-level events that are interesting for monitoring. Only one listener per application can be
+ * registered.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
@@ -64,7 +64,8 @@ public interface ApplicationEventListener {
      *         <param-value>com.acme.MyApplicationEventListener</param-value>
      *     </context-param>}</pre>
      */
-    public static final String APPLICATION_EVENT_LISTENER = "org.glassfish.tyrus.core.monitoring.ApplicationEventListener";
+    public static final String APPLICATION_EVENT_LISTENER =
+            "org.glassfish.tyrus.core.monitoring.ApplicationEventListener";
 
     /**
      * Called when the application has been initialized.

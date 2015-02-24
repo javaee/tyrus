@@ -57,7 +57,8 @@ public class Main {
         final Map<String, Object> serverProperties = new HashMap<String, Object>();
         serverProperties.put(Server.STATIC_CONTENT_ROOT, "./src/main/webapp");
 
-        final Server server = new Server("localhost", 8025, "/sample-btc-xchange", serverProperties, MarketEndpoint.class);
+        final Server server =
+                new Server("localhost", 8025, "/sample-btc-xchange", serverProperties, MarketEndpoint.class);
         server.start();
 
         System.out.println("Press any key to stop the server and quit..");

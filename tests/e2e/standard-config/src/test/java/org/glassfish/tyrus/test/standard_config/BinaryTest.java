@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -119,7 +119,8 @@ public class BinaryTest extends TestContainer {
                 }
             }, cec, getURI(BinaryByteBufferEndpoint.class));
             messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertArrayEquals("The received message is the same as the sent one", BINARY_MESSAGE, receivedMessageBuffer.array());
+            Assert.assertArrayEquals("The received message is the same as the sent one", BINARY_MESSAGE,
+                                     receivedMessageBuffer.array());
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -158,7 +159,8 @@ public class BinaryTest extends TestContainer {
                 }
             }, cec, getURI(BinaryByteBufferEndpoint.class));
             messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertArrayEquals("The received message is the same as the sent one", TEXT_MESSAGE.getBytes(UTF8), receivedMessageBuffer.array());
+            Assert.assertArrayEquals("The received message is the same as the sent one", TEXT_MESSAGE.getBytes(UTF8),
+                                     receivedMessageBuffer.array());
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -203,7 +205,8 @@ public class BinaryTest extends TestContainer {
                 }
             }, cec, getURI(BinaryByteArrayEndpoint.class));
             messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertArrayEquals("The received message is the same as the sent one", BINARY_MESSAGE, receivedMessageArray);
+            Assert.assertArrayEquals("The received message is the same as the sent one", BINARY_MESSAGE,
+                                     receivedMessageArray);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

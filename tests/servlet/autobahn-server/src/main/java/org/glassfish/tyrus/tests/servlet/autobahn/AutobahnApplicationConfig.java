@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -59,12 +59,18 @@ import org.glassfish.tyrus.ext.extension.deflate.XWebkitDeflateExtension;
 public class AutobahnApplicationConfig implements ServerApplicationConfig {
     @Override
     public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> endpointClasses) {
-        final ServerEndpointConfig serverEndpointConfig = ServerEndpointConfig.Builder.create(EchoServer.class, "/echo")
-                .extensions(Arrays.<Extension>asList(new PerMessageDeflateExtension(), new XWebkitDeflateExtension())).build();
+        final ServerEndpointConfig serverEndpointConfig =
+                ServerEndpointConfig.Builder
+                        .create(EchoServer.class, "/echo")
+                        .extensions(Arrays.<Extension>asList(new PerMessageDeflateExtension(),
+                                                             new XWebkitDeflateExtension()))
+                        .build();
 
-        return new HashSet<ServerEndpointConfig>() {{
-            add(serverEndpointConfig);
-        }};
+        return new HashSet<ServerEndpointConfig>() {
+            {
+                add(serverEndpointConfig);
+            }
+        };
     }
 
     @Override

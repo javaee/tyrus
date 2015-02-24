@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -61,8 +61,10 @@ public class ApplicationConfig implements ServerApplicationConfig {
     @Override
     public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> endpointClasses) {
         return new HashSet<ServerEndpointConfig>(Arrays.asList(
-                ServerEndpointConfig.Builder.create(ProgrammaticStatelessRemoteInterfaceEndpoint.class, "/programmaticStatelessRemoteInterfaceEndpoint").build()
-        ));
+                ServerEndpointConfig.Builder
+                        .create(ProgrammaticStatelessRemoteInterfaceEndpoint.class,
+                                "/programmaticStatelessRemoteInterfaceEndpoint")
+                        .build()));
     }
 
     @Override
@@ -71,7 +73,8 @@ public class ApplicationConfig implements ServerApplicationConfig {
     }
 
     @Stateless
-    public static class ProgrammaticStatelessRemoteInterfaceEndpoint extends Endpoint implements RemoteServiceProgrammatic {
+    public static class ProgrammaticStatelessRemoteInterfaceEndpoint extends Endpoint implements
+            RemoteServiceProgrammatic {
 
         @Override
         public void onOpen(final Session session, EndpointConfig config) {

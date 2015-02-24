@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -51,17 +51,21 @@ public class SingletonConfigurator extends ServerEndpointConfig.Configurator {
 
     private static final CloseClientEndpoint CLOSE_CLIENT_ENDPOINT = new CloseClientEndpoint();
     private static final CloseServerEndpoint CLOSE_SERVER_ENDPOINT = new CloseServerEndpoint();
-    private static final IdleTimeoutReceivingEndpoint IDLE_TIMEOUT_RECEIVING_ENDPOINT = new IdleTimeoutReceivingEndpoint();
+    private static final IdleTimeoutReceivingEndpoint IDLE_TIMEOUT_RECEIVING_ENDPOINT = new
+            IdleTimeoutReceivingEndpoint();
     private static final IdleTimeoutSendingEndpoint IDLE_TIMEOUT_SENDING_ENDPOINT = new IdleTimeoutSendingEndpoint();
-    private static final IdleTimeoutSendingPingEndpoint IDLE_TIMEOUT_SENDING_PING_ENDPOINT = new IdleTimeoutSendingPingEndpoint();
+    private static final IdleTimeoutSendingPingEndpoint IDLE_TIMEOUT_SENDING_PING_ENDPOINT = new
+            IdleTimeoutSendingPingEndpoint();
 
-    private static final Map<Class<?>, Object> instanceMap = new HashMap<Class<?>, Object>() {{
-        put(CloseClientEndpoint.class, CLOSE_CLIENT_ENDPOINT);
-        put(CloseServerEndpoint.class, CLOSE_SERVER_ENDPOINT);
-        put(IdleTimeoutReceivingEndpoint.class, IDLE_TIMEOUT_RECEIVING_ENDPOINT);
-        put(IdleTimeoutSendingEndpoint.class, IDLE_TIMEOUT_SENDING_ENDPOINT);
-        put(IdleTimeoutSendingPingEndpoint.class, IDLE_TIMEOUT_SENDING_PING_ENDPOINT);
-    }};
+    private static final Map<Class<?>, Object> instanceMap = new HashMap<Class<?>, Object>() {
+        {
+            put(CloseClientEndpoint.class, CLOSE_CLIENT_ENDPOINT);
+            put(CloseServerEndpoint.class, CLOSE_SERVER_ENDPOINT);
+            put(IdleTimeoutReceivingEndpoint.class, IDLE_TIMEOUT_RECEIVING_ENDPOINT);
+            put(IdleTimeoutSendingEndpoint.class, IDLE_TIMEOUT_SENDING_ENDPOINT);
+            put(IdleTimeoutSendingPingEndpoint.class, IDLE_TIMEOUT_SENDING_PING_ENDPOINT);
+        }
+    };
 
     @Override
     public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {

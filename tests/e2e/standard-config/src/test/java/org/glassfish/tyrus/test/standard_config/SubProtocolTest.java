@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -72,7 +72,8 @@ import static org.junit.Assert.assertNull;
  */
 public class SubProtocolTest extends TestContainer {
 
-    @ServerEndpoint(value = "/subProtocolTest", subprotocols = {"MBLWS.huawei.com", "wamp", "v11.stomp", "v10.stomp", "soap"})
+    @ServerEndpoint(value = "/subProtocolTest",
+            subprotocols = {"MBLWS.huawei.com", "wamp", "v11.stomp", "v10.stomp", "soap"})
     public static class Endpoint {
         @OnOpen
         public void onOpen(Session s) throws IOException {
@@ -132,8 +133,7 @@ public class SubProtocolTest extends TestContainer {
                             //            subprotocol.
                             assertNull(headers.get(UpgradeRequest.SEC_WEBSOCKET_PROTOCOL));
                         }
-                    }).
-                    preferredSubprotocols(Arrays.asList("a", "b", "c")).build();
+                    }).preferredSubprotocols(Arrays.asList("a", "b", "c")).build();
             ClientManager client = createClient();
             client.connectToServer(new javax.websocket.Endpoint() {
                 @Override

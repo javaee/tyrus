@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -212,7 +212,8 @@ public abstract class PrimitiveDecoders<T> extends CoderAdapter implements Decod
             try {
                 map.put(type, (Decoder.Text<?>) dec.newInstance());
             } catch (Exception e) {
-                Logger.getLogger(PrimitiveDecoders.class.getName()).log(Level.WARNING, String.format("Decoder %s could not have been instantiated.", dec));
+                Logger.getLogger(PrimitiveDecoders.class.getName())
+                      .log(Level.WARNING, String.format("Decoder %s could not have been instantiated.", dec));
             }
         }
 

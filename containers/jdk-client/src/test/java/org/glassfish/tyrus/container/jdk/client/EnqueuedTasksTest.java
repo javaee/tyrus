@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -103,7 +103,8 @@ public class EnqueuedTasksTest extends TestContainer {
 
             List<Session> sessions = new ArrayList<>();
 
-            BlockingClientEndpoint clientEndpoint = new BlockingClientEndpoint(blockingLatch, totalMessagesLatch, sessionCloseLatch);
+            BlockingClientEndpoint clientEndpoint =
+                    new BlockingClientEndpoint(blockingLatch, totalMessagesLatch, sessionCloseLatch);
 
             for (int i = 0; i < 20; i++) {
                 Session session = client.connectToServer(clientEndpoint, getURI(AnnotatedServerEndpoint.class));
@@ -158,7 +159,8 @@ public class EnqueuedTasksTest extends TestContainer {
         private final CountDownLatch totalMessagesLatch;
         private final CountDownLatch sessionCloseLatch;
 
-        BlockingClientEndpoint(CountDownLatch blockingLatch, CountDownLatch totalMessagesLatch, CountDownLatch sessionCloseLatch) {
+        BlockingClientEndpoint(CountDownLatch blockingLatch, CountDownLatch totalMessagesLatch,
+                               CountDownLatch sessionCloseLatch) {
             this.blockingLatch = blockingLatch;
             this.totalMessagesLatch = totalMessagesLatch;
             this.sessionCloseLatch = sessionCloseLatch;

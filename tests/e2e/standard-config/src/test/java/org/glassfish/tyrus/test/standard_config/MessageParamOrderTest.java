@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -59,7 +59,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests the correct behavior of various orders of parameters of methods annotated with {@link javax.websocket.OnMessage}
+ * Tests the correct behavior of various orders of parameters of methods annotated with
+ * {@link javax.websocket.OnMessage}
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */

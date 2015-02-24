@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -72,8 +72,8 @@ public class TyrusServerConfiguration implements ServerApplicationConfig {
     /**
      * Create new {@link TyrusServerConfiguration}.
      *
-     * @param classes               classes to be included in this application instance. Can contain any combination of annotated
-     *                              endpoints (see {@link ServerEndpoint}). Cannot be {@code null}.
+     * @param classes               classes to be included in this application instance. Can contain any combination of
+     *                              annotated endpoints (see {@link ServerEndpoint}). Cannot be {@code null}.
      * @param serverEndpointConfigs List of instances of {@link ServerEndpointConfig} to be deployed.
      * @throws IllegalArgumentException when any of the arguments is {@code null}.
      */
@@ -84,9 +84,10 @@ public class TyrusServerConfiguration implements ServerApplicationConfig {
     /**
      * Create new {@link TyrusServerConfiguration}.
      *
-     * @param classes                 classes to be included in this application instance. Can contain any combination of annotated
-     *                                endpoints (see {@link ServerEndpoint}).
-     * @param dynamicallyAddedClasses dynamically deployed classes. See {@link javax.websocket.server.ServerContainer#addEndpoint(Class)}.
+     * @param classes                 classes to be included in this application instance. Can contain any combination
+     *                                of annotated endpoints (see {@link ServerEndpoint}).
+     * @param dynamicallyAddedClasses dynamically deployed classes. See {@link javax.websocket.server
+     *                                .ServerContainer#addEndpoint(Class)}.
      * @param serverEndpointConfigs   List of instances of {@link ServerEndpointConfig} to be deployed.
      * @param errorCollector          model errors are reported to this instance. Cannot be {@code null}.
      * @throws IllegalArgumentException when any of the arguments is {@code null}.
@@ -113,7 +114,8 @@ public class TyrusServerConfiguration implements ServerApplicationConfig {
             }
 
             if (ServerApplicationConfig.class.isAssignableFrom(cls)) {
-                ServerApplicationConfig config = (ServerApplicationConfig) ReflectionHelper.getInstance(cls, errorCollector);
+                ServerApplicationConfig config =
+                        (ServerApplicationConfig) ReflectionHelper.getInstance(cls, errorCollector);
                 configurations.add(config);
             }
 
@@ -141,12 +143,15 @@ public class TyrusServerConfiguration implements ServerApplicationConfig {
                 annotatedClasses.add(c);
 
             } else if (ServerApplicationConfig.class.isAssignableFrom(c)) {
-                ServerApplicationConfig config = (ServerApplicationConfig) ReflectionHelper.getInstance(c, errorCollector);
+                ServerApplicationConfig config =
+                        (ServerApplicationConfig) ReflectionHelper.getInstance(c, errorCollector);
                 configurations.add(config);
 
                 // nothing else is expected/supported.
             } else {
-                errorCollector.addException(new DeploymentException(String.format("Class %s is not ServerApplicationConfig descendant nor has @ServerEndpoint annotation.", c.getName())));
+                errorCollector.addException(new DeploymentException(String.format(
+                        "Class %s is not ServerApplicationConfig descendant nor has @ServerEndpoint annotation.",
+                        c.getName())));
             }
         }
 
@@ -203,7 +208,9 @@ public class TyrusServerConfiguration implements ServerApplicationConfig {
 
     private boolean isAbstract(Class<?> clazz, ErrorCollector errorCollector) {
         if (clazz.isInterface() || Modifier.isAbstract(clazz.getModifiers())) {
-            LOGGER.log(Level.WARNING, String.format("%s: Deployed class can't be abstract nor interface. The class will not be deployed.", clazz.getName()));
+            LOGGER.log(Level.WARNING, String.format(
+                    "%s: Deployed class can't be abstract nor interface. The class will not be deployed.",
+                    clazz.getName()));
             return true;
         }
 

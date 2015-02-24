@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -43,13 +43,12 @@ package org.glassfish.tyrus.core;
 /**
  * Taken from Jersey 2. Error thrown when something goes wrong while looking up service providers.
  * In particular, this error will be thrown in the following situations:
- *
- *   <ul>
- *   <li> A concrete provider class cannot be found,
- *   <li> A concrete provider class cannot be instantiated,
- *   <li> The format of a provider-configuration file is illegal, or
- *   <li> An IOException occurs while reading a provider-configuration file.
- *   </ul>
+ * <ul>
+ * <li> A concrete provider class cannot be found,
+ * <li> A concrete provider class cannot be instantiated,
+ * <li> The format of a provider-configuration file is illegal, or
+ * <li> An IOException occurs while reading a provider-configuration file.
+ * </ul>
  *
  * @author Mark Reinhold
  * @author Marek Potociar (marek.potociar at oracle.com)
@@ -60,6 +59,7 @@ public class ServiceConfigurationError extends Error {
 
     /**
      * Constructs a new instance with the specified detail string.
+     *
      * @param msg the detail string
      */
     public ServiceConfigurationError(String msg) {
@@ -68,6 +68,7 @@ public class ServiceConfigurationError extends Error {
 
     /**
      * Constructs a new instance that wraps the specified throwable.
+     *
      * @param x the throwable to be wrapped
      */
     public ServiceConfigurationError(Throwable x) {

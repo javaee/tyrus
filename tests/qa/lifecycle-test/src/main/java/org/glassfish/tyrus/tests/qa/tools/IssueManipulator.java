@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -49,41 +49,52 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+
 import org.glassfish.tyrus.tests.qa.regression.Issue;
 
 /**
- *
  * @author michal.conos at oracle.com
  */
 public class IssueManipulator {
-    
-    private static final Map<Issue.IssueId, Issue> knownIssues = new EnumMap<Issue.IssueId,Issue>(Issue.IssueId.class);
-    
+
+    private static final Map<Issue.IssueId, Issue> knownIssues = new EnumMap<Issue.IssueId, Issue>(Issue.IssueId.class);
+
     static {
-        knownIssues.put(Issue.IssueId.TYRUS_93, new Issue(Issue.IssueId.TYRUS_93, "ClientEndpoint session.getRequestURI()==null"));
-        knownIssues.put(Issue.IssueId.TYRUS_94, new Issue(Issue.IssueId.TYRUS_94, "ServerEndPoint: onError(): throwable.getCause()==null"));
-        knownIssues.put(Issue.IssueId.TYRUS_101, new Issue(Issue.IssueId.TYRUS_101, "CloseReason not propagated to server side (when close() initiated from client)"));
-        knownIssues.put(Issue.IssueId.TYRUS_104, new Issue(Issue.IssueId.TYRUS_104, "session should raise IllegalStateException when Session.getRemote() called on a closed session"));
+        knownIssues.put(
+                Issue.IssueId.TYRUS_93,
+                new Issue(Issue.IssueId.TYRUS_93, "ClientEndpoint session.getRequestURI()==null"));
+        knownIssues.put(
+                Issue.IssueId.TYRUS_94,
+                new Issue(Issue.IssueId.TYRUS_94, "ServerEndPoint: onError(): throwable.getCause()==null"));
+        knownIssues.put(
+                Issue.IssueId.TYRUS_101, new Issue(Issue.IssueId.TYRUS_101,
+                                                   "CloseReason not propagated to server side (when close() " +
+                                                           "initiated from client)"));
+        knownIssues.put(
+                Issue.IssueId.TYRUS_104, new Issue(Issue.IssueId.TYRUS_104,
+                                                   "session should raise IllegalStateException when Session" +
+                                                           ".getRemote() called on a closed session"));
     }
-    
+
     private static final Logger logger = Logger.getLogger(IssueManipulator.class.getCanonicalName());
 
     private IssueManipulator() {
     }
-    
+
     public static Issue getIssueById(Issue.IssueId id) {
-        if(id==null) {
+        if (id == null) {
             throw new IllegalArgumentException("id cannot be null");
         }
-        if(knownIssues.containsKey(id)) {
+        if (knownIssues.containsKey(id)) {
             return knownIssues.get(id);
         }
         throw new RuntimeException(String.format("Cannot find the issue: %s!", id));
-        
+
     }
-    
+
     public static boolean isIssueEnabled(Issue.IssueId id) {
         Issue loadedIssue = loadIssue(getIssueById(id));
         return loadedIssue.isEnabled();
@@ -97,7 +108,8 @@ public class IssueManipulator {
         if (issue == null) {
             throw new IllegalArgumentException("issue is null!");
         }
-        logger.log(Level.FINE, String.format("saveIssue(): Saving issue:%s [%s]", getIssueHolder(issue), issue.isEnabled()));
+        logger.log(Level.FINE,
+                   String.format("saveIssue(): Saving issue:%s [%s]", getIssueHolder(issue), issue.isEnabled()));
         SerializationToolkit stool = new SerializationToolkit(getIssueHolder(issue));
         stool.save(issue);
     }
@@ -108,28 +120,29 @@ public class IssueManipulator {
         }
         SerializationToolkit stool = new SerializationToolkit(getIssueHolder(issue));
         Object obj = stool.load();
-        if(obj!=null && obj instanceof Issue) {
-            Issue retrivedIssue = (Issue)obj;
-            logger.log(Level.FINE, String.format("loadIssue(): Loading issue:%s [%s]", getIssueHolder(issue), retrivedIssue.isEnabled()));
+        if (obj != null && obj instanceof Issue) {
+            Issue retrivedIssue = (Issue) obj;
+            logger.log(Level.FINE, String.format("loadIssue(): Loading issue:%s [%s]", getIssueHolder(issue),
+                                                 retrivedIssue.isEnabled()));
             return retrivedIssue;
         }
 
         throw new RuntimeException("loaded object is not Issue");
     }
-    
-     /**
+
+    /**
      * Disable all issue but the on requested. Handy for regression testing
      */
-    public static void disableAllButThisOne(Issue issue)  {
+    public static void disableAllButThisOne(Issue issue) {
         disableAll();
         issue.enable();
         saveIssue(issue);
     }
-    
+
     /**
      * Disable all issue but the on requested. Handy for regression testing
      */
-    public static void disableAllButThisOne(Issue.IssueId id)  {
+    public static void disableAllButThisOne(Issue.IssueId id) {
         disableAll();
         Issue issue = getIssueById(id);
         issue.enable();
@@ -139,7 +152,7 @@ public class IssueManipulator {
     /**
      * Enable All issues in the database
      */
-    public static void enableAll()  {
+    public static void enableAll() {
         for (Issue crno : knownIssues.values()) {
             crno.enable();
             saveIssue(crno);
@@ -155,5 +168,5 @@ public class IssueManipulator {
             saveIssue(crno);
         }
     }
-    
+
 }

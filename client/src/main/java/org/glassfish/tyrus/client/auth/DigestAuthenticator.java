@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -61,8 +61,10 @@ import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 final class DigestAuthenticator extends Authenticator {
     private static final Logger logger = Logger.getLogger(DigestAuthenticator.class.getName());
 
-    private static final char[] HEX_ARRAY = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
-    private static final Pattern KEY_VALUE_PAIR_PATTERN = Pattern.compile("(\\w+)\\s*=\\s*(\"([^\"]+)\"|(\\w+))\\s*,?\\s*");
+    private static final char[] HEX_ARRAY =
+            {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+    private static final Pattern KEY_VALUE_PAIR_PATTERN =
+            Pattern.compile("(\\w+)\\s*=\\s*(\"([^\"]+)\"|(\\w+))\\s*,?\\s*");
     private static final int CLIENT_NONCE_BYTE_COUNT = 4;
 
     private SecureRandom randomGenerator;
@@ -76,7 +78,8 @@ final class DigestAuthenticator extends Authenticator {
     }
 
     @Override
-    public String generateAuthorizationHeader(final URI uri, final String wwwAuthenticateHeader, final Credentials credentials) throws AuthenticationException {
+    public String generateAuthorizationHeader(final URI uri, final String wwwAuthenticateHeader,
+                                              final Credentials credentials) throws AuthenticationException {
         if (credentials == null) {
             throw new AuthenticationException(LocalizationMessages.AUTHENTICATION_CREDENTIALS_MISSING());
         }
@@ -157,7 +160,8 @@ final class DigestAuthenticator extends Authenticator {
      * @return digest authentication token string
      * @throws AuthenticationException if MD5 hash fails
      */
-    private String createNextAuthToken(final DigestScheme ds, final String uri, final Credentials credentials) throws AuthenticationException {
+    private String createNextAuthToken(final DigestScheme ds, final String uri, final Credentials credentials) throws
+            AuthenticationException {
         StringBuilder sb = new StringBuilder(100);
         sb.append("Digest ");
         append(sb, "username", credentials.getUsername());
@@ -171,9 +175,11 @@ final class DigestAuthenticator extends Authenticator {
 
         String ha1;
         if (ds.getAlgorithm().equals(Algorithm.MD5_SESS)) {
-            ha1 = md5(md5(credentials.getUsername(), ds.getRealm(), new String(credentials.getPassword(), AuthConfig.CHARACTER_SET)));
+            ha1 = md5(md5(credentials.getUsername(), ds.getRealm(),
+                          new String(credentials.getPassword(), AuthConfig.CHARACTER_SET)));
         } else {
-            ha1 = md5(credentials.getUsername(), ds.getRealm(), new String(credentials.getPassword(), AuthConfig.CHARACTER_SET));
+            ha1 = md5(credentials.getUsername(), ds.getRealm(),
+                      new String(credentials.getPassword(), AuthConfig.CHARACTER_SET));
         }
 
         String ha2 = md5("GET", uri);
@@ -201,7 +207,7 @@ final class DigestAuthenticator extends Authenticator {
      * @param value    value string
      * @param useQuote true if value needs to be enclosed in quotes
      */
-    static private void append(StringBuilder sb, String key, String value, boolean useQuote) {
+    private static void append(StringBuilder sb, String key, String value, boolean useQuote) {
 
         if (value == null) {
             return;
@@ -223,14 +229,13 @@ final class DigestAuthenticator extends Authenticator {
     }
 
     /**
-     * Append comma separated key=value token. The value gets enclosed in
-     * quotes.
+     * Append comma separated key=value token. The value gets enclosed in quotes.
      *
      * @param sb    string builder instance
      * @param key   key string
      * @param value value string
      */
-    static private void append(StringBuilder sb, String key, String value) {
+    private static void append(StringBuilder sb, String key, String value) {
         append(sb, key, value, true);
     }
 

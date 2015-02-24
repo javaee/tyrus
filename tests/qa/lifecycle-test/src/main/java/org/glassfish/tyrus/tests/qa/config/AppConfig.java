@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -69,7 +69,8 @@ public class AppConfig {
     private String commHost;
     private String commScheme;
 
-    public AppConfig(String contextPath, String endpointPath, String commScheme, String commHost, int commPort, String installRoot) {
+    public AppConfig(String contextPath, String endpointPath, String commScheme, String commHost, int commPort,
+                     String installRoot) {
         setContextPath(contextPath);
         setEndpointPath(endpointPath);
         setCommHost(commHost);

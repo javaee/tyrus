@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -87,7 +87,8 @@ public abstract class TyrusServerContainer extends BaseContainer implements Serv
      * Create new {@link TyrusServerContainer}.
      *
      * @param classes classes to be included in this application instance. Can contain any combination of annotated
-     *                endpoints (see {@link javax.websocket.server.ServerEndpoint}) or {@link javax.websocket.Endpoint} descendants.
+     *                endpoints (see {@link javax.websocket.server.ServerEndpoint}) or {@link javax.websocket.Endpoint}
+     *                descendants.
      */
     public TyrusServerContainer(Set<Class<?>> classes) {
         this.collector = new ErrorCollector();
@@ -113,12 +114,15 @@ public abstract class TyrusServerContainer extends BaseContainer implements Serv
     /**
      * Start container.
      *
-     * @throws IOException         when any IO related issues emerge during {@link org.glassfish.tyrus.spi.ServerContainer#start(String, int)}.
+     * @throws IOException         when any IO related issues emerge during {@link
+     *                             org.glassfish.tyrus.spi.ServerContainer#start(String, int)}.
      * @throws DeploymentException when any deployment related error is found; should contain list of all found issues.
      */
     @Override
     public void start(String rootPath, int port) throws IOException, DeploymentException {
-        ServerApplicationConfig configuration = new TyrusServerConfiguration(classes, dynamicallyAddedClasses, dynamicallyAddedEndpointConfigs, this.collector);
+        ServerApplicationConfig configuration =
+                new TyrusServerConfiguration(classes, dynamicallyAddedClasses, dynamicallyAddedEndpointConfigs,
+                                             this.collector);
 
         // start the underlying server
         try {
@@ -141,7 +145,8 @@ public abstract class TyrusServerContainer extends BaseContainer implements Serv
                 }
 
                 // deploy all the programmatic endpoints
-                for (ServerEndpointConfig serverEndpointConfiguration : serverApplicationConfig.getEndpointConfigs(null)) {
+                for (ServerEndpointConfig serverEndpointConfiguration : serverApplicationConfig
+                        .getEndpointConfigs(null)) {
                     if (serverEndpointConfiguration != null) {
                         register(serverEndpointConfiguration);
                     }
@@ -210,7 +215,8 @@ public abstract class TyrusServerContainer extends BaseContainer implements Serv
     }
 
     @Override
-    public Session connectToServer(Class<? extends Endpoint> endpointClass, ClientEndpointConfig cec, URI path) throws DeploymentException, IOException {
+    public Session connectToServer(Class<? extends Endpoint> endpointClass, ClientEndpointConfig cec, URI path) throws
+            DeploymentException, IOException {
         return getClientManager().connectToServer(endpointClass, cec, path);
     }
 
@@ -220,7 +226,8 @@ public abstract class TyrusServerContainer extends BaseContainer implements Serv
     }
 
     @Override
-    public Session connectToServer(Endpoint endpointInstance, ClientEndpointConfig cec, URI path) throws DeploymentException, IOException {
+    public Session connectToServer(Endpoint endpointInstance, ClientEndpointConfig cec, URI path) throws
+            DeploymentException, IOException {
         return getClientManager().connectToServer(endpointInstance, cec, path);
     }
 
@@ -240,7 +247,8 @@ public abstract class TyrusServerContainer extends BaseContainer implements Serv
     }
 
     /**
-     * Non-blocking version of {@link javax.websocket.WebSocketContainer#connectToServer(Class, javax.websocket.ClientEndpointConfig, java.net.URI)}.
+     * Non-blocking version of {@link javax.websocket.WebSocketContainer#connectToServer(Class,
+     * javax.websocket.ClientEndpointConfig, java.net.URI)}.
      * <p/>
      * Only simple checks are performed in the main thread; client container is created in different thread, same
      * applies to connecting etc.
@@ -250,14 +258,17 @@ public abstract class TyrusServerContainer extends BaseContainer implements Serv
      * @param cec           the configuration used to configure the programmatic endpoint.
      * @return the Session created if the connection is successful.
      * @throws DeploymentException if the configuration is not valid
-     * @see javax.websocket.WebSocketContainer#connectToServer(Class, javax.websocket.ClientEndpointConfig, java.net.URI)
+     * @see javax.websocket.WebSocketContainer#connectToServer(Class, javax.websocket.ClientEndpointConfig,
+     * java.net.URI)
      */
-    public Future<Session> asyncConnectToServer(Class<? extends Endpoint> endpointClass, ClientEndpointConfig cec, URI path) throws DeploymentException {
+    public Future<Session> asyncConnectToServer(Class<? extends Endpoint> endpointClass, ClientEndpointConfig cec,
+                                                URI path) throws DeploymentException {
         return getClientManager().asyncConnectToServer(endpointClass, cec, path);
     }
 
     /**
-     * Non-blocking version of {@link javax.websocket.WebSocketContainer#connectToServer(javax.websocket.Endpoint, javax.websocket.ClientEndpointConfig, java.net.URI)}.
+     * Non-blocking version of {@link javax.websocket.WebSocketContainer#connectToServer(javax.websocket.Endpoint,
+     * javax.websocket.ClientEndpointConfig, java.net.URI)}.
      * <p/>
      * Only simple checks are performed in the main thread; client container is created in different thread, same
      * applies to connecting etc.
@@ -267,9 +278,11 @@ public abstract class TyrusServerContainer extends BaseContainer implements Serv
      * @param cec              the configuration used to configure the programmatic endpoint.
      * @return the Session created if the connection is successful.
      * @throws DeploymentException if the configuration is not valid
-     * @see javax.websocket.WebSocketContainer#connectToServer(javax.websocket.Endpoint, javax.websocket.ClientEndpointConfig, java.net.URI)
+     * @see javax.websocket.WebSocketContainer#connectToServer(javax.websocket.Endpoint,
+     * javax.websocket.ClientEndpointConfig, java.net.URI)
      */
-    public Future<Session> asyncConnectToServer(Endpoint endpointInstance, ClientEndpointConfig cec, URI path) throws DeploymentException {
+    public Future<Session> asyncConnectToServer(Endpoint endpointInstance, ClientEndpointConfig cec, URI path) throws
+            DeploymentException {
         return getClientManager().asyncConnectToServer(endpointInstance, cec, path);
     }
 

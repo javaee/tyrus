@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 - 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -103,7 +103,8 @@ public class Twitter implements Broadcaster {
 
             try {
                 HttpSession httpSession = session.getHttpSession();
-                ApplicationPreferences preferences = (ApplicationPreferences) httpSession.getAttribute(ApplicationPreferences.APP_PREFERENCES);
+                ApplicationPreferences preferences =
+                        (ApplicationPreferences) httpSession.getAttribute(ApplicationPreferences.APP_PREFERENCES);
                 if (preferences != null) {
                     ((TwitterRemote) session.getRemote()).sendSearchResults(this.doSearch(preferences.getTickers()));
                 } else {
@@ -126,7 +127,8 @@ public class Twitter implements Broadcaster {
                 searchTerm = searchTerm + "%20OR%20%23" + symbol;
             }
         }
-        String result = Util.getData("http://search.twitter.com/search.json?q=" + searchTerm + "&rpp=" + maxResults + "&result_type=recent");
+        String result = Util.getData(
+                "http://search.twitter.com/search.json?q=" + searchTerm + "&rpp=" + maxResults + "&result_type=recent");
         JSONObject json = new JSONObject(result);
         JSONArray results = (JSONArray) json.get("results");
         for (int i = 0; i < results.length(); i++) {

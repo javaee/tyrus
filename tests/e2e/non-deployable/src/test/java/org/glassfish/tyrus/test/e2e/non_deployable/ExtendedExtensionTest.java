@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -90,8 +90,10 @@ public class ExtendedExtensionTest extends TestContainer {
             ArrayList<Extension> extensions = new ArrayList<Extension>();
             extensions.add(EXTENDED_EXTENSION);
 
-            final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create().extensions(extensions)
-                    .configurator(new LoggingClientEndpointConfigurator()).build();
+            final ClientEndpointConfig clientConfiguration =
+                    ClientEndpointConfig.Builder.create()
+                                                .extensions(extensions)
+                                                .configurator(new LoggingClientEndpointConfigurator()).build();
 
             ClientManager client = createClient();
             final Session session = client.connectToServer(new Endpoint() {
@@ -132,8 +134,10 @@ public class ExtendedExtensionTest extends TestContainer {
             assertEquals("value1", EXTENDED_EXTENSION.onHandshakeResponse.get(0).getValue());
 
             assertEquals(EXTENDED_EXTENSION.getParameters().size(), EXTENDED_EXTENSION.onExtensionNegotiation.size());
-            assertEquals(EXTENDED_EXTENSION.getParameters().get(0).getName(), EXTENDED_EXTENSION.onExtensionNegotiation.get(0).getName());
-            assertEquals(EXTENDED_EXTENSION.getParameters().get(0).getValue(), EXTENDED_EXTENSION.onExtensionNegotiation.get(0).getValue());
+            assertEquals(EXTENDED_EXTENSION.getParameters().get(0).getName(), EXTENDED_EXTENSION
+                    .onExtensionNegotiation.get(0).getName());
+            assertEquals(EXTENDED_EXTENSION.getParameters().get(0).getValue(), EXTENDED_EXTENSION
+                    .onExtensionNegotiation.get(0).getValue());
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -143,7 +147,7 @@ public class ExtendedExtensionTest extends TestContainer {
         }
     }
 
-    private final static MyExtendedExtension EXTENDED_EXTENSION = new MyExtendedExtension();
+    private static final MyExtendedExtension EXTENDED_EXTENSION = new MyExtendedExtension();
 
     public static class ExtendedExtensionEndpoint extends Endpoint {
 
@@ -185,9 +189,10 @@ public class ExtendedExtensionTest extends TestContainer {
         public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> endpointClasses) {
             Set<ServerEndpointConfig> endpointConfigs = new HashSet<ServerEndpointConfig>();
             endpointConfigs.add(
-                    ServerEndpointConfig.Builder.create(ExtendedExtensionEndpoint.class, "/extendedExtensionEndpoint")
-                            .extensions(Arrays.<Extension>asList(EXTENDED_EXTENSION)).build()
-            );
+                    ServerEndpointConfig.Builder
+                            .create(ExtendedExtensionEndpoint.class, "/extendedExtensionEndpoint")
+                            .extensions(Arrays.<Extension>asList(EXTENDED_EXTENSION))
+                            .build());
             return endpointConfigs;
         }
 
@@ -199,7 +204,7 @@ public class ExtendedExtensionTest extends TestContainer {
 
     public static class MyExtendedExtension implements ExtendedExtension {
 
-        private final static String NAME = "MyExtendedExtension";
+        private static final String NAME = "MyExtendedExtension";
         public final AtomicInteger incomingCounter = new AtomicInteger(0);
         public final AtomicInteger outgoingCounter = new AtomicInteger(0);
 
@@ -219,7 +224,8 @@ public class ExtendedExtensionTest extends TestContainer {
         }
 
         @Override
-        public List<Extension.Parameter> onExtensionNegotiation(ExtendedExtension.ExtensionContext context, List<Extension.Parameter> requestedParameters) {
+        public List<Extension.Parameter> onExtensionNegotiation(ExtendedExtension.ExtensionContext context,
+                                                                List<Extension.Parameter> requestedParameters) {
             print("onExtensionNegotiation :: " + context + " :: " + requestedParameters);
             onExtensionNegotiation = requestedParameters;
 
@@ -304,12 +310,12 @@ public class ExtendedExtensionTest extends TestContainer {
         }
 
         private void logHeaders(Map<String, List<String>> headers) {
-            for(Map.Entry<String, List<String>> entry: headers.entrySet()) {
+            for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
                 System.out.print("# " + entry.getKey() + ": ");
                 boolean first = true;
-                for(String value : entry.getValue()) {
+                for (String value : entry.getValue()) {
                     System.out.print((first ? "" : ", ") + value);
-                    if(first) {
+                    if (first) {
                         first = false;
                     }
                 }

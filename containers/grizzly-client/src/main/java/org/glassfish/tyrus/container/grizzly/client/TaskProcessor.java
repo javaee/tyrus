@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -45,9 +45,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * A class responsible for processing {@link Task}. It ensures that only one task will be processed at a time,
- * because Grizzly Worker-thread IOStrategy does not wait until one message is processed before
- * dispatching another one.
+ * A class responsible for processing {@link Task}. It ensures that only one task will be processed at a time, because
+ * Grizzly Worker-thread IOStrategy does not wait until one message is processed before dispatching another one.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  * @author Petr Janouch (petr.janouch at oracle.com)
@@ -64,7 +63,8 @@ public class TaskProcessor {
     /**
      * Constructor.
      *
-     * @param condition if present, it will be called before processing each {@link Task}. When {@link org.glassfish.tyrus.container.grizzly.client.TaskProcessor.Condition#isValid()}
+     * @param condition if present, it will be called before processing each {@link Task}. When {@link
+     *                  org.glassfish.tyrus.container.grizzly.client.TaskProcessor.Condition#isValid()}
      *                  returns {@code false}, processing will be terminated. If {@code null},
      *                  all tasks from the queue will be processed.
      */
@@ -118,10 +118,10 @@ public class TaskProcessor {
         }
 
         /*
-         * There is a small chance that another thread will manage to add a task to the queue in the moment when the thread
-         * processing tasks has left the while cycle, but has not released the lock yet. In that case a task might
-         * be added to the queue and stay there indefinitely. It is quite improbable, but the thread that has finished
-         * processing tasks should try to process more tasks after releasing the lock.
+         * There is a small chance that another thread will manage to add a task to the queue in the moment when the
+         * thread processing tasks has left the while cycle, but has not released the lock yet. In that case a task
+         * might be added to the queue and stay there indefinitely. It is quite improbable, but the thread that has
+         * finished processing tasks should try to process more tasks after releasing the lock.
          */
         if (!taskQueue.isEmpty()) {
             processTask();
@@ -131,7 +131,7 @@ public class TaskProcessor {
     /**
      * Generic task representation.
      */
-    public static abstract class Task {
+    public abstract static class Task {
         /**
          * To be overridden.
          */

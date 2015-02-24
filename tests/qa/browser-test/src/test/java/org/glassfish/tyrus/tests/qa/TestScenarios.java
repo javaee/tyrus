@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -45,13 +45,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
+
 import org.junit.Assert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 
 /**
- *
  * @author Michal Čonos (michal.conos at oracle.com)
  */
 public class TestScenarios {
@@ -74,7 +74,7 @@ public class TestScenarios {
             Thread.sleep(2000);
             session.getDriver().switchTo().alert().accept();
         }
-        
+
         void logout() throws Exception {
             session.click(By.id("LoginButtonID"));
         }
@@ -84,73 +84,73 @@ public class TestScenarios {
             // Send the message
             session.click(By.id("SendChatButtonID"));
         }
-        
+
         String getChatWindowText() {
             return session.getTextById("chatTranscriptID");
         }
-        
+
         String getChatUsersWindowText() {
             return session.getTextById("userListID");
         }
     }
-    
+
     class AuctionSample {
         private static final String AUCTION_CONTEXT_PATH = "/sample-auction";
-        public static final int AUCTION_TIMEOUT=2000;
-        
+        public static final int AUCTION_TIMEOUT = 2000;
+
         SeleniumToolkit session;
         JavascriptExecutor js;
-        
+
         public AuctionSample(SeleniumToolkit session) {
             this.session = session;
             js = (JavascriptExecutor) session.getDriver();
         }
-        
+
         void login(String user) throws InterruptedException, Exception {
             session.get(getURI(AUCTION_CONTEXT_PATH).toString());
             session.sendKeys(By.id("loginID"), user);
             session.click(By.id("loginButtonID"));
         }
-        
+
         void chooseAuction(String item) throws Exception {
-            session.click(By.xpath("//option[text()='"+item+"']"));
+            session.click(By.xpath("//option[text()='" + item + "']"));
             session.click(By.id("selectButtonID"));
         }
-        
+
         private String jsValue(String id) {
-            return String.valueOf(js.executeScript("return document.getElementById('"+id+"').value"));
+            return String.valueOf(js.executeScript("return document.getElementById('" + id + "').value"));
         }
-        
+
         String getAuctionStatus() {
             return jsValue("startTimeID");
-            
+
         }
-        
+
         Float getItemCurrentPrice() {
             return new Float(jsValue("currentPriceID"));
         }
-        
+
         String getAuctionRemainingTime() {
             return jsValue("remainingTimeID");
         }
-        
+
         void bidOnItem(Float howMuch) throws InterruptedException, Exception {
             session.sendKeys(By.id("bidID"), String.valueOf(howMuch.floatValue()));
             session.click(By.id("sendBidID"));
         }
-        
+
         void exit() throws Exception {
             session.click(By.id("backButtonID"));
         }
-        
-        
+
+
     }
-    
+
     private final String DEFAULT_HOST = "localhost";
     private final int DEFAULT_INSTANCE_PORT = 8080;
     private final String HANDSHAKE_CONTEXT_PATH = "/browser-test";
-    static final int MAX_CHAT_CLIENTS=20;
-    
+    static final int MAX_CHAT_CLIENTS = 20;
+
     private static final Logger logger = Logger.getLogger(TestScenarios.class.getCanonicalName());
     SeleniumToolkit toolkit = null;
     List<SeleniumToolkit> toolkits = new CopyOnWriteArrayList<SeleniumToolkit>();
@@ -160,7 +160,7 @@ public class TestScenarios {
         toolkits.add(toolkit);
     }
 
-    public TestScenarios(SeleniumToolkit ... toolKits) {
+    public TestScenarios(SeleniumToolkit... toolKits) {
         if (toolKits.length <= 0) {
             throw new IllegalArgumentException("toolkits array has zero length!");
         }
@@ -169,9 +169,9 @@ public class TestScenarios {
         }
         this.toolkit = toolkits.get(0);
     }
-    
+
     public boolean numOfClientsGreaterThan(int n) {
-        return toolkits.size()>=n;
+        return toolkits.size() >= n;
     }
 
     public boolean hasOneClient() {
@@ -240,7 +240,7 @@ public class TestScenarios {
     public void testChatSampleWithTwoUsers() throws InterruptedException, Exception {
         Assert.assertTrue("we need at least two clients connecting", hasAtLeastTwoClients());
         ChatSample aliceSession = new ChatSample(toolkits.get(0));
-        ChatSample bobSession   = new ChatSample(toolkits.get(1));
+        ChatSample bobSession = new ChatSample(toolkits.get(1));
         aliceSession.login("Alice");
         aliceSession.sendMessage("Hello guys");
         bobSession.login("Bob");
@@ -257,30 +257,32 @@ public class TestScenarios {
         Assert.assertFalse("Alice doesn't see Bob anymore", aliceSession.getChatUsersWindowText().contains("Bob"));
         aliceSession.logout();
     }
-    
+
     public void testChatSampleWith100Users() throws InterruptedException, Exception {
         Assert.assertTrue("Need 100 clients", numOfClientsGreaterThan(MAX_CHAT_CLIENTS));
         List<ChatSample> sessions = new ArrayList<ChatSample>(MAX_CHAT_CLIENTS);
         // Login and send some text
-        for(int idx=0; idx<MAX_CHAT_CLIENTS; idx++) {
+        for (int idx = 0; idx < MAX_CHAT_CLIENTS; idx++) {
             sessions.add(new ChatSample(toolkits.get(idx)));
-            sessions.get(idx).login("User"+idx);
-            sessions.get(idx).sendMessage("Hi from User"+idx);
+            sessions.get(idx).login("User" + idx);
+            sessions.get(idx).sendMessage("Hi from User" + idx);
         }
         // Verify All users in user window by some user
-        for(int idx=0; idx<MAX_CHAT_CLIENTS; idx++) {
-            Assert.assertTrue("User"+idx+" seen by User50", sessions.get(MAX_CHAT_CLIENTS/2).getChatUsersWindowText().contains("User"+idx));
-            
+        for (int idx = 0; idx < MAX_CHAT_CLIENTS; idx++) {
+            Assert.assertTrue("User" + idx + " seen by User50",
+                              sessions.get(MAX_CHAT_CLIENTS / 2).getChatUsersWindowText().contains("User" + idx));
+
         }
-        for(int idx=MAX_CHAT_CLIENTS/4; idx<MAX_CHAT_CLIENTS; idx++) {
-            Assert.assertTrue("Hi from User"+idx+" seen by User25", sessions.get(MAX_CHAT_CLIENTS/4).getChatWindowText().contains("Hi from User"+idx));
+        for (int idx = MAX_CHAT_CLIENTS / 4; idx < MAX_CHAT_CLIENTS; idx++) {
+            Assert.assertTrue("Hi from User" + idx + " seen by User25",
+                              sessions.get(MAX_CHAT_CLIENTS / 4).getChatWindowText().contains("Hi from User" + idx));
         }
         //Logout
-        for(int idx=0; idx<MAX_CHAT_CLIENTS; idx++) {
+        for (int idx = 0; idx < MAX_CHAT_CLIENTS; idx++) {
             sessions.get(idx).logout();
         }
     }
-    
+
     public void testAuctionSample() throws InterruptedException, Exception {
         Assert.assertTrue("we need at least one client connecting", hasAtLeastOneClient());
         AuctionSample session = new AuctionSample(toolkit);
@@ -288,7 +290,7 @@ public class TestScenarios {
         session.chooseAuction("Omega");
         Thread.sleep(AuctionSample.AUCTION_TIMEOUT);
         Assert.assertEquals("Auction has started", "Auction Started", session.getAuctionStatus());
-        Float bid = 10.0f  + session.getItemCurrentPrice();
+        Float bid = 10.0f + session.getItemCurrentPrice();
         session.bidOnItem(bid);
         Float newPrice = session.getItemCurrentPrice();
         Assert.assertEquals("New bid accepted", bid, newPrice);

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -77,7 +77,8 @@ public class CloseFrame extends TyrusFrame {
         String closeReasonString;
         final byte[] data = frame.getPayloadData();
         if (data.length < 2) {
-            throw new ProtocolException("Closing wrappedFrame payload, if present, must be a minimum of 2 bytes in length") {
+            throw new ProtocolException(
+                    "Closing wrappedFrame payload, if present, must be a minimum of 2 bytes in length") {
 
                 private static final long serialVersionUID = -5720682492584668231L;
 
@@ -94,7 +95,8 @@ public class CloseFrame extends TyrusFrame {
             };
         } else {
             closeCode = (int) Utils.toLong(data, 0, 2);
-            if (closeCode < 1000 || closeCode == 1004 || closeCode == 1005 || closeCode == 1006 || (closeCode > 1013 && closeCode < 3000) || closeCode > 4999) {
+            if (closeCode < 1000 || closeCode == 1004 || closeCode == 1005 || closeCode == 1006 ||
+                    (closeCode > 1013 && closeCode < 3000) || closeCode > 4999) {
                 throw new ProtocolException("Illegal status code: " + closeCode);
             }
             if (data.length > 2) {
@@ -113,7 +115,9 @@ public class CloseFrame extends TyrusFrame {
      * @param closeReason close reason used to construct close frame.
      */
     public CloseFrame(CloseReason closeReason) {
-        super(Frame.builder().fin(true).opcode((byte) 0x08).payloadData(getPayload(closeReason.getCloseCode().getCode(), closeReason.getReasonPhrase())).build(), FrameType.CLOSE);
+        super(Frame.builder().fin(true).opcode((byte) 0x08)
+                   .payloadData(getPayload(closeReason.getCloseCode().getCode(), closeReason.getReasonPhrase()))
+                   .build(), FrameType.CLOSE);
         this.closeReason = closeReason;
     }
 

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -144,7 +144,8 @@ public class ClientReconnectHandlerTest extends TestContainer {
                 public boolean onConnectFailure(Exception exception) {
                     final int i = counter.incrementAndGet();
                     if (i <= 3) {
-                        System.out.println("### Reconnecting... (reconnect count: " + i + ") " + exception.getMessage());
+                        System.out.println(
+                                "### Reconnecting... (reconnect count: " + i + ") " + exception.getMessage());
                         return true;
                     } else {
                         messageLatch.countDown();

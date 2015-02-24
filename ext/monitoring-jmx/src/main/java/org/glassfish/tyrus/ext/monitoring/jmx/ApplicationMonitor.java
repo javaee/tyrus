@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -52,9 +52,9 @@ import org.glassfish.tyrus.core.monitoring.EndpointEventListener;
  * Application events listener and application-level statistics collector.
  * The statistics are collected by aggregating statistics from application endpoints.
  * <p/>
- * Creates and registers {@link org.glassfish.tyrus.ext.monitoring.jmx.ApplicationMXBean} MXBean that exposes these application statistics.
- * Also creates and registers {@link org.glassfish.tyrus.ext.monitoring.jmx.MessageStatisticsMXBean} MXBean for exposing
- * text, binary and control messages statistics.
+ * Creates and registers {@link org.glassfish.tyrus.ext.monitoring.jmx.ApplicationMXBean} MXBean that exposes these
+ * application statistics. Also creates and registers {@link org.glassfish.tyrus.ext.monitoring.jmx
+ * .MessageStatisticsMXBean} MXBean for exposing text, binary and control messages statistics.
  * <p/>
  * Allows defining the level monitoring will be conducted on by setting parameter in constructor that determines
  * if message statistics should be collected on session level or not. In the former case statistics will be collected
@@ -99,15 +99,27 @@ class ApplicationMonitor extends BaseMonitor implements ApplicationEventListener
     public void onApplicationInitialized(String applicationName) {
         this.applicationName = applicationName;
 
-        MessageStatisticsMXBeanImpl textMessagesMXBean = new MessageStatisticsMXBeanImpl(sentTextMessageStatistics, receivedTextMessageStatistics);
-        MessageStatisticsMXBeanImpl controlMessagesMXBean = new MessageStatisticsMXBeanImpl(sentControlMessageStatistics, receivedControlMessageStatistics);
-        MessageStatisticsMXBeanImpl binaryMessagesMXBean = new MessageStatisticsMXBeanImpl(sentBinaryMessageStatistics, receivedBinaryMessageStatistics);
+        MessageStatisticsMXBeanImpl textMessagesMXBean =
+                new MessageStatisticsMXBeanImpl(sentTextMessageStatistics, receivedTextMessageStatistics);
+        MessageStatisticsMXBeanImpl controlMessagesMXBean =
+                new MessageStatisticsMXBeanImpl(sentControlMessageStatistics, receivedControlMessageStatistics);
+        MessageStatisticsMXBeanImpl binaryMessagesMXBean =
+                new MessageStatisticsMXBeanImpl(sentBinaryMessageStatistics, receivedBinaryMessageStatistics);
 
-        MessageStatisticsAggregator sentTotalStatistics = new MessageStatisticsAggregator(sentTextMessageStatistics, sentBinaryMessageStatistics, sentControlMessageStatistics);
-        MessageStatisticsAggregator receivedTotalStatistics = new MessageStatisticsAggregator(receivedTextMessageStatistics, receivedBinaryMessageStatistics, receivedControlMessageStatistics);
-        applicationMXBean = new ApplicationMXBeanImpl(sentTotalStatistics, receivedTotalStatistics, getEndpoints(), getEndpointPaths(), getOpenSessionsCount(), getMaxOpenSessionsCount(), getErrorCounts(), textMessagesMXBean, binaryMessagesMXBean, controlMessagesMXBean);
+        MessageStatisticsAggregator sentTotalStatistics =
+                new MessageStatisticsAggregator(sentTextMessageStatistics, sentBinaryMessageStatistics,
+                                                sentControlMessageStatistics);
+        MessageStatisticsAggregator receivedTotalStatistics =
+                new MessageStatisticsAggregator(receivedTextMessageStatistics, receivedBinaryMessageStatistics,
+                                                receivedControlMessageStatistics);
+        applicationMXBean =
+                new ApplicationMXBeanImpl(sentTotalStatistics, receivedTotalStatistics, getEndpoints(),
+                                          getEndpointPaths(), getOpenSessionsCount(), getMaxOpenSessionsCount(),
+                                          getErrorCounts(), textMessagesMXBean, binaryMessagesMXBean,
+                                          controlMessagesMXBean);
 
-        MBeanPublisher.registerApplicationMXBeans(applicationName, applicationMXBean, textMessagesMXBean, binaryMessagesMXBean, controlMessagesMXBean);
+        MBeanPublisher.registerApplicationMXBeans(applicationName, applicationMXBean, textMessagesMXBean,
+                                                  binaryMessagesMXBean, controlMessagesMXBean);
     }
 
     @Override
@@ -119,9 +131,11 @@ class ApplicationMonitor extends BaseMonitor implements ApplicationEventListener
     public EndpointEventListener onEndpointRegistered(String endpointPath, Class<?> endpointClass) {
         EndpointMonitor endpointJmx;
         if (monitorOnSessionLevel) {
-            endpointJmx = new SessionAwareEndpointMonitor(this, applicationMXBean, applicationName, endpointPath, endpointClass.getName());
+            endpointJmx = new SessionAwareEndpointMonitor(this, applicationMXBean, applicationName, endpointPath,
+                                                          endpointClass.getName());
         } else {
-            endpointJmx = new SessionlessEndpointMonitor(this, applicationMXBean, applicationName, endpointPath, endpointClass.getName());
+            endpointJmx = new SessionlessEndpointMonitor(this, applicationMXBean, applicationName, endpointPath,
+                                                         endpointClass.getName());
 
         }
         endpoints.put(endpointPath, endpointJmx);

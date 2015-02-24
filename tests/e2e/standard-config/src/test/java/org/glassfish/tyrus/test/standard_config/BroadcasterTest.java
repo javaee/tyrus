@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -101,7 +101,7 @@ public class BroadcasterTest extends TestContainer {
             ea1.peer.sendText(SENT_MESSAGE);
 
             assertTrue("Timeout reached. Message latch value: " + messageLatch.getCount(),
-                    messageLatch.await(5, TimeUnit.SECONDS));
+                       messageLatch.await(5, TimeUnit.SECONDS));
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -139,7 +139,7 @@ public class BroadcasterTest extends TestContainer {
             ea1.peer.sendText(SENT_MESSAGE);
 
             assertTrue("Timeout reached. Message latch value: " + messageLatch.getCount(),
-                    messageLatch.await(5, TimeUnit.SECONDS));
+                       messageLatch.await(5, TimeUnit.SECONDS));
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -124,15 +124,19 @@ public class TyrusServerEndpointConfigurator extends ServerEndpointConfig.Config
                                     /**
                                      * {@inheritDoc}
                                      * <p/>
-                                     * Please note the TODO. {@link ExtendedExtension#onExtensionNegotiation(ExtensionContext, List)}
+                                     * Please note the TODO. {@link
+                                     * ExtendedExtension#onExtensionNegotiation(ExtensionContext, List)}
                                      */
                                     @Override
-                                    public List<Parameter> onExtensionNegotiation(ExtensionContext context, List<Parameter> requestedParameters) {
-                                        return extendedExtension.onExtensionNegotiation(context, requestedExtension.getParameters());
+                                    public List<Parameter> onExtensionNegotiation(ExtensionContext context,
+                                                                                  List<Parameter> requestedParameters) {
+                                        return extendedExtension
+                                                .onExtensionNegotiation(context, requestedExtension.getParameters());
                                     }
 
                                     @Override
-                                    public void onHandshakeResponse(ExtensionContext context, List<Parameter> responseParameters) {
+                                    public void onHandshakeResponse(ExtensionContext context,
+                                                                    List<Parameter> responseParameters) {
                                         extendedExtension.onHandshakeResponse(context, responseParameters);
                                     }
 

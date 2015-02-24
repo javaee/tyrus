@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -109,13 +109,15 @@ public class ErrorStatisticsTest extends TestContainer {
 
             CountDownLatch errorCountDownLatch = new CountDownLatch(8);
 
-            ApplicationEventListener applicationEventListener = new TestApplicationEventListener(applicationMonitor, null, null, null, null, errorCountDownLatch);
+            ApplicationEventListener applicationEventListener =
+                    new TestApplicationEventListener(applicationMonitor, null, null, null, null, errorCountDownLatch);
             getServerProperties().put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, applicationEventListener);
             server = startServer(ApplicationConfig.class);
 
             ClientManager client = createClient();
 
-            Session session = client.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
+            Session session = client.connectToServer(
+                    AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
             session.getBasicRemote().sendText("Hello");
             session.getBasicRemote().sendBinary(ByteBuffer.wrap("Hello".getBytes()));
             session.close();
@@ -129,7 +131,8 @@ public class ErrorStatisticsTest extends TestContainer {
 
             String applicationMXBeanName = "org.glassfish.tyrus:type=/errorTestApp";
             MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-            ApplicationMXBean applicationMXBean = JMX.newMXBeanProxy(mBeanServer, new ObjectName(applicationMXBeanName), ApplicationMXBean.class);
+            ApplicationMXBean applicationMXBean =
+                    JMX.newMXBeanProxy(mBeanServer, new ObjectName(applicationMXBeanName), ApplicationMXBean.class);
 
             Map<String, Long> errorMap = new HashMap<String, Long>();
             for (ErrorCount error : applicationMXBean.getErrorCounts()) {
@@ -160,9 +163,12 @@ public class ErrorStatisticsTest extends TestContainer {
 
         @Override
         public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> endpointClasses) {
-            return new HashSet<ServerEndpointConfig>() {{
-                add(ServerEndpointConfig.Builder.create(ProgrammaticServerEndpoint.class, "/programmaticEndpoint").build());
-            }};
+            return new HashSet<ServerEndpointConfig>() {
+                {
+                    add(ServerEndpointConfig.Builder.create(ProgrammaticServerEndpoint.class,
+                                                            "/programmaticEndpoint").build());
+                }
+            };
         }
 
         @Override

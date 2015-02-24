@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -55,8 +55,7 @@ import org.glassfish.tyrus.core.extension.ExtendedExtension;
 import org.glassfish.tyrus.core.frame.Frame;
 
 /**
- * Compression Extensions for WebSocket
- * draft-ietf-hybi-permessage-compression-15
+ * Compression Extensions for WebSocket draft-ietf-hybi-permessage-compression-15
  * <p/>
  * http://tools.ietf.org/html/draft-ietf-hybi-permessage-compression-15
  * <p/>
@@ -134,7 +133,8 @@ public class PerMessageDeflateExtension implements ExtendedExtension {
         }
     }
 
-    private int processCompressed(Inflater decompresser, byte[] compressed, int length, List<PartialResultWithLength<byte[]>> partialResults) {
+    private int processCompressed(Inflater decompresser, byte[] compressed, int length,
+                                  List<PartialResultWithLength<byte[]>> partialResults) {
         decompresser.setInput(compressed, 0, length);
         int decompressedLength = 0;
         do {
@@ -203,12 +203,13 @@ public class PerMessageDeflateExtension implements ExtendedExtension {
                     completeResult[completeResult.length - 4] == TAIL[0] &&
                     completeResult[completeResult.length - 3] == TAIL[1] &&
                     completeResult[completeResult.length - 2] == TAIL[2] &&
-                    completeResult[completeResult.length - 1] == TAIL[3]
-                    ) {
+                    completeResult[completeResult.length - 1] == TAIL[3]) {
                 strip = true;
             }
 
-            return Frame.builder(frame).payloadData(completeResult).payloadLength(strip ? completeResult.length - 4 : completeResult.length).rsv1(true).build();
+            return Frame.builder(frame).payloadData(completeResult).payloadLength(strip ? completeResult.length - 4 :
+                                                                                          completeResult.length)
+                        .rsv1(true).build();
         } else {
             return frame;
         }
@@ -270,7 +271,7 @@ public class PerMessageDeflateExtension implements ExtendedExtension {
      * @author Jitendra Kotamraju
      * @author Pavel Bucek (pavel.bucek at oracle.com)
      */
-    private static abstract class Pool<T> {
+    private abstract static class Pool<T> {
 
         // volatile since multiple threads may access queue reference
         private volatile WeakReference<ConcurrentLinkedQueue<T>> queue;
@@ -285,8 +286,9 @@ public class PerMessageDeflateExtension implements ExtendedExtension {
          */
         public final T take() {
             T t = getQueue().poll();
-            if (t == null)
+            if (t == null) {
                 return create();
+            }
             return t;
         }
 
@@ -301,8 +303,9 @@ public class PerMessageDeflateExtension implements ExtendedExtension {
             WeakReference<ConcurrentLinkedQueue<T>> q = queue;
             if (q != null) {
                 ConcurrentLinkedQueue<T> d = q.get();
-                if (d != null)
+                if (d != null) {
                     return d;
+                }
             }
 
             // overwrite the queue

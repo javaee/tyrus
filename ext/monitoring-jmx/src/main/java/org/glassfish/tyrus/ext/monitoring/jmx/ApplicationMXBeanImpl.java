@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -53,12 +53,21 @@ class ApplicationMXBeanImpl extends BaseMXBeanImpl implements ApplicationMXBean,
 
     private final Callable<List<EndpointClassNamePathPair>> endpoints;
     private final Callable<List<String>> endpointPaths;
-    private final ConcurrentHashMap<String, EndpointMXBean> endpointMXBeans = new ConcurrentHashMap<String, EndpointMXBean>();
+    private final ConcurrentHashMap<String, EndpointMXBean> endpointMXBeans =
+            new ConcurrentHashMap<String, EndpointMXBean>();
     private final Callable<Integer> openSessionsCount;
     private final Callable<Integer> maxOpenSessionsCount;
 
-    public ApplicationMXBeanImpl(MessageStatisticsSource sentMessageStatistics, MessageStatisticsSource receivedMessageStatistics, Callable<List<EndpointClassNamePathPair>> endpoints, Callable<List<String>> endpointPaths, Callable<Integer> openSessionsCount, Callable<Integer> maxOpenSessionsCount, Callable<List<ErrorCount>> errorCounts, MessageStatisticsMXBean textMessageStatisticsMXBean, MessageStatisticsMXBean binaryMessageStatisticsMXBean, MessageStatisticsMXBean controlMessageStatisticsMXBean) {
-        super(sentMessageStatistics, receivedMessageStatistics, errorCounts, textMessageStatisticsMXBean, binaryMessageStatisticsMXBean, controlMessageStatisticsMXBean);
+    public ApplicationMXBeanImpl(MessageStatisticsSource sentMessageStatistics,
+                                 MessageStatisticsSource receivedMessageStatistics,
+                                 Callable<List<EndpointClassNamePathPair>> endpoints,
+                                 Callable<List<String>> endpointPaths, Callable<Integer> openSessionsCount,
+                                 Callable<Integer> maxOpenSessionsCount, Callable<List<ErrorCount>> errorCounts,
+                                 MessageStatisticsMXBean textMessageStatisticsMXBean,
+                                 MessageStatisticsMXBean binaryMessageStatisticsMXBean,
+                                 MessageStatisticsMXBean controlMessageStatisticsMXBean) {
+        super(sentMessageStatistics, receivedMessageStatistics, errorCounts, textMessageStatisticsMXBean,
+              binaryMessageStatisticsMXBean, controlMessageStatisticsMXBean);
         this.endpoints = endpoints;
         this.endpointPaths = endpointPaths;
         this.openSessionsCount = openSessionsCount;

@@ -104,7 +104,8 @@ public class MessageSequenceTest extends TestContainer {
     }
 
     @Test
-    public void testMessageSequenceTextPartialBinaryWhole() throws URISyntaxException, IOException, DeploymentException, InterruptedException {
+    public void testMessageSequenceTextPartialBinaryWhole() throws URISyntaxException, IOException, DeploymentException,
+            InterruptedException {
         Server server = startServer(MessageSequenceTestEndpoint.class);
 
         try {
@@ -147,7 +148,8 @@ public class MessageSequenceTest extends TestContainer {
     }
 
     @Test
-    public void testMessageSequenceTextPartialTextWhole() throws URISyntaxException, IOException, DeploymentException, InterruptedException {
+    public void testMessageSequenceTextPartialTextWhole() throws URISyntaxException, IOException, DeploymentException,
+            InterruptedException {
         Server server = startServer(MessageSequenceTestEndpoint.class);
 
         try {
@@ -190,7 +192,8 @@ public class MessageSequenceTest extends TestContainer {
     }
 
     @Test
-    public void testMessageSequenceTextPartialBinaryPartial() throws URISyntaxException, IOException, DeploymentException, InterruptedException {
+    public void testMessageSequenceTextPartialBinaryPartial() throws URISyntaxException, IOException,
+            DeploymentException, InterruptedException {
         Server server = startServer(MessageSequenceTestEndpoint.class);
 
         try {
@@ -233,7 +236,8 @@ public class MessageSequenceTest extends TestContainer {
     }
 
     @Test
-    public void testMessageSequenceTextPartialTextWholeWithShortWait() throws URISyntaxException, IOException, DeploymentException, InterruptedException {
+    public void testMessageSequenceTextPartialTextWholeWithShortWait() throws URISyntaxException, IOException,
+            DeploymentException, InterruptedException {
         Server server = startServer(MessageSequenceTestEndpoint.class);
 
         try {
@@ -296,7 +300,8 @@ public class MessageSequenceTest extends TestContainer {
     }
 
     @Test
-    public void testMessageSequenceTextPartialBinaryWholeWithShortWait() throws URISyntaxException, IOException, DeploymentException, InterruptedException {
+    public void testMessageSequenceTextPartialBinaryWholeWithShortWait() throws URISyntaxException, IOException,
+            DeploymentException, InterruptedException {
         Server server = startServer(MessageSequenceTestEndpoint.class);
 
         try {
@@ -359,7 +364,8 @@ public class MessageSequenceTest extends TestContainer {
     }
 
     @Test
-    public void testMessageSequenceTextPartialTextWholeWithLongWait() throws URISyntaxException, IOException, DeploymentException, InterruptedException {
+    public void testMessageSequenceTextPartialTextWholeWithLongWait() throws URISyntaxException, IOException,
+            DeploymentException, InterruptedException {
         Server server = startServer(MessageSequenceTestEndpoint.class);
 
         try {
@@ -427,7 +433,8 @@ public class MessageSequenceTest extends TestContainer {
     }
 
     @Test
-    public void testMessageSequenceTextPartialBinaryWholeWithLongWait() throws URISyntaxException, IOException, DeploymentException, InterruptedException {
+    public void testMessageSequenceTextPartialBinaryWholeWithLongWait() throws URISyntaxException, IOException,
+            DeploymentException, InterruptedException {
         Server server = startServer(MessageSequenceTestEndpoint.class);
 
         try {
@@ -495,7 +502,8 @@ public class MessageSequenceTest extends TestContainer {
     }
 
     @Test
-    public void testMessageSequenceTextPartialBinaryPartialWithShortWait() throws URISyntaxException, IOException, DeploymentException, InterruptedException {
+    public void testMessageSequenceTextPartialBinaryPartialWithShortWait() throws URISyntaxException, IOException,
+            DeploymentException, InterruptedException {
         Server server = startServer(MessageSequenceTestEndpoint.class);
 
         try {
@@ -561,7 +569,8 @@ public class MessageSequenceTest extends TestContainer {
     }
 
     @Test
-    public void testMessageSequenceTextPartialBinaryPartialWithLongWait() throws URISyntaxException, IOException, DeploymentException, InterruptedException {
+    public void testMessageSequenceTextPartialBinaryPartialWithLongWait() throws URISyntaxException, IOException,
+            DeploymentException, InterruptedException {
         Server server = startServer(MessageSequenceTestEndpoint.class);
 
         try {
@@ -592,7 +601,8 @@ public class MessageSequenceTest extends TestContainer {
                             @Override
                             public Object call() throws Exception {
                                 try {
-                                    session.getBasicRemote().sendBinary(ByteBuffer.wrap(SENT_MESSAGE.getBytes()), false);
+                                    session.getBasicRemote()
+                                           .sendBinary(ByteBuffer.wrap(SENT_MESSAGE.getBytes()), false);
                                     session.getBasicRemote().sendBinary(ByteBuffer.wrap(SENT_MESSAGE.getBytes()), true);
                                 } catch (IllegalStateException e) {
                                     latch.countDown();
@@ -647,7 +657,8 @@ public class MessageSequenceTest extends TestContainer {
      * </ul>
      */
     @Test
-    public void testMessageSequenceComplex1() throws URISyntaxException, IOException, DeploymentException, InterruptedException {
+    public void testMessageSequenceComplex1() throws URISyntaxException, IOException, DeploymentException,
+            InterruptedException {
         Server server = startServer(MessageSequenceTestEndpoint.class);
 
         try {

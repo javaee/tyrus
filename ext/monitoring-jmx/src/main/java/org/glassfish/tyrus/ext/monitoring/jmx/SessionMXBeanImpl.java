@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -51,8 +51,12 @@ class SessionMXBeanImpl extends BaseMXBeanImpl implements SessionMXBean, Seriali
 
     private final String sessionId;
 
-    SessionMXBeanImpl(MessageStatisticsSource sentMessageStatistics, MessageStatisticsSource receivedMessageStatistics, Callable<List<ErrorCount>> errorCounts, MessageStatisticsMXBean textMessageStatisticsMXBean, MessageStatisticsMXBean binaryMessageStatisticsMXBean, MessageStatisticsMXBean controlMessageStatisticsMXBean, String sessionId) {
-        super(sentMessageStatistics, receivedMessageStatistics, errorCounts, textMessageStatisticsMXBean, binaryMessageStatisticsMXBean, controlMessageStatisticsMXBean);
+    SessionMXBeanImpl(MessageStatisticsSource sentMessageStatistics, MessageStatisticsSource receivedMessageStatistics,
+                      Callable<List<ErrorCount>> errorCounts, MessageStatisticsMXBean textMessageStatisticsMXBean,
+                      MessageStatisticsMXBean binaryMessageStatisticsMXBean,
+                      MessageStatisticsMXBean controlMessageStatisticsMXBean, String sessionId) {
+        super(sentMessageStatistics, receivedMessageStatistics, errorCounts, textMessageStatisticsMXBean,
+              binaryMessageStatisticsMXBean, controlMessageStatisticsMXBean);
         this.sessionId = sessionId;
     }
 

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -107,7 +107,7 @@ public abstract class UpgradeResponse implements HandshakeResponse {
      * TODO rename to getHeader(String name) ?? similar to
      * TODO HttpServletResponse#getHeader(String)
      */
-    public String getFirstHeaderValue(String name) {
+    public final String getFirstHeaderValue(final String name) {
         final List<String> stringList = getHeaders().get(name);
         return stringList == null ? null : (stringList.size() > 0 ? stringList.get(0) : null);
     }

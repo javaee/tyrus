@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2010-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2010-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -47,8 +47,7 @@ package org.glassfish.tyrus.core.l10n;
 public interface Localizable {
 
     /**
-     * Special constant that represents a message that
-     * is not localizable.
+     * Special constant that represents a message that is not localizable.
      * <p/>
      * <p/>
      * Use of "new" is to create an unique instance.
@@ -58,9 +57,8 @@ public interface Localizable {
     /**
      * Gets the key in the resource bundle.
      *
-     * @return if this method returns {@link #NOT_LOCALIZABLE}, that means the
-     * message is not localizable, and the first item of {@link #getArguments()}
-     * array holds a {@code String}.
+     * @return if this method returns {@link #NOT_LOCALIZABLE}, that means the message is not localizable, and the first
+     * item of {@link #getArguments()} array holds a {@code String}.
      */
     public String getKey();
 

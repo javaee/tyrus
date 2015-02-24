@@ -140,7 +140,6 @@ public class UriTemplate {
          * @param templateVariable template variable.
          * @param matchedGroup     matched group string for a given template variable.
          * @return template value.
-         *
          * @throws java.lang.IllegalArgumentException in case no value has been found and the strategy
          *                                            does not support {@code null} values.
          */
@@ -229,13 +228,13 @@ public class UriTemplate {
 
     /**
      * Construct a new URI template.
-     * <p>
+     * <p/>
      * The template will be parsed to extract template variables.
-     * <p>
+     * <p/>
      * A specific regular expression will be generated from the template
      * to match URIs according to the template and map template variables to
      * template values.
-     * <p>
+     * <p/>
      *
      * @param templateParser the parser to parse the template.
      * @throws PatternSyntaxException   if the specified
@@ -279,7 +278,6 @@ public class UriTemplate {
      * @param baseUri base URI to be used for resolution.
      * @param refUri  reference URI string to be resolved against the base URI.
      * @return resolved URI.
-     *
      * @throws IllegalArgumentException If the given string violates the URI specification RFC.
      */
     public static URI resolve(final URI baseUri, String refUri) {
@@ -325,7 +323,7 @@ public class UriTemplate {
     /**
      * Normalize the URI by resolve the dot & dot-dot path segments as described in
      * <a href="http://tools.ietf.org/html/rfc3986#section-5.2.4">RFC 3986</a>.
-     *
+     * <p/>
      * This method provides a workaround for issues with {@link java.net.URI#normalize()} which
      * is not able to properly normalize absolute paths that start with a {@code ".."} segment,
      * e.g. {@code "/../a/b"} as required by RFC 3986 (according to RFC 3986 the path {@code "/../a/b"}
@@ -334,7 +332,6 @@ public class UriTemplate {
      *
      * @param uri the original URI string.
      * @return the URI with dot and dot-dot segments resolved.
-     *
      * @throws IllegalArgumentException If the given string violates the URI specification RFC.
      * @see java.net.URI#normalize()
      */
@@ -345,7 +342,7 @@ public class UriTemplate {
     /**
      * Normalize the URI by resolve the dot & dot-dot path segments as described in
      * <a href="http://tools.ietf.org/html/rfc3986#section-5.2.4">RFC 3986</a>.
-     *
+     * <p/>
      * This method provides a workaround for issues with {@link java.net.URI#normalize()} which
      * is not able to properly normalize absolute paths that start with a {@code ".."} segment,
      * e.g. {@code "/../a/b"} as required by RFC 3986 (according to RFC 3986 the path {@code "/../a/b"}
@@ -354,7 +351,6 @@ public class UriTemplate {
      *
      * @param uri the original URI.
      * @return the URI with dot and dot-dot segments resolved.
-     *
      * @see java.net.URI#normalize()
      */
     public static URI normalize(final URI uri) {
@@ -386,24 +382,16 @@ public class UriTemplate {
             pathBuilder.append('/').append(segment);
         }
 
-        String resultString = createURIWithStringValues(uri.getScheme(),
-                uri.getAuthority(),
-                null,
-                null,
-                null,
-                pathBuilder.toString(),
-                uri.getQuery(),
-                uri.getFragment(),
-                EMPTY_VALUES,
-                false,
-                false);
+        String resultString = createURIWithStringValues(
+                uri.getScheme(), uri.getAuthority(), null, null, null, pathBuilder.toString(), uri.getQuery(),
+                uri.getFragment(), EMPTY_VALUES, false, false);
 
         return URI.create(resultString);
     }
 
     /**
      * Relativize URI with respect to a base URI.
-     *
+     * <p/>
      * After the relativization is done, dots in paths of both URIs are {@link #normalize(java.net.URI) resolved}.
      *
      * @param baseUri base URI to be used for relativization.
@@ -516,18 +504,17 @@ public class UriTemplate {
 
     /**
      * Match a URI against the template.
-     * <p>
+     * <p/>
      * If the URI matches against the pattern then the template variable to value
      * map will be filled with template variables as keys and template values as
      * values.
-     * <p>
+     * <p/>
      *
      * @param uri                     the uri to match against the template.
      * @param templateVariableToValue the map where to put template variables (as keys)
      *                                and template values (as values). The map is cleared before any
      *                                entries are put.
      * @return true if the URI matches the template, otherwise false.
-     *
      * @throws IllegalArgumentException if the uri or
      *                                  templateVariableToValue is null.
      */
@@ -542,17 +529,16 @@ public class UriTemplate {
 
     /**
      * Match a URI against the template.
-     * <p>
+     * <p/>
      * If the URI matches against the pattern the capturing group values (if any)
      * will be added to a list passed in as parameter.
-     * <p>
+     * <p/>
      *
      * @param uri         the uri to match against the template.
      * @param groupValues the list to store the values of a pattern's
      *                    capturing groups is matching is successful. The values are stored
      *                    in the same order as the pattern's capturing groups.
      * @return true if the URI matches the template, otherwise false.
-     *
      * @throws IllegalArgumentException if the uri or
      *                                  templateVariableToValue is null.
      */
@@ -568,7 +554,7 @@ public class UriTemplate {
     /**
      * Create a URI by substituting any template variables
      * for corresponding template values.
-     * <p>
+     * <p/>
      * A URI template variable without a value will be substituted by the
      * empty string.
      *
@@ -589,7 +575,7 @@ public class UriTemplate {
     /**
      * Create a URI by substituting any template variables
      * for corresponding template values.
-     * <p>
+     * <p/>
      * A URI template variable without a value will be substituted by the
      * empty string.
      *
@@ -604,7 +590,7 @@ public class UriTemplate {
     /**
      * Create a URI by substituting any template variables
      * for corresponding template values.
-     * <p>
+     * <p/>
      * A URI template variable without a value will be substituted by the
      * empty string.
      *
@@ -648,7 +634,8 @@ public class UriTemplate {
     /**
      * Build a URI based on the parameters provided by the variable name strategy.
      *
-     * @param normalizedTemplate normalized URI template. A normalized template is a template without any explicit regular
+     * @param normalizedTemplate normalized URI template. A normalized template is a template without any explicit
+     *                           regular
      *                           expressions.
      * @param builder            URI string builder to be used.
      * @param valueStrategy      The template value producer strategy to use.
@@ -794,8 +781,8 @@ public class UriTemplate {
         }
 
         return createURIWithStringValues(scheme, authority,
-                userInfo, host, port, path, query, fragment,
-                stringValues, encode, encodeSlashInPath);
+                                         userInfo, host, port, path, query, fragment,
+                                         stringValues, encode, encodeSlashInPath);
     }
 
     /**
@@ -831,7 +818,8 @@ public class UriTemplate {
             final Map<String, ?> values, final boolean encode, final boolean encodeSlashInPath) {
 
         return createURIWithStringValues(
-                scheme, authority, userInfo, host, port, path, query, fragment, EMPTY_VALUES, encode, encodeSlashInPath, values);
+                scheme, authority, userInfo, host, port, path, query, fragment, EMPTY_VALUES, encode, encodeSlashInPath,
+                values);
     }
 
     /**
@@ -910,7 +898,8 @@ public class UriTemplate {
 
         final Map<String, Object> mapValues = new HashMap<String, Object>();
         return createURIWithStringValues(
-                scheme, authority, userInfo, host, port, path, query, fragment, values, encode, encodeSlashInPath, mapValues);
+                scheme, authority, userInfo, host, port, path, query, fragment, values, encode, encodeSlashInPath,
+                mapValues);
     }
 
     private static String createURIWithStringValues(
@@ -923,7 +912,7 @@ public class UriTemplate {
 
         if (scheme != null) {
             offset = createUriComponent(UriComponent.Type.SCHEME, scheme, values,
-                    offset, false, mapValues, sb);
+                                        offset, false, mapValues, sb);
             sb.append(':');
         }
 
@@ -934,27 +923,27 @@ public class UriTemplate {
 
             if (notEmpty(userInfo)) {
                 offset = createUriComponent(UriComponent.Type.USER_INFO, userInfo, values,
-                        offset, encode, mapValues, sb);
+                                            offset, encode, mapValues, sb);
                 sb.append('@');
             }
 
             if (notEmpty(host)) {
                 // TODO check IPv6 address
                 offset = createUriComponent(UriComponent.Type.HOST, host, values,
-                        offset, encode, mapValues, sb);
+                                            offset, encode, mapValues, sb);
             }
 
             if (notEmpty(port)) {
                 sb.append(':');
                 offset = createUriComponent(UriComponent.Type.PORT, port, values,
-                        offset, false, mapValues, sb);
+                                            offset, false, mapValues, sb);
             }
         } else if (notEmpty(authority)) {
             hasAuthority = true;
             sb.append("//");
 
             offset = createUriComponent(UriComponent.Type.AUTHORITY, authority, values,
-                    offset, encode, mapValues, sb);
+                                        offset, encode, mapValues, sb);
         }
 
         if (notEmpty(path) || notEmpty(query) || notEmpty(fragment)) {
@@ -968,19 +957,19 @@ public class UriTemplate {
                 UriComponent.Type t = (encodeSlashInPath) ? UriComponent.Type.PATH_SEGMENT : UriComponent.Type.PATH;
 
                 offset = createUriComponent(t, path, values,
-                        offset, encode, mapValues, sb);
+                                            offset, encode, mapValues, sb);
             }
 
             if (notEmpty(query)) {
                 sb.append('?');
                 offset = createUriComponent(UriComponent.Type.QUERY_PARAM, query, values,
-                        offset, encode, mapValues, sb);
+                                            offset, encode, mapValues, sb);
             }
 
             if (notEmpty(fragment)) {
                 sb.append('#');
                 createUriComponent(UriComponent.Type.FRAGMENT, fragment, values,
-                        offset, encode, mapValues, sb);
+                                   offset, encode, mapValues, sb);
             }
         }
         return sb.toString();
@@ -1040,15 +1029,16 @@ public class UriTemplate {
 
 
     /**
-     * Resolves template variables in the given {@code template} from {@code _mapValues}. Resolves only these variables which are
+     * Resolves template variables in the given {@code template} from {@code _mapValues}. Resolves only these variables
+     * which are
      * defined in the {@code _mapValues} leaving other variables unchanged.
      *
      * @param type       Type of the {@code template} (port, path, query, ...).
      * @param template   Input uri component to resolve.
      * @param encode     True if template values from {@code _mapValues} should be percent encoded.
-     * @param _mapValues Map with template variables as keys and template values as values. None of them should be null.
+     * @param _mapValues Map with template variables as keys and template values as values. None of them should be
+     *                   null.
      * @return String with resolved template variables.
-     *
      * @throws IllegalArgumentException when {@code _mapValues} value is null.
      */
     @SuppressWarnings("unchecked")
@@ -1084,7 +1074,7 @@ public class UriTemplate {
                     if (mapValues.containsKey(templateVariable)) {
                         throw new IllegalArgumentException(
                                 String.format("The value associated of the template value map for key '%s' is 'null'.",
-                                        templateVariable)
+                                              templateVariable)
                         );
                     }
 

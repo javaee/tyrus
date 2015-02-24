@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -64,7 +64,7 @@ public interface Connection {
      * to underlying connection.
      *
      * @return transport writer that actually writes websocket data
-     *         to underlying connection.
+     * to underlying connection.
      */
     Writer getWriter();
 
@@ -89,6 +89,7 @@ public interface Connection {
      * notifications from Tyrus.
      */
     interface CloseListener {
+
         /**
          * Tyrus notifies that logical connection is closed.
          *

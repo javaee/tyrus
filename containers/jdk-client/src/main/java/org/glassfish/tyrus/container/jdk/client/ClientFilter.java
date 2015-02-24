@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -98,7 +98,8 @@ class ClientFilter extends Filter {
      * @param upgradeRequest   upgrade request to be used for this client session.
      */
     // * @param proxyHeaders     map representing headers to be added to request sent to proxy (HTTP CONNECT).
-    ClientFilter(Filter downstreamFilter, ClientEngine clientEngine, Map<String, Object> properties, Callable<Void> jdkConnector, UpgradeRequest upgradeRequest)
+    ClientFilter(Filter downstreamFilter, ClientEngine clientEngine, Map<String, Object> properties,
+                 Callable<Void> jdkConnector, UpgradeRequest upgradeRequest)
             throws DeploymentException {
         super(downstreamFilter);
         this.clientEngine = clientEngine;
@@ -109,7 +110,8 @@ class ClientFilter extends Filter {
 
     /**
      * @param address                  an address where to connect (server or proxy).
-     * @param proxy                    {@code true} if the connection will be established via proxy, {@code false} otherwise.
+     * @param proxy                    {@code true} if the connection will be established via proxy, {@code false}
+     *                                 otherwise.
      * @param connectCompletionHandler completion handler.
      */
     void connect(SocketAddress address, boolean proxy, CompletionHandler<Void> connectCompletionHandler) {
@@ -373,7 +375,8 @@ class ClientFilter extends Filter {
             if (wlsProxyUsername != null && wlsProxyPassword != null) {
                 proxyHeaders = new HashMap<>();
                 proxyHeaders.put("Proxy-Authorization", "Basic " +
-                        Base64Utils.encodeToString((wlsProxyUsername + ":" + wlsProxyPassword).getBytes(Charset.forName("UTF-8")), false));
+                        Base64Utils.encodeToString(
+                                (wlsProxyUsername + ":" + wlsProxyPassword).getBytes(Charset.forName("UTF-8")), false));
             }
         } else {
             boolean proxyAuthPresent = false;
@@ -386,7 +389,8 @@ class ClientFilter extends Filter {
             // if (proxyAuthPresent == true) then do nothing, proxy authorization header is already added.
             if (!proxyAuthPresent && wlsProxyUsername != null && wlsProxyPassword != null) {
                 proxyHeaders.put("Proxy-Authorization", "Basic " +
-                        Base64Utils.encodeToString((wlsProxyUsername + ":" + wlsProxyPassword).getBytes(Charset.forName("UTF-8")), false));
+                        Base64Utils.encodeToString(
+                                (wlsProxyUsername + ":" + wlsProxyPassword).getBytes(Charset.forName("UTF-8")), false));
             }
         }
         return proxyHeaders;

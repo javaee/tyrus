@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -90,16 +90,19 @@ public class ClientExecutorsManagementTest extends TestContainer {
         try {
             server = startServer(AnnotatedServerEndpoint.class);
             ClientManager clientManager1 = createClient();
-            Session session1 = clientManager1.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
+            Session session1 = clientManager1
+                    .connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
             ExecutorService executorService1 = clientManager1.getExecutorService();
             ScheduledExecutorService scheduledExecutorService1 = clientManager1.getScheduledExecutorService();
 
             ClientManager clientManager2 = createClient();
-            Session session2 = clientManager2.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
+            Session session2 = clientManager2
+                    .connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
             ExecutorService executorService2 = clientManager2.getExecutorService();
             ScheduledExecutorService scheduledExecutorService2 = clientManager2.getScheduledExecutorService();
 
-            Session session3 = clientManager1.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
+            Session session3 = clientManager1
+                    .connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
             ExecutorService executorService3 = clientManager1.getExecutorService();
             ScheduledExecutorService scheduledExecutorService3 = clientManager1.getScheduledExecutorService();
 
@@ -122,7 +125,8 @@ public class ClientExecutorsManagementTest extends TestContainer {
             assertTrue(executorService2.isShutdown());
             assertTrue(scheduledExecutorService2.isShutdown());
 
-            // closing session1 should not close executorService1 and scheduledExecutorService1 as it is still used by session3
+            // closing session1 should not close executorService1 and scheduledExecutorService1 as it is still used
+            // by session3
             assertFalse(executorService1.isShutdown());
             assertFalse(scheduledExecutorService1.isShutdown());
 
@@ -139,10 +143,11 @@ public class ClientExecutorsManagementTest extends TestContainer {
     }
 
     /**
-     * Test that different situations that can cause connect to fail will not cause container resources not to be freed.
+     * Test that different situations that can cause connect to fail will not cause container resources not to be
+     * freed.
      * <p/>
-     * (Client manager counts active connections. This test tests, that connection failures caused by different situations
-     * are registered by the connection counter.)
+     * (Client manager counts active connections. This test tests, that connection failures caused by different
+     * situations are registered by the connection counter.)
      */
     @Test
     public void testConnectionFail() {
@@ -151,7 +156,8 @@ public class ClientExecutorsManagementTest extends TestContainer {
             server = startServer(AnnotatedServerEndpoint.class);
             ClientManager clientManager = createClient();
 
-            Session session = clientManager.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
+            Session session =
+                    clientManager.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
             try {
                 clientManager.connectToServer(FaultyEndpoint.class, getURI(AnnotatedServerEndpoint.class));
                 fail();
@@ -177,7 +183,8 @@ public class ClientExecutorsManagementTest extends TestContainer {
             HttpServer lazyServer = getLazyServer(blockResponseLatch);
             clientManager.getProperties().put(ClientProperties.HANDSHAKE_TIMEOUT, 2000);
             try {
-                clientManager.connectToServer(AnnotatedClientEndpoint.class, URI.create("ws://localhost:8026/lazyServer"));
+                clientManager.connectToServer(
+                        AnnotatedClientEndpoint.class, URI.create("ws://localhost:8026/lazyServer"));
                 fail();
             } catch (Exception e) {
                 // exception is expected
@@ -206,7 +213,8 @@ public class ClientExecutorsManagementTest extends TestContainer {
     }
 
     /**
-     * Test that if executor services have been destroyed, new ones will be created if the client manager creates new connections.
+     * Test that if executor services have been destroyed, new ones will be created if the client manager creates new
+     * connections.
      */
     @Test
     public void testConnectAfterClose() {
@@ -215,10 +223,12 @@ public class ClientExecutorsManagementTest extends TestContainer {
             server = startServer(AnnotatedServerEndpoint.class);
             ClientManager clientManager = createClient();
 
-            Session session = clientManager.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
+            Session session =
+                    clientManager.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
             session.close();
 
-            Session session2 = clientManager.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
+            Session session2 =
+                    clientManager.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
 
             ExecutorService executorService = clientManager.getExecutorService();
             ScheduledExecutorService scheduledExecutorService = clientManager.getScheduledExecutorService();
@@ -316,7 +326,8 @@ public class ClientExecutorsManagementTest extends TestContainer {
         try {
             server = startServer(AnnotatedServerEndpoint.class);
             ClientManager clientManager = createClient();
-            Session session = clientManager.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
+            Session session =
+                    clientManager.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
             clientManager.shutdown();
             session.close();
         } catch (Exception e) {
@@ -341,7 +352,8 @@ public class ClientExecutorsManagementTest extends TestContainer {
             server = startServer(ManagedContainerEndpoint.class, AnnotatedServerEndpoint.class);
             ClientManager clientManager = createClient();
             CountDownLatch messageLatch = new CountDownLatch(1);
-            Session session = clientManager.connectToServer(new AnnotatedClientEndpoint(messageLatch), getURI(ManagedContainerEndpoint.class));
+            Session session = clientManager
+                    .connectToServer(new AnnotatedClientEndpoint(messageLatch), getURI(ManagedContainerEndpoint.class));
             session.getBasicRemote().sendText(getURI(AnnotatedServerEndpoint.class).toString());
 
             assertTrue(messageLatch.await(5, TimeUnit.SECONDS));
@@ -410,7 +422,8 @@ public class ClientExecutorsManagementTest extends TestContainer {
         @OnMessage
         public void onMessage(Session session, String message) throws IOException, DeploymentException {
             // one option for obtaining a container
-            Session s = ContainerProvider.getWebSocketContainer().connectToServer(AnnotatedClientEndpoint.class, URI.create(message));
+            Session s = ContainerProvider.getWebSocketContainer()
+                                         .connectToServer(AnnotatedClientEndpoint.class, URI.create(message));
             s.close();
 
             // another option for obtaining a container

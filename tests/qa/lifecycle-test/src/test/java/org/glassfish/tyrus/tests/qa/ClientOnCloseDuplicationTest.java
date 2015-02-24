@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -55,6 +55,7 @@ public class ClientOnCloseDuplicationTest extends AbstractLifeCycleTestBase {
     @Test
     public void testClientOnCloseDuplication() throws DeploymentException, IOException {
         IssueManipulator.disableAll();
-        multipleDeployment(ClientOnCloseDuplication.Server.class, ClientOnCloseDuplication.Client.class, "Multiple methods using @OnClose annotation");
+        multipleDeployment(ClientOnCloseDuplication.Server.class, ClientOnCloseDuplication.Client.class,
+                           "Multiple methods using @OnClose annotation");
     }
 }

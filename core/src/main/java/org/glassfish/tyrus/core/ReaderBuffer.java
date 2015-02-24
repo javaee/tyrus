@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -56,7 +56,8 @@ import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 /**
  * Buffer used for the case when partial messages are received by the {@link MessageHandler.Whole}.
  * </p>
- * For the first received message {@link MessageHandler.Whole#onMessage(Object)} is called within a new executor to allow blocking reading of passed {@link Reader}.
+ * For the first received message {@link MessageHandler.Whole#onMessage(Object)} is called within a new executor to
+ * allow blocking reading of passed {@link Reader}.
  *
  * @author Danny Coward (danny.coward at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
@@ -155,8 +156,10 @@ class ReaderBuffer {
             } else {
                 if (buffering.get()) {
                     buffering.set(false);
-                    final MessageTooBigException messageTooBigException = new MessageTooBigException(LocalizationMessages.PARTIAL_MESSAGE_BUFFER_OVERFLOW());
-                    LOGGER.log(Level.FINE, LocalizationMessages.PARTIAL_MESSAGE_BUFFER_OVERFLOW(), messageTooBigException);
+                    final MessageTooBigException messageTooBigException =
+                            new MessageTooBigException(LocalizationMessages.PARTIAL_MESSAGE_BUFFER_OVERFLOW());
+                    LOGGER.log(Level.FINE, LocalizationMessages.PARTIAL_MESSAGE_BUFFER_OVERFLOW(),
+                               messageTooBigException);
                     receivedLast = true;
                     throw messageTooBigException;
                 }

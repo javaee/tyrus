@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -47,7 +47,8 @@ import org.glassfish.tyrus.tests.qa.lifecycle.handlers.ByteSessionImpl;
 /**
  * @author Michal Čonos (michal.conos at oracle.com)
  */
-public class ProgrammaticPartialMessageByteSession extends ProgrammaticEndpointPartialMessageEndpoint<byte[]> implements MessageHandler.Partial<byte[]> {
+public class ProgrammaticPartialMessageByteSession extends ProgrammaticEndpointPartialMessageEndpoint<byte[]>
+        implements MessageHandler.Partial<byte[]> {
     @Override
     public void createLifeCycle() {
         lifeCycle = new ByteSessionImpl(1024, false, true);

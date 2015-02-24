@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -71,7 +71,9 @@ class TestApplicationEventListener implements ApplicationEventListener {
      * @param messageReceivedLatch     latch that is decreased when a message is received.
      * @param errorLatch               latch that is decreased when an error has occurred.
      */
-    TestApplicationEventListener(ApplicationEventListener applicationEventListener, CountDownLatch sessionOpenedLatch, CountDownLatch sessionClosedLatch, CountDownLatch messageSentLatch, CountDownLatch messageReceivedLatch, CountDownLatch errorLatch) {
+    TestApplicationEventListener(ApplicationEventListener applicationEventListener, CountDownLatch sessionOpenedLatch,
+                                 CountDownLatch sessionClosedLatch, CountDownLatch messageSentLatch,
+                                 CountDownLatch messageReceivedLatch, CountDownLatch errorLatch) {
         this.applicationEventListener = applicationEventListener;
         this.sessionOpenedLatch = sessionOpenedLatch;
         this.sessionClosedLatch = sessionClosedLatch;
@@ -92,7 +94,9 @@ class TestApplicationEventListener implements ApplicationEventListener {
 
     @Override
     public EndpointEventListener onEndpointRegistered(String endpointPath, Class<?> endpointClass) {
-        return new TestEndpointEventListener(applicationEventListener.onEndpointRegistered(endpointPath, endpointClass), sessionOpenedLatch, sessionClosedLatch, messageSentLatch, messageReceivedLatch, errorLatch);
+        return new TestEndpointEventListener(applicationEventListener.onEndpointRegistered(endpointPath, endpointClass),
+                                             sessionOpenedLatch, sessionClosedLatch, messageSentLatch,
+                                             messageReceivedLatch, errorLatch);
     }
 
     @Override
@@ -109,7 +113,9 @@ class TestApplicationEventListener implements ApplicationEventListener {
         private final CountDownLatch messageReceivedLatch;
         private final CountDownLatch errorLatch;
 
-        TestEndpointEventListener(EndpointEventListener endpointEventListener, CountDownLatch sessionOpenedLatch, CountDownLatch sessionClosedLatch, CountDownLatch messageSentLatch, CountDownLatch messageReceivedLatch, CountDownLatch errorLatch) {
+        TestEndpointEventListener(EndpointEventListener endpointEventListener, CountDownLatch sessionOpenedLatch,
+                                  CountDownLatch sessionClosedLatch, CountDownLatch messageSentLatch,
+                                  CountDownLatch messageReceivedLatch, CountDownLatch errorLatch) {
             this.endpointEventListener = endpointEventListener;
             this.sessionOpenedLatch = sessionOpenedLatch;
             this.sessionClosedLatch = sessionClosedLatch;
@@ -120,7 +126,9 @@ class TestApplicationEventListener implements ApplicationEventListener {
 
         @Override
         public MessageEventListener onSessionOpened(String sessionId) {
-            MessageEventListener messageEventListener = new TestMessageEventListener(endpointEventListener.onSessionOpened(sessionId), messageSentLatch, messageReceivedLatch);
+            MessageEventListener messageEventListener =
+                    new TestMessageEventListener(endpointEventListener.onSessionOpened(sessionId), messageSentLatch,
+                                                 messageReceivedLatch);
             if (sessionOpenedLatch != null) {
                 sessionOpenedLatch.countDown();
             }
@@ -150,7 +158,8 @@ class TestApplicationEventListener implements ApplicationEventListener {
         private final CountDownLatch messageSentLatch;
         private final CountDownLatch messageReceivedLatch;
 
-        TestMessageEventListener(MessageEventListener messageEventListener, CountDownLatch messageSentLatch, CountDownLatch messageReceivedLatch) {
+        TestMessageEventListener(MessageEventListener messageEventListener, CountDownLatch messageSentLatch,
+                                 CountDownLatch messageReceivedLatch) {
             this.messageEventListener = messageEventListener;
             this.messageSentLatch = messageSentLatch;
             this.messageReceivedLatch = messageReceivedLatch;

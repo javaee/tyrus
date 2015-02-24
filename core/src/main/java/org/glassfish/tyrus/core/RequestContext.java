@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -68,10 +68,9 @@ public final class RequestContext extends UpgradeRequest {
     private Map<String, List<String>> headers;
     private Map<String, List<String>> parameterMap;
 
-    private RequestContext(URI requestURI, String queryString,
-                           Object httpSession, boolean secure, Principal userPrincipal,
-                           Builder.IsUserInRoleDelegate IsUserInRoleDelegate, String remoteAddr,
-                           Map<String, List<String>> parameterMap, Map<String, List<String>> headers) {
+    private RequestContext(URI requestURI, String queryString, Object httpSession, boolean secure, Principal
+            userPrincipal, Builder.IsUserInRoleDelegate IsUserInRoleDelegate, String remoteAddr, Map<String,
+            List<String>> parameterMap, Map<String, List<String>> headers) {
         this.requestURI = requestURI;
         this.queryString = queryString;
         this.httpSession = httpSession;
@@ -82,7 +81,7 @@ public final class RequestContext extends UpgradeRequest {
         this.parameterMap = parameterMap;
         this.headers = new TreeMap<String, List<String>>(String.CASE_INSENSITIVE_ORDER);
 
-        if(headers != null) {
+        if (headers != null) {
             this.headers.putAll(headers);
         }
     }
@@ -335,9 +334,10 @@ public final class RequestContext extends UpgradeRequest {
          * @return created {@link RequestContext}.
          */
         public RequestContext build() {
-            return new RequestContext(requestURI, queryString, httpSession, secure,
-                    userPrincipal, isUserInRoleDelegate, remoteAddr,
-                    parameterMap != null ? parameterMap : new HashMap<String, List<String>>(), headers);
+            return new RequestContext(requestURI, queryString, httpSession, secure, userPrincipal,
+                                      isUserInRoleDelegate, remoteAddr,
+                                      parameterMap != null ? parameterMap : new HashMap<String,
+                                              List<String>>(), headers);
         }
 
         /**

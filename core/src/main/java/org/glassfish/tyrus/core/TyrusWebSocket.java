@@ -113,8 +113,7 @@ public class TyrusWebSocket {
     }
 
     /**
-     * This callback will be invoked when the remote endpoint sent a closing
-     * frame.
+     * This callback will be invoked when the remote endpoint sent a closing frame.
      * <p/>
      * The execution of this method is synchronized using {@link ProtocolHandler} instance; see TYRUS-385. Prevents
      * multiple invocations, especially from container/user code.
@@ -148,7 +147,8 @@ public class TyrusWebSocket {
      *
      * @param upgradeRequest request associated with this socket.
      */
-    public void onConnect(UpgradeRequest upgradeRequest, String subProtocol, List<Extension> extensions, String connectionId, DebugContext debugContext) {
+    public void onConnect(UpgradeRequest upgradeRequest, String subProtocol, List<Extension> extensions,
+                          String connectionId, DebugContext debugContext) {
         state.set(State.CONNECTED);
 
         if (endpointWrapper != null) {
@@ -163,8 +163,7 @@ public class TyrusWebSocket {
      * been received.
      *
      * @param frame the binary data received from the remote endpoint.
-     * @param last  flag indicating whether or not the payload received is the
-     *              final fragment of a message.
+     * @param last  flag indicating whether or not the payload received is the final fragment of a message.
      */
     public void onFragment(BinaryFrame frame, boolean last) {
         awaitOnConnect();
@@ -179,8 +178,7 @@ public class TyrusWebSocket {
      * been received.
      *
      * @param frame the text received from the remote endpoint.
-     * @param last  flag indicating whether or not the payload received is the
-     *              final fragment of a message.
+     * @param last  flag indicating whether or not the payload received is the final fragment of a message.
      */
     public void onFragment(TextFrame frame, boolean last) {
         awaitOnConnect();
@@ -217,8 +215,7 @@ public class TyrusWebSocket {
     }
 
     /**
-     * This callback will be invoked when the remote endpoint has sent a ping
-     * frame.
+     * This callback will be invoked when the remote endpoint has sent a ping frame.
      *
      * @param frame the ping frame from the remote endpoint.
      */
@@ -331,8 +328,7 @@ public class TyrusWebSocket {
     /**
      * Sends a <code>ping</code> frame with the specified payload (if any).
      *
-     * @param data optional payload.  Note that payload length is restricted
-     *             to 125 bytes or less.
+     * @param data optional payload.  Note that payload length is restricted to 125 bytes or less.
      * @return {@link Future} which could be used to control/check the sending completion state.
      */
     public Future<Frame> sendPing(byte[] data) {

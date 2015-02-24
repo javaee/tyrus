@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -383,7 +383,8 @@ public class MessageHandlersTest extends TestContainer {
                     });
 
                     try {
-                        session.getBasicRemote().sendBinary(ByteBuffer.wrap("In my experience, there's no such thing as luck.".getBytes()));
+                        session.getBasicRemote().sendBinary(
+                                ByteBuffer.wrap("In my experience, there's no such thing as luck.".getBytes()));
                     } catch (IOException e) {
                         // don't care
                     }
@@ -425,7 +426,8 @@ public class MessageHandlersTest extends TestContainer {
                     });
 
                     try {
-                        session.getBasicRemote().sendBinary(ByteBuffer.wrap("In my experience, there's no such thing as luck.".getBytes()));
+                        session.getBasicRemote().sendBinary(
+                                ByteBuffer.wrap("In my experience, there's no such thing as luck.".getBytes()));
                     } catch (IOException e) {
                         // don't care
                     }
@@ -548,14 +550,16 @@ public class MessageHandlersTest extends TestContainer {
                     session.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
                         @Override
                         public void onMessage(ByteBuffer message) {
-                            if (new String(message.array()).equals("In my experience, there's no such thing as luck.")) {
+                            if (new String(message.array())
+                                    .equals("In my experience, there's no such thing as luck.")) {
                                 messageLatch.countDown();
                             }
                         }
                     });
 
                     try {
-                        session.getBasicRemote().sendBinary(ByteBuffer.wrap("In my experience, there's no such thing as luck.".getBytes()));
+                        session.getBasicRemote().sendBinary(
+                                ByteBuffer.wrap("In my experience, there's no such thing as luck.".getBytes()));
                     } catch (IOException e) {
                         // don't care
                     }
@@ -590,14 +594,16 @@ public class MessageHandlersTest extends TestContainer {
                     session.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
                         @Override
                         public void onMessage(ByteBuffer message) {
-                            if (new String(message.array()).equals("In my experience, there's no such thing as luck.")) {
+                            if (new String(message.array())
+                                    .equals("In my experience, there's no such thing as luck.")) {
                                 messageLatch.countDown();
                             }
                         }
                     });
 
                     try {
-                        session.getBasicRemote().sendBinary(ByteBuffer.wrap("In my experience, there's no such thing as luck.".getBytes()));
+                        session.getBasicRemote().sendBinary(
+                                ByteBuffer.wrap("In my experience, there's no such thing as luck.".getBytes()));
                     } catch (IOException e) {
                         // don't care
                     }
@@ -632,7 +638,8 @@ public class MessageHandlersTest extends TestContainer {
                     session.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
                         @Override
                         public void onMessage(ByteBuffer message) {
-                            if (new String(message.array()).equals("In my experience, there's no such thing as luck.")) {
+                            if (new String(message.array())
+                                    .equals("In my experience, there's no such thing as luck.")) {
                                 messageLatch.countDown();
                             }
                         }
@@ -676,7 +683,8 @@ public class MessageHandlersTest extends TestContainer {
                     session.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
                         @Override
                         public void onMessage(ByteBuffer message) {
-                            if (new String(message.array()).equals("In my experience, there's no such thing as luck.")) {
+                            if (new String(message.array())
+                                    .equals("In my experience, there's no such thing as luck.")) {
                                 messageLatch.countDown();
                             }
                         }
@@ -782,7 +790,8 @@ public class MessageHandlersTest extends TestContainer {
                     session.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
                         @Override
                         public void onMessage(ByteBuffer message) {
-                            if (message.equals(ByteBuffer.wrap("In my experience, there's no such thing as luck.".getBytes()))) {
+                            if (message.equals(ByteBuffer.wrap("In my experience, there's no such thing as luck."
+                                                                       .getBytes()))) {
                                 messageLatch.countDown();
                             }
                         }

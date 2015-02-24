@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 - 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -50,7 +50,8 @@ import javax.websocket.RemoteEndpoint;
  * @author Danny Coward (danny.coward at oracle.com)
  */
 @XWebSocketRemote(
-        encoders = {org.glassfish.tyrus.sample.trading.wsbeans.UsernamesEncoder.class, org.glassfish.tyrus.sample.trading.wsbeans.Activity.class}
+        encoders = {org.glassfish.tyrus.sample.trading.wsbeans.UsernamesEncoder.class,
+                org.glassfish.tyrus.sample.trading.wsbeans.Activity.class}
 )
 
 public interface BuddiesRemote extends RemoteEndpoint {

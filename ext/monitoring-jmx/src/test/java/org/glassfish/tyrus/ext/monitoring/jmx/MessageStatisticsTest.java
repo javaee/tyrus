@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -174,8 +174,9 @@ public class MessageStatisticsTest extends TestContainer {
         try {
 
             /*
-             Latches used to ensure all messages were sent or received by the servers, before the statistics are checked.
-             For every pong, text and binary message sent, 2 are received. For every ping message sent, 1 pong is received.
+             Latches used to ensure all messages were sent or received by the servers, before the statistics are
+             checked. For every pong, text and binary message sent, 2 are received. For every ping message sent, 1
+             pong is  received.
              The expected number of sent messages is 2 * 6 + 2 * 6 + 2 * 6 + 6 = 42
              */
             CountDownLatch messageSentLatch = new CountDownLatch(42);
@@ -188,24 +189,42 @@ public class MessageStatisticsTest extends TestContainer {
             } else {
                 applicationMonitor = new SessionlessApplicationMonitor();
             }
-            ApplicationEventListener application1EventListener = new TestApplicationEventListener(applicationMonitor, null, null, messageSentLatch, messageReceivedLatch, null);
+            ApplicationEventListener application1EventListener =
+                    new TestApplicationEventListener(applicationMonitor, null, null, messageSentLatch,
+                                                     messageReceivedLatch, null);
             server1Properties.put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, application1EventListener);
-            server1 = new Server("localhost", 8025, "/jmxTestApp", server1Properties, ServerEndpoint1.class, ServerEndpoint2.class);
+            server1 = new Server("localhost", 8025, "/jmxTestApp", server1Properties, ServerEndpoint1.class,
+                                 ServerEndpoint2.class);
             server1.start();
 
             Map<String, Object> server2Properties = new HashMap<String, Object>();
-            ApplicationEventListener application2EventListener = new TestApplicationEventListener(new ApplicationMonitor(monitorOnSessionLevel), null, null, messageSentLatch, messageReceivedLatch, null);
+            ApplicationEventListener application2EventListener =
+                    new TestApplicationEventListener(new ApplicationMonitor(monitorOnSessionLevel), null, null,
+                                                     messageSentLatch, messageReceivedLatch, null);
             server2Properties.put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, application2EventListener);
-            server2 = new Server("localhost", 8026, "/jmxTestApp2", server2Properties, ServerEndpoint2.class, ServerEndpoint3.class);
+            server2 = new Server("localhost", 8026, "/jmxTestApp2", server2Properties, ServerEndpoint2.class,
+                                 ServerEndpoint3.class);
             server2.start();
 
             ClientManager client = createClient();
-            Session session1 = client.connectToServer(AnnotatedClientEndpoint.class, new URI("ws", null, "localhost", 8025, "/jmxTestApp/jmxStatisticsServerEndpoint1", null, null));
-            Session session2 = client.connectToServer(AnnotatedClientEndpoint.class, new URI("ws", null, "localhost", 8025, "/jmxTestApp/jmxStatisticsServerEndpoint2", null, null));
-            Session session3 = client.connectToServer(AnnotatedClientEndpoint.class, new URI("ws", null, "localhost", 8025, "/jmxTestApp/jmxStatisticsServerEndpoint2", null, null));
-            Session session4 = client.connectToServer(AnnotatedClientEndpoint.class, new URI("ws", null, "localhost", 8026, "/jmxTestApp2/jmxStatisticsServerEndpoint2", null, null));
-            Session session5 = client.connectToServer(AnnotatedClientEndpoint.class, new URI("ws", null, "localhost", 8026, "/jmxTestApp2/jmxStatisticsServerEndpoint3", null, null));
-            Session session6 = client.connectToServer(AnnotatedClientEndpoint.class, new URI("ws", null, "localhost", 8026, "/jmxTestApp2/jmxStatisticsServerEndpoint3", null, null));
+            Session session1 = client.connectToServer(AnnotatedClientEndpoint.class,
+                                                      new URI("ws", null, "localhost", 8025,
+                                                              "/jmxTestApp/jmxStatisticsServerEndpoint1", null, null));
+            Session session2 = client.connectToServer(AnnotatedClientEndpoint.class,
+                                                      new URI("ws", null, "localhost", 8025,
+                                                              "/jmxTestApp/jmxStatisticsServerEndpoint2", null, null));
+            Session session3 = client.connectToServer(AnnotatedClientEndpoint.class,
+                                                      new URI("ws", null, "localhost", 8025,
+                                                              "/jmxTestApp/jmxStatisticsServerEndpoint2", null, null));
+            Session session4 = client.connectToServer(AnnotatedClientEndpoint.class,
+                                                      new URI("ws", null, "localhost", 8026,
+                                                              "/jmxTestApp2/jmxStatisticsServerEndpoint2", null, null));
+            Session session5 = client.connectToServer(AnnotatedClientEndpoint.class,
+                                                      new URI("ws", null, "localhost", 8026,
+                                                              "/jmxTestApp2/jmxStatisticsServerEndpoint3", null, null));
+            Session session6 = client.connectToServer(AnnotatedClientEndpoint.class,
+                                                      new URI("ws", null, "localhost", 8026,
+                                                              "/jmxTestApp2/jmxStatisticsServerEndpoint3", null, null));
 
             session1.getBasicRemote().sendText(getText(1));
             session2.getBasicRemote().sendText(getText(2));
@@ -254,13 +273,17 @@ public class MessageStatisticsTest extends TestContainer {
         }
     }
 
-    private void checkApplicationStatisticsCollectedCorrectly(String applicationName, int openSessionsCount, int sentMessagesCount, int sentMessagesSize,
-                                                              int receivedMessagesCount, int receivedMessagesSize, int maxSentMessageSize,
-                                                              int minSentMessageSize, int maxReceivedMessageSize, int minReceivedMessageSize) {
+    private void checkApplicationStatisticsCollectedCorrectly(String applicationName, int openSessionsCount,
+                                                              int sentMessagesCount, int sentMessagesSize,
+                                                              int receivedMessagesCount, int receivedMessagesSize,
+                                                              int maxSentMessageSize,
+                                                              int minSentMessageSize, int maxReceivedMessageSize,
+                                                              int minReceivedMessageSize) {
         MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
         String fullApplicationMxBeanName = "org.glassfish.tyrus:type=" + applicationName;
         try {
-            ApplicationMXBean applicationBean = JMX.newMXBeanProxy(mBeanServer, new ObjectName(fullApplicationMxBeanName), ApplicationMXBean.class);
+            ApplicationMXBean applicationBean =
+                    JMX.newMXBeanProxy(mBeanServer, new ObjectName(fullApplicationMxBeanName), ApplicationMXBean.class);
 
             assertEquals(openSessionsCount, applicationBean.getOpenSessionsCount());
             assertEquals(openSessionsCount, applicationBean.getMaximalOpenSessionsCount());

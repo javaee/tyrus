@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -177,8 +177,8 @@ public class SimpleRemoteTest extends TestContainer {
             }
             messageLatch.await(5, TimeUnit.SECONDS);
             assertTrue("The following number of messages was not delivered correctly: " + messageLatch.getCount()
-                    + ". See exception traces above for the complete list of issues.",
-                    0 == messageLatch.getCount());
+                               + ". See exception traces above for the complete list of issues.",
+                       0 == messageLatch.getCount());
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

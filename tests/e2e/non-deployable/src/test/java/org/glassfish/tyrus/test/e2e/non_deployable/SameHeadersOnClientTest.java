@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -70,8 +70,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
- * Tests a situation when a handshake response contains the same header twice with different values.
- * Cannot be moved to standard tests due the need to modify HTTP response.
+ * Tests a situation when a handshake response contains the same header twice with different values. Cannot be moved to
+ * standard tests due the need to modify HTTP response.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
@@ -120,34 +120,32 @@ public class SameHeadersOnClientTest extends TestContainer {
 
     private HttpServer getHandshakeServer() throws IOException {
         HttpServer server = HttpServer.createSimpleServer("/testSameHeader", getHost(), getPort());
-        server.getServerConfiguration().addHttpHandler(
-                new HttpHandler() {
-                    public void service(Request request, Response response) throws Exception {
-                        response.setStatus(101);
+        server.getServerConfiguration().addHttpHandler(new HttpHandler() {
+            public void service(Request request, Response response) throws Exception {
+                response.setStatus(101);
 
-                        response.addHeader(UpgradeRequest.CONNECTION, UpgradeRequest.UPGRADE);
-                        response.addHeader(UpgradeRequest.UPGRADE, UpgradeRequest.WEBSOCKET);
+                response.addHeader(UpgradeRequest.CONNECTION, UpgradeRequest.UPGRADE);
+                response.addHeader(UpgradeRequest.UPGRADE, UpgradeRequest.WEBSOCKET);
 
-                        String secKey = request.getHeader(HandshakeRequest.SEC_WEBSOCKET_KEY);
-                        String key = secKey + UpgradeRequest.SERVER_KEY_HASH;
+                String secKey = request.getHeader(HandshakeRequest.SEC_WEBSOCKET_KEY);
+                String key = secKey + UpgradeRequest.SERVER_KEY_HASH;
 
-                        MessageDigest instance;
-                        try {
-                            instance = MessageDigest.getInstance("SHA-1");
-                            instance.update(key.getBytes("UTF-8"));
-                            final byte[] digest = instance.digest();
-                            String responseKey = Base64Utils.encodeToString(digest, false);
+                MessageDigest instance;
+                try {
+                    instance = MessageDigest.getInstance("SHA-1");
+                    instance.update(key.getBytes("UTF-8"));
+                    final byte[] digest = instance.digest();
+                    String responseKey = Base64Utils.encodeToString(digest, false);
 
-                            response.addHeader(UpgradeResponse.SEC_WEBSOCKET_ACCEPT, responseKey);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-
-                        response.addHeader(HEADER_KEY, HEADER_VALUE_1);
-                        response.addHeader(HEADER_KEY, HEADER_VALUE_2);
-                    }
+                    response.addHeader(UpgradeResponse.SEC_WEBSOCKET_ACCEPT, responseKey);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-        );
+
+                response.addHeader(HEADER_KEY, HEADER_VALUE_1);
+                response.addHeader(HEADER_KEY, HEADER_VALUE_2);
+            }
+        });
 
         server.start();
         return server;

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -114,7 +114,8 @@ public class TextAndBinaryProgrammaticDecoder extends TestContainer {
     }
 
     @Test
-    public void testAnnotatedEndpointRegisteredProgramatically() throws DeploymentException, IOException, InterruptedException {
+    public void testAnnotatedEndpointRegisteredProgramatically() throws DeploymentException, IOException,
+            InterruptedException {
         final Server server = startServer(ServerDeployApplicationConfig.class);
 
         try {
@@ -144,14 +145,19 @@ public class TextAndBinaryProgrammaticDecoder extends TestContainer {
 
     public static class ServerDeployApplicationConfig extends TyrusServerConfiguration {
         public ServerDeployApplicationConfig() {
-            super(Collections.<Class<?>>emptySet(), new HashSet<ServerEndpointConfig>(
-            ) {{
-                add(ServerEndpointConfig.Builder.create(TextAndBinaryDecoderEndpoint.class, "/textAndBinaryDecoderEndpoint")
-                        .decoders(Arrays.<Class<? extends Decoder>>asList(TextContainerDecoder.class, BinaryContainerDecoder.class))
-                        .build());
-                add(ServerEndpointConfig.Builder.create(AnnotatedEndpoint.class, "/annotatedEndpointRegisteredProgramatically").build());
+            super(Collections.<Class<?>>emptySet(), new HashSet<ServerEndpointConfig>() {
+                {
+                    add(ServerEndpointConfig.Builder
+                                .create(TextAndBinaryDecoderEndpoint.class, "/textAndBinaryDecoderEndpoint")
+                                .decoders(Arrays.<Class<? extends Decoder>>asList
+                                        (TextContainerDecoder.class, BinaryContainerDecoder.class))
+                                .build());
+                    add(ServerEndpointConfig.Builder
+                                .create(AnnotatedEndpoint.class, "/annotatedEndpointRegisteredProgramatically")
+                                .build());
 
-            }});
+                }
+            });
         }
     }
 

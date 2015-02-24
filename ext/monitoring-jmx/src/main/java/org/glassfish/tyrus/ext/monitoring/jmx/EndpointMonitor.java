@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -44,7 +44,8 @@ import org.glassfish.tyrus.core.monitoring.EndpointEventListener;
 /**
  * Listens to endpoint events and collects endpoint-level statistics.
  * <p/>
- * Creates and registers {@link org.glassfish.tyrus.ext.monitoring.jmx.EndpointMXBean} MXBean that exposes these statistics.
+ * Creates and registers {@link org.glassfish.tyrus.ext.monitoring.jmx.EndpointMXBean} MXBean that exposes these
+ * statistics.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
  * @see EndpointEventListener
@@ -69,21 +70,33 @@ abstract class EndpointMonitor extends BaseMonitor implements EndpointEventListe
 
     protected volatile int maxOpenSessionsCount = 0;
 
-    EndpointMonitor(ApplicationMonitor applicationMonitor, ApplicationMXBeanImpl applicationMXBean, String applicationName, String endpointPath, String endpointClassName) {
+    EndpointMonitor(ApplicationMonitor applicationMonitor, ApplicationMXBeanImpl applicationMXBean,
+                    String applicationName, String endpointPath, String endpointClassName) {
         this.applicationName = applicationName;
         this.endpointClassNamePathPair = new EndpointClassNamePathPair(endpointPath, endpointClassName);
         this.applicationMonitor = applicationMonitor;
         this.applicationMXBean = applicationMXBean;
 
-        MessageStatisticsMXBeanImpl textMessagesMXBean = new MessageStatisticsMXBeanImpl(sentTextMessageStatistics, receivedTextMessageStatistics);
-        MessageStatisticsMXBeanImpl binaryMessagesMXBean = new MessageStatisticsMXBeanImpl(sentBinaryMessageStatistics, receivedBinaryMessageStatistics);
-        MessageStatisticsMXBeanImpl controlMessagesMXBean = new MessageStatisticsMXBeanImpl(sentControlMessageStatistics, receivedControlMessageStatistics);
+        MessageStatisticsMXBeanImpl textMessagesMXBean =
+                new MessageStatisticsMXBeanImpl(sentTextMessageStatistics, receivedTextMessageStatistics);
+        MessageStatisticsMXBeanImpl binaryMessagesMXBean =
+                new MessageStatisticsMXBeanImpl(sentBinaryMessageStatistics, receivedBinaryMessageStatistics);
+        MessageStatisticsMXBeanImpl controlMessagesMXBean =
+                new MessageStatisticsMXBeanImpl(sentControlMessageStatistics, receivedControlMessageStatistics);
 
-        MessageStatisticsAggregator sentTotalStatistics = new MessageStatisticsAggregator(sentTextMessageStatistics, sentBinaryMessageStatistics, sentControlMessageStatistics);
-        MessageStatisticsAggregator receivedTotalStatistics = new MessageStatisticsAggregator(receivedTextMessageStatistics, receivedBinaryMessageStatistics, receivedControlMessageStatistics);
-        endpointMXBean = new EndpointMXBeanImpl(sentTotalStatistics, receivedTotalStatistics, endpointPath, endpointClassName, getOpenSessionsCount(), getMaxOpenSessionsCount(), getErrorCounts(), textMessagesMXBean, binaryMessagesMXBean, controlMessagesMXBean);
+        MessageStatisticsAggregator sentTotalStatistics =
+                new MessageStatisticsAggregator(sentTextMessageStatistics, sentBinaryMessageStatistics,
+                                                sentControlMessageStatistics);
+        MessageStatisticsAggregator receivedTotalStatistics =
+                new MessageStatisticsAggregator(receivedTextMessageStatistics, receivedBinaryMessageStatistics,
+                                                receivedControlMessageStatistics);
+        endpointMXBean =
+                new EndpointMXBeanImpl(sentTotalStatistics, receivedTotalStatistics, endpointPath, endpointClassName,
+                                       getOpenSessionsCount(), getMaxOpenSessionsCount(), getErrorCounts(),
+                                       textMessagesMXBean, binaryMessagesMXBean, controlMessagesMXBean);
 
-        MBeanPublisher.registerEndpointMXBeans(applicationName, endpointPath, endpointMXBean, textMessagesMXBean, binaryMessagesMXBean, controlMessagesMXBean);
+        MBeanPublisher.registerEndpointMXBeans(applicationName, endpointPath, endpointMXBean, textMessagesMXBean,
+                                               binaryMessagesMXBean, controlMessagesMXBean);
         applicationMXBean.putEndpointMXBean(endpointPath, endpointMXBean);
     }
 
@@ -102,10 +115,11 @@ abstract class EndpointMonitor extends BaseMonitor implements EndpointEventListe
      *
      * @return {@link Callable} returning number of currently open sessions.
      */
-    abstract protected Callable<Integer> getOpenSessionsCount();
+    protected abstract Callable<Integer> getOpenSessionsCount();
 
     /**
-     * Get a {@link Callable} that will provide maximal number of open sessions for this endpoint since the start of monitoring.
+     * Get a {@link Callable} that will provide maximal number of open sessions for this endpoint since the start of
+     * monitoring.
      *
      * @return {@link Callable} returning a maximal number of open sessions since the start of monitoring.
      */

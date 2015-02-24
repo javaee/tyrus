@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -48,11 +48,12 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.apache.commons.io.FileUtils;
+
 import org.glassfish.tyrus.tests.qa.regression.Issue;
 
 /**
- *
  * @author Michal Conos (michal.conos at oracle.com)
  */
 public class SerializationToolkit {
@@ -84,7 +85,7 @@ public class SerializationToolkit {
     }
 
     public Object load() {
-        
+
         Object o = null;
         try {
             ObjectInputStream ois = new ObjectInputStream(

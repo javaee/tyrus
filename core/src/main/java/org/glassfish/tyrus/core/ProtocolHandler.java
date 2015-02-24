@@ -107,7 +107,7 @@ public final class ProtocolHandler {
 
     /**
      * Synchronizes all public send* (including stream variants) methods.
-     *
+     * <p/>
      * The reason for this lock is that we need to have consistent value in {#sendingFragment} field to be able to
      * determine the sending state of this particular instance/session.
      */
@@ -143,12 +143,11 @@ public final class ProtocolHandler {
     /**
      * Constructor.
      *
-     * @param client              {@code true} when this instance is on client side, {@code false} when on
-     *                            server side.
+     * @param client              {@code true} when this instance is on client side, {@code false} when on server side.
      * @param maskingKeyGenerator random number generator that will be used for generating masking keys. Masking keys
-     *                            are required only on the client side and {@code maskingKeyGenerator} should be
-     *                            {@code null} on the server side. If {@code null} on the client side, {@link java.security.SecureRandom}
-     *                            will be used by default.
+     *                            are required only on the client side and {@code maskingKeyGenerator} should be {@code
+     *                            null} on the server side. If {@code null} on the client side, {@link
+     *                            java.security.SecureRandom} will be used by default.
      */
     ProtocolHandler(boolean client, MaskingKeyGenerator maskingKeyGenerator) {
         this.client = client;
@@ -187,8 +186,8 @@ public final class ProtocolHandler {
     /**
      * Returns true when current connection has some negotiated extension.
      *
-     * @return {@code true} if there is at least one negotiated extension associated to this connection,
-     * {@code false} otherwise.
+     * @return {@code true} if there is at least one negotiated extension associated to this connection, {@code false}
+     * otherwise.
      */
     public boolean hasExtensions() {
         return hasExtensions;
@@ -204,10 +203,8 @@ public final class ProtocolHandler {
      * @return server handshake object.
      * @throws HandshakeException when there is problem with received {@link UpgradeRequest}.
      */
-    public Handshake handshake(TyrusEndpointWrapper endpointWrapper,
-                               UpgradeRequest request,
-                               UpgradeResponse response,
-                               ExtendedExtension.ExtensionContext extensionContext) throws HandshakeException {
+    public Handshake handshake(TyrusEndpointWrapper endpointWrapper, UpgradeRequest request, UpgradeResponse
+            response, ExtendedExtension.ExtensionContext extensionContext) throws HandshakeException {
         final Handshake handshake = Handshake.createServerHandshake(request, extensionContext);
         this.extensions = handshake.respond(request, response, endpointWrapper);
         this.subProtocol = response.getFirstHeaderValue(HandshakeRequest.SEC_WEBSOCKET_PROTOCOL);
@@ -269,13 +266,11 @@ public final class ProtocolHandler {
         return send(frame, null, true);
     }
 
-    private Future<Frame> send(TyrusFrame frame,
-                               CompletionHandler<Frame> completionHandler, Boolean useTimeout) {
+    private Future<Frame> send(TyrusFrame frame, CompletionHandler<Frame> completionHandler, Boolean useTimeout) {
         return write(frame, completionHandler, useTimeout);
     }
 
-    private Future<Frame> send(ByteBuffer frame,
-                               CompletionHandler<Frame> completionHandler, Boolean useTimeout) {
+    private Future<Frame> send(ByteBuffer frame, CompletionHandler<Frame> completionHandler, Boolean useTimeout) {
         return write(frame, completionHandler, useTimeout);
     }
 
@@ -366,8 +361,8 @@ public final class ProtocolHandler {
     /**
      * Check whether current {@link ProtocolHandler} is sending a partial message.
      * <p/>
-     * If yes, wait for {@value ProtocolHandler#SEND_TIMEOUT} and if the message still cannot be sent, throw
-     * {@link IllegalStateException}.
+     * If yes, wait for {@value ProtocolHandler#SEND_TIMEOUT} and if the message still cannot be sent, throw {@link
+     * IllegalStateException}.
      */
     private void checkSendingFragment() {
         final long timeout = System.currentTimeMillis() + SEND_TIMEOUT;
@@ -378,7 +373,7 @@ public final class ProtocolHandler {
             final long currentTimeMillis = System.currentTimeMillis();
 
             // timeout already reached.
-            if(currentTimeMillis >= timeout) {
+            if (currentTimeMillis >= timeout) {
                 throw new IllegalStateException();
             }
 
@@ -399,7 +394,8 @@ public final class ProtocolHandler {
         try {
             switch (sendingFragment) {
                 case SENDING_BINARY:
-                    Future<Frame> frameFuture = send(new BinaryFrame(Arrays.copyOfRange(bytes, off, off + len), true, last));
+                    Future<Frame> frameFuture = send(
+                            new BinaryFrame(Arrays.copyOfRange(bytes, off, off + len), true, last));
                     if (last) {
                         sendingFragment = SendingFragmentState.IDLE;
                         idleCondition.signalAll();
@@ -460,8 +456,8 @@ public final class ProtocolHandler {
                 code == CloseReason.CloseCodes.TLS_HANDSHAKE_FAILURE.getCode() ||
                 // client side cannot send SERVICE_RESTART or TRY_AGAIN_LATER
                 // will be replaced with NORMAL_CLOSURE
-                (client && (code == CloseReason.CloseCodes.SERVICE_RESTART.getCode() ||
-                        code == CloseReason.CloseCodes.TRY_AGAIN_LATER.getCode()))) {
+                (client && (code == CloseReason.CloseCodes.SERVICE_RESTART.getCode() || code == CloseReason
+                        .CloseCodes.TRY_AGAIN_LATER.getCode()))) {
             outgoingCloseFrame = new CloseFrame(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, reason));
         } else {
             outgoingCloseFrame = new CloseFrame(closeReason);
@@ -474,7 +470,8 @@ public final class ProtocolHandler {
         return send;
     }
 
-    private Future<Frame> write(final TyrusFrame frame, final CompletionHandler<Frame> completionHandler, boolean useTimeout) {
+    private Future<Frame> write(final TyrusFrame frame, final CompletionHandler<Frame> completionHandler,
+                                boolean useTimeout) {
         final Writer localWriter = writer;
         final TyrusFuture<Frame> future = new TyrusFuture<Frame>();
 
@@ -489,7 +486,8 @@ public final class ProtocolHandler {
         return future;
     }
 
-    private Future<Frame> write(final ByteBuffer frame, final CompletionHandler<Frame> completionHandler, boolean useTimeout) {
+    private Future<Frame> write(final ByteBuffer frame, final CompletionHandler<Frame> completionHandler,
+                                boolean useTimeout) {
         final Writer localWriter = writer;
         final TyrusFuture<Frame> future = new TyrusFuture<Frame>();
 
@@ -513,7 +511,8 @@ public final class ProtocolHandler {
     }
 
     /**
-     * Converts the length given to the appropriate framing data: <ol> <li>0-125 one element that is the payload length.
+     * Converts the length given to the appropriate framing data: <ol> <li>0-125 one element that is the payload
+     * length.
      * <li>up to 0xFFFF, 3 element array starting with 126 with the following 2 bytes interpreted as a 16 bit unsigned
      * integer showing the payload length. <li>else 9 element array starting with 127 with the following 8 bytes
      * interpreted as a 64-bit unsigned integer (the high bit must be 0) showing the payload length. </ol>
@@ -598,7 +597,8 @@ public final class ProtocolHandler {
                         frame = ((ExtendedExtension) extension).processOutgoing(extensionContext, frame);
                     } catch (Throwable t) {
                         // TODO: define ExtendedExtension exception handling.
-                        LOGGER.log(Level.FINE, LocalizationMessages.EXTENSION_EXCEPTION(extension.getName(), t.getMessage()), t);
+                        LOGGER.log(Level.FINE, LocalizationMessages.EXTENSION_EXCEPTION(extension.getName(), t
+                                .getMessage()), t);
                     }
                 }
             }
@@ -638,8 +638,7 @@ public final class ProtocolHandler {
             Masker masker = new Masker(maskingKey);
             packet[1] |= 0x80;
             masker.mask(packet, payloadStart, bytes, payloadLength);
-            System.arraycopy(masker.getMask(), 0, packet, payloadStart - MASK_SIZE,
-                    MASK_SIZE);
+            System.arraycopy(masker.getMask(), 0, packet, payloadStart - MASK_SIZE, MASK_SIZE);
         } else {
             System.arraycopy(bytes, 0, packet, payloadStart, payloadLength);
         }
@@ -722,18 +721,18 @@ public final class ProtocolHandler {
                         parsingState.masker.setBuffer(buffer);
                         final byte[] data = parsingState.masker.unmask((int) parsingState.length);
                         if (data.length != parsingState.length) {
-                            throw new ProtocolException(LocalizationMessages.DATA_UNEXPECTED_LENGTH(data.length, parsingState.length));
+                            throw new ProtocolException(
+                                    LocalizationMessages.DATA_UNEXPECTED_LENGTH(data.length, parsingState.length));
                         }
 
-                        final Frame frame = Frame.builder()
-                                .fin(parsingState.finalFragment)
-                                .rsv1(isBitSet(parsingState.opcode, 6))
-                                .rsv2(isBitSet(parsingState.opcode, 5))
-                                .rsv3(isBitSet(parsingState.opcode, 4))
-                                .opcode((byte) (parsingState.opcode & 0xf))
-                                .payloadLength(parsingState.length)
-                                .payloadData(data)
-                                .build();
+                        final Frame frame = Frame.builder().fin(parsingState.finalFragment)
+                                                 .rsv1(isBitSet(parsingState.opcode, 6))
+                                                 .rsv2(isBitSet(parsingState.opcode, 5))
+                                                 .rsv3(isBitSet(parsingState.opcode, 4))
+                                                 .opcode((byte) (parsingState.opcode & 0xf))
+                                                 .payloadLength(parsingState.length)
+                                                 .payloadData(data)
+                                                 .build();
 
                         parsingState.recycle();
 
@@ -797,7 +796,8 @@ public final class ProtocolHandler {
         if (!client) {
             if (tyrusFrame.isControlFrame() && tyrusFrame instanceof CloseFrame) {
                 CloseReason.CloseCode closeCode = ((CloseFrame) tyrusFrame).getCloseReason().getCloseCode();
-                if (closeCode.equals(CloseReason.CloseCodes.SERVICE_RESTART) || closeCode.equals(CloseReason.CloseCodes.TRY_AGAIN_LATER)) {
+                if (closeCode.equals(CloseReason.CloseCodes.SERVICE_RESTART) ||
+                        closeCode.equals(CloseReason.CloseCodes.TRY_AGAIN_LATER)) {
                     throw new ProtocolException("Illegal close code: " + closeCode);
                 }
             }
@@ -828,7 +828,8 @@ public final class ProtocolHandler {
         private final TyrusFuture<Frame> future;
         private final Frame frame;
 
-        private CompletionHandlerWrapper(CompletionHandler<Frame> frameCompletionHandler, TyrusFuture<Frame> future, Frame frame) {
+        private CompletionHandlerWrapper(CompletionHandler<Frame> frameCompletionHandler, TyrusFuture<Frame> future,
+                                         Frame frame) {
             this.frameCompletionHandler = frameCompletionHandler;
             this.future = future;
             this.frame = frame;
@@ -883,7 +884,8 @@ public final class ProtocolHandler {
         volatile Masker masker;
         volatile boolean finalFragment;
         volatile boolean controlFrame;
-        volatile private byte lengthCode = -1;
+
+        private volatile byte lengthCode = -1;
 
         void recycle() {
             state.set(0);

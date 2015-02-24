@@ -80,25 +80,29 @@ import org.glassfish.tyrus.spi.UpgradeRequest;
 public class JdkClientContainer implements ClientContainer {
 
     /**
-     * Input buffer that is used by {@link org.glassfish.tyrus.container.jdk.client.TransportFilter} when SSL is turned on.
-     * The size cannot be smaller than a maximal size of a SSL packet, which is 16kB for payload + header, because
+     * Input buffer that is used by {@link org.glassfish.tyrus.container.jdk.client.TransportFilter} when SSL is turned
+     * on. The size cannot be smaller than a maximal size of a SSL packet, which is 16kB for payload + header, because
      * {@link org.glassfish.tyrus.container.jdk.client.SslFilter} does not have its own buffer for buffering incoming
      * {@link org.glassfish.tyrus.container.jdk.client.SslFilter} does not have its own buffer for buffering incoming
-     * data and therefore the entire SSL packet must fit into {@link org.glassfish.tyrus.container.jdk.client.TransportFilter}
+     * data and therefore the entire SSL packet must fit into
+     * {@link org.glassfish.tyrus.container.jdk.client.TransportFilter}
      * input buffer.
      */
     private static final int SSL_INPUT_BUFFER_SIZE = 17_000;
     /**
-     * Input buffer that is used by {@link org.glassfish.tyrus.container.jdk.client.TransportFilter} when SSL is not turned on.
+     * Input buffer that is used by {@link org.glassfish.tyrus.container.jdk.client.TransportFilter} when SSL is not
+     * turned on.
      */
     private static final int INPUT_BUFFER_SIZE = 2048;
     private static final Logger LOGGER = Logger.getLogger(JdkClientContainer.class.getName());
 
     @Override
-    public void openClientSocket(final ClientEndpointConfig cec, final Map<String, Object> properties, final ClientEngine clientEngine) throws DeploymentException, IOException {
+    public void openClientSocket(final ClientEndpointConfig cec, final Map<String, Object> properties,
+                                 final ClientEngine clientEngine) throws DeploymentException, IOException {
 
 
-        ThreadPoolConfig threadPoolConfig = Utils.getProperty(properties, ClientProperties.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.class);
+        ThreadPoolConfig threadPoolConfig =
+                Utils.getProperty(properties, ClientProperties.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.class);
         if (threadPoolConfig == null) {
             threadPoolConfig = ThreadPoolConfig.defaultConfig();
         }
@@ -109,11 +113,14 @@ public class JdkClientContainer implements ClientContainer {
                 int wlsMaxThreads = Integer.parseInt(wlsMaxThreadsStr);
                 threadPoolConfig.setMaxPoolSize(wlsMaxThreads);
             } catch (Exception e) {
-                LOGGER.log(Level.CONFIG, String.format("Invalid type of configuration property of %s , %s cannot be cast to Integer", ClientManager.WLS_MAX_THREADS, wlsMaxThreadsStr));
+                LOGGER.log(Level.CONFIG,
+                           String.format("Invalid type of configuration property of %s , %s cannot be cast to Integer",
+                                         ClientManager.WLS_MAX_THREADS, wlsMaxThreadsStr));
             }
         }
 
-        final Integer containerIdleTimeout = Utils.getProperty(properties, ClientProperties.SHARED_CONTAINER_IDLE_TIMEOUT, Integer.class);
+        final Integer containerIdleTimeout =
+                Utils.getProperty(properties, ClientProperties.SHARED_CONTAINER_IDLE_TIMEOUT, Integer.class);
 
         final ThreadPoolConfig finalThreadPoolConfig = threadPoolConfig;
         final Callable<Void> jdkConnector = new Callable<Void>() {
@@ -133,16 +140,19 @@ public class JdkClientContainer implements ClientContainer {
                 final boolean secure = "wss".equalsIgnoreCase(uri.getScheme());
 
                 if (secure) {
-                    TransportFilter transportFilter = createTransportFilter(SSL_INPUT_BUFFER_SIZE, finalThreadPoolConfig, containerIdleTimeout);
+                    TransportFilter transportFilter =
+                            createTransportFilter(SSL_INPUT_BUFFER_SIZE, finalThreadPoolConfig, containerIdleTimeout);
                     SslFilter sslFilter = createSslFilter(cec, properties, transportFilter, uri);
                     writeQueue = createTaskQueueFilter(sslFilter);
 
                 } else {
-                    TransportFilter transportFilter = createTransportFilter(INPUT_BUFFER_SIZE, finalThreadPoolConfig, containerIdleTimeout);
+                    TransportFilter transportFilter =
+                            createTransportFilter(INPUT_BUFFER_SIZE, finalThreadPoolConfig, containerIdleTimeout);
                     writeQueue = createTaskQueueFilter(transportFilter);
                 }
 
-                final ClientFilter clientFilter = createClientFilter(properties, writeQueue, clientEngine, this, upgradeRequest);
+                final ClientFilter clientFilter =
+                        createClientFilter(properties, writeQueue, clientEngine, this, upgradeRequest);
                 timeoutHandlerProxy.setHandler(new ClientEngine.TimeoutHandler() {
                     @Override
                     public void handleTimeout() {
@@ -171,7 +181,8 @@ public class JdkClientContainer implements ClientContainer {
                         InetSocketAddress inetSocketAddress = (InetSocketAddress) proxyAddress;
                         if (inetSocketAddress.isUnresolved()) {
                             // resolve the address.
-                            proxyAddress = new InetSocketAddress(inetSocketAddress.getHostName(), inetSocketAddress.getPort());
+                            proxyAddress =
+                                    new InetSocketAddress(inetSocketAddress.getHostName(), inetSocketAddress.getPort());
                         }
 
                         try {
@@ -205,7 +216,8 @@ public class JdkClientContainer implements ClientContainer {
         }
     }
 
-    private SslFilter createSslFilter(ClientEndpointConfig cec, Map<String, Object> properties, TransportFilter transportFilter, URI uri) {
+    private SslFilter createSslFilter(ClientEndpointConfig cec, Map<String, Object> properties,
+                                      TransportFilter transportFilter, URI uri) {
         Object sslEngineConfiguratorObject = properties.get(ClientProperties.SSL_ENGINE_CONFIGURATOR);
 
         SslFilter sslFilter = null;
@@ -213,12 +225,18 @@ public class JdkClientContainer implements ClientContainer {
         if (sslEngineConfiguratorObject != null) {
             // property is set, we need to figure out whether new or deprecated one is used and act accordingly.
             if (sslEngineConfiguratorObject instanceof SslEngineConfigurator) {
-                sslFilter = new SslFilter(transportFilter, (SslEngineConfigurator) sslEngineConfiguratorObject, uri.getHost());
-            } else if (sslEngineConfiguratorObject instanceof org.glassfish.tyrus.container.jdk.client.SslEngineConfigurator) {
-                sslFilter = new SslFilter(transportFilter, (org.glassfish.tyrus.container.jdk.client.SslEngineConfigurator) sslEngineConfiguratorObject);
+                sslFilter = new SslFilter(transportFilter, (SslEngineConfigurator) sslEngineConfiguratorObject,
+                                          uri.getHost());
+            } else if (sslEngineConfiguratorObject instanceof org.glassfish.tyrus.container.jdk.client
+                    .SslEngineConfigurator) {
+                sslFilter = new SslFilter(transportFilter,
+                                          (org.glassfish.tyrus.container.jdk.client.SslEngineConfigurator)
+                                                  sslEngineConfiguratorObject);
             } else {
-                LOGGER.log(Level.WARNING, "Invalid '" + ClientProperties.SSL_ENGINE_CONFIGURATOR + "' property value: " + sslEngineConfiguratorObject +
-                        ". Using system defaults.");
+                LOGGER.log(Level.WARNING,
+                           "Invalid '" + ClientProperties.SSL_ENGINE_CONFIGURATOR + "' property value: " +
+                                   sslEngineConfiguratorObject +
+                                   ". Using system defaults.");
             }
         }
 
@@ -229,7 +247,8 @@ public class JdkClientContainer implements ClientContainer {
             defaultConfig.retrieve(System.getProperties());
 
             String wlsSslTrustStore = (String) cec.getUserProperties().get(ClientManager.WLS_SSL_TRUSTSTORE_PROPERTY);
-            String wlsSslTrustStorePassword = (String) cec.getUserProperties().get(ClientManager.WLS_SSL_TRUSTSTORE_PWD_PROPERTY);
+            String wlsSslTrustStorePassword =
+                    (String) cec.getUserProperties().get(ClientManager.WLS_SSL_TRUSTSTORE_PWD_PROPERTY);
 
             if (wlsSslTrustStore != null) {
                 defaultConfig.setTrustStoreFile(wlsSslTrustStore);
@@ -247,25 +266,30 @@ public class JdkClientContainer implements ClientContainer {
             }
 
             // {@value ClientManager.WLS_IGNORE_HOSTNAME_VERIFICATION} system property
-            String wlsIgnoreHostnameVerification = System.getProperties().getProperty(ClientManager.WLS_IGNORE_HOSTNAME_VERIFICATION);
+            String wlsIgnoreHostnameVerification =
+                    System.getProperties().getProperty(ClientManager.WLS_IGNORE_HOSTNAME_VERIFICATION);
             if ("true".equalsIgnoreCase(wlsIgnoreHostnameVerification)) {
                 sslEngineConfigurator.setHostVerificationEnabled(false);
             } else {
 
-                // if hostname verification is not ignored, Tyrus looks for {@value ClientManager.WLS_HOSTNAME_VERIFIER_CLASS}.
+                // if hostname verification is not ignored, Tyrus looks for {@value ClientManager
+                // .WLS_HOSTNAME_VERIFIER_CLASS}.
                 // If that is found and the class can be instantiated properly, it will be used as Hostname
                 // Verifier instance; if not, we will use the default one.
                 final String className = System.getProperties().getProperty(ClientManager.WLS_HOSTNAME_VERIFIER_CLASS);
                 if (className != null && !className.isEmpty()) {
                     //noinspection unchecked
-                    final Class<HostnameVerifier> hostnameVerifierClass = (Class<HostnameVerifier>) ReflectionHelper.classForName(className);
+                    final Class<HostnameVerifier> hostnameVerifierClass =
+                            (Class<HostnameVerifier>) ReflectionHelper.classForName(className);
                     if (hostnameVerifierClass != null) {
                         try {
-                            final HostnameVerifier hostnameVerifier = ReflectionHelper.getInstance(hostnameVerifierClass);
+                            final HostnameVerifier hostnameVerifier =
+                                    ReflectionHelper.getInstance(hostnameVerifierClass);
                             sslEngineConfigurator.setHostnameVerifier(hostnameVerifier);
                         } catch (IllegalAccessException | InstantiationException e) {
-                            LOGGER.log(Level.INFO, String.format("Cannot instantiate class set as a value of '%s' property: %s",
-                                    ClientManager.WLS_HOSTNAME_VERIFIER_CLASS, className), e);
+                            LOGGER.log(Level.INFO,
+                                       String.format("Cannot instantiate class set as a value of '%s' property: %s",
+                                                     ClientManager.WLS_HOSTNAME_VERIFIER_CLASS, className), e);
                         }
                     }
                 }
@@ -277,7 +301,8 @@ public class JdkClientContainer implements ClientContainer {
         return sslFilter;
     }
 
-    private TransportFilter createTransportFilter(int sslInputBufferSize, ThreadPoolConfig threadPoolConfig, Integer containerIdleTimeout) {
+    private TransportFilter createTransportFilter(int sslInputBufferSize, ThreadPoolConfig threadPoolConfig,
+                                                  Integer containerIdleTimeout) {
         return new TransportFilter(sslInputBufferSize, threadPoolConfig, containerIdleTimeout);
     }
 
@@ -285,7 +310,9 @@ public class JdkClientContainer implements ClientContainer {
         return new TaskQueueFilter(downstreamFilter);
     }
 
-    private ClientFilter createClientFilter(Map<String, Object> properties, Filter downstreamFilter, ClientEngine clientEngine, Callable<Void> jdkConnector, UpgradeRequest upgradeRequest) throws DeploymentException {
+    private ClientFilter createClientFilter(Map<String, Object> properties, Filter downstreamFilter,
+                                            ClientEngine clientEngine, Callable<Void> jdkConnector,
+                                            UpgradeRequest upgradeRequest) throws DeploymentException {
         return new ClientFilter(downstreamFilter, clientEngine, properties, jdkConnector, upgradeRequest);
     }
 
@@ -300,10 +327,11 @@ public class JdkClientContainer implements ClientContainer {
     }
 
     /**
-     * {@link org.glassfish.tyrus.container.jdk.client.ClientFilter#connect(java.net.SocketAddress, boolean, CompletionHandler)}
-     * is asynchronous, this method will block until it either succeeds or fails.
+     * {@link org.glassfish.tyrus.container.jdk.client.ClientFilter#connect(java.net.SocketAddress, boolean,
+     * CompletionHandler)} is asynchronous, this method will block until it either succeeds or fails.
      */
-    private void connectSynchronously(ClientFilter clientFilter, final SocketAddress address, boolean proxy) throws Throwable {
+    private void connectSynchronously(ClientFilter clientFilter, final SocketAddress address, boolean proxy) throws
+            Throwable {
         final AtomicReference<Throwable> exception = new AtomicReference<>(null);
         final CountDownLatch connectLatch = new CountDownLatch(1);
 
@@ -330,7 +358,9 @@ public class JdkClientContainer implements ClientContainer {
 
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new DeploymentException("The thread waiting for client to connect has been interrupted before the connection has finished", e);
+            throw new DeploymentException(
+                    "The thread waiting for client to connect has been interrupted before the connection has finished",
+                    e);
         }
     }
 
@@ -358,7 +388,8 @@ public class JdkClientContainer implements ClientContainer {
         }
 
         if (wlsProxyHost != null) {
-            proxies.add(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(wlsProxyHost, wlsProxyPort == null ? 80 : wlsProxyPort)));
+            proxies.add(new Proxy(Proxy.Type.HTTP,
+                                  new InetSocketAddress(wlsProxyHost, wlsProxyPort == null ? 80 : wlsProxyPort)));
         } else {
             Object proxyString = properties.get(ClientProperties.PROXY_URI);
             try {
@@ -400,7 +431,10 @@ public class JdkClientContainer implements ClientContainer {
                     proxies.add(p);
                     break;
                 case SOCKS:
-                    LOGGER.log(Level.INFO, String.format("Socks proxy is not supported, please file new issue at https://java.net/jira/browse/TYRUS. Proxy '%s' will be ignored.", p));
+                    LOGGER.log(Level.INFO, String.format(
+                            "Socks proxy is not supported, please file new issue at https://java" +
+                                    ".net/jira/browse/TYRUS. Proxy '%s' will be ignored.",
+                            p));
                     break;
                 default:
                     break;
@@ -410,7 +444,8 @@ public class JdkClientContainer implements ClientContainer {
 
     private URI getProxyUri(URI wsUri, String scheme) {
         try {
-            return new URI(scheme, wsUri.getUserInfo(), wsUri.getHost(), wsUri.getPort(), wsUri.getPath(), wsUri.getQuery(), wsUri.getFragment());
+            return new URI(scheme, wsUri.getUserInfo(), wsUri.getHost(), wsUri.getPort(), wsUri.getPath(),
+                           wsUri.getQuery(), wsUri.getFragment());
         } catch (URISyntaxException e) {
             LOGGER.log(Level.WARNING, String.format("Exception during generating proxy URI '%s'", wsUri), e);
             return wsUri;

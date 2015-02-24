@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -71,7 +71,8 @@ import static org.junit.Assert.fail;
 public class BlockingInputTest extends TestContainer {
 
     /**
-     * Test that a thread blocked in {@link java.io.Reader} on the client side gets released if the session is closed by the client.
+     * Test that a thread blocked in {@link java.io.Reader} on the client side gets released if the session is closed by
+     * the client.
      */
     @Test
     public void testReaderCloseByClient() {
@@ -82,7 +83,8 @@ public class BlockingInputTest extends TestContainer {
 
             server = startServer(AnnotatedServerTextEndpoint.class);
             ClientManager client = createClient();
-            Session session = client.connectToServer(new CloseByClientEndpoint(threadReleasedLatch, messageLatch), getURI(AnnotatedServerTextEndpoint.class));
+            Session session = client.connectToServer(new CloseByClientEndpoint(threadReleasedLatch, messageLatch),
+                                                     getURI(AnnotatedServerTextEndpoint.class));
 
             assertTrue(messageLatch.await(1, TimeUnit.SECONDS));
             // give the client endpoint some time to get blocked
@@ -98,7 +100,8 @@ public class BlockingInputTest extends TestContainer {
     }
 
     /**
-     * Test that a thread blocked in {@link java.io.InputStream} on the client side gets released if the session is closed by the client.
+     * Test that a thread blocked in {@link java.io.InputStream} on the client side gets released if the session is
+     * closed by the client.
      */
     @Test
     public void testInputStreamCloseByClient() {
@@ -109,7 +112,8 @@ public class BlockingInputTest extends TestContainer {
 
             server = startServer(AnnotatedServerBinaryEndpoint.class);
             ClientManager client = createClient();
-            Session session = client.connectToServer(new CloseByClientEndpoint(threadReleasedLatch, messageLatch), getURI(AnnotatedServerBinaryEndpoint.class));
+            Session session = client.connectToServer(new CloseByClientEndpoint(threadReleasedLatch, messageLatch),
+                                                     getURI(AnnotatedServerBinaryEndpoint.class));
 
             assertTrue(messageLatch.await(1, TimeUnit.SECONDS));
             // give the client endpoint some time to get blocked
@@ -125,7 +129,8 @@ public class BlockingInputTest extends TestContainer {
     }
 
     /**
-     * Test that a thread blocked in {@link java.io.Reader} on the client side gets released if the session is closed by the server.
+     * Test that a thread blocked in {@link java.io.Reader} on the client side gets released if the session is closed
+     * by the server.
      */
     @Test
     public void testReaderCloseByServer() {
@@ -135,7 +140,8 @@ public class BlockingInputTest extends TestContainer {
 
             server = startServer(AnnotatedServerTextEndpoint.class);
             ClientManager client = createClient();
-            client.connectToServer(new CloseByServerEndpoint(threadReleasedLatch), getURI(AnnotatedServerTextEndpoint.class));
+            client.connectToServer(new CloseByServerEndpoint(threadReleasedLatch),
+                                   getURI(AnnotatedServerTextEndpoint.class));
 
             assertTrue(threadReleasedLatch.await(1, TimeUnit.SECONDS));
         } catch (Exception e) {
@@ -147,7 +153,8 @@ public class BlockingInputTest extends TestContainer {
     }
 
     /**
-     * Test that a thread blocked in {@link java.io.InputStream} on the client side gets released if the session is closed by the server.
+     * Test that a thread blocked in {@link java.io.InputStream} on the client side gets released if the session is
+     * closed by the server.
      */
     @Test
     public void testInputStreamCloseByServer() {
@@ -157,7 +164,8 @@ public class BlockingInputTest extends TestContainer {
 
             server = startServer(AnnotatedServerBinaryEndpoint.class);
             ClientManager client = createClient();
-            client.connectToServer(new CloseByServerEndpoint(threadReleasedLatch), getURI(AnnotatedServerBinaryEndpoint.class));
+            client.connectToServer(new CloseByServerEndpoint(threadReleasedLatch),
+                                   getURI(AnnotatedServerBinaryEndpoint.class));
 
             assertTrue(threadReleasedLatch.await(1, TimeUnit.SECONDS));
         } catch (Exception e) {
@@ -169,7 +177,8 @@ public class BlockingInputTest extends TestContainer {
     }
 
     /**
-     * Test that an attempt to read from {@link java.io.Reader} will throw {@link java.io.IOException} if the session has been closed.
+     * Test that an attempt to read from {@link java.io.Reader} will throw {@link java.io.IOException} if the session
+     * has been closed.
      */
     @Test
     public void testReaderWithClosedSession() {
@@ -179,7 +188,8 @@ public class BlockingInputTest extends TestContainer {
 
             server = startServer(AnnotatedServerTextEndpoint.class);
             ClientManager client = createClient();
-            client.connectToServer(new ReadFromClosedSessionEndpoint(threadReleasedLatch), getURI(AnnotatedServerTextEndpoint.class));
+            client.connectToServer(new ReadFromClosedSessionEndpoint(threadReleasedLatch),
+                                   getURI(AnnotatedServerTextEndpoint.class));
 
             assertTrue(threadReleasedLatch.await(1, TimeUnit.SECONDS));
         } catch (Exception e) {
@@ -191,7 +201,8 @@ public class BlockingInputTest extends TestContainer {
     }
 
     /**
-     * Test that an attempt to read from {@link java.io.InputStream} will throw {@link java.io.IOException} if the session has been closed.
+     * Test that an attempt to read from {@link java.io.InputStream} will throw {@link java.io.IOException} if the
+     * session has been closed.
      */
     @Test
     public void testInputStreamWithClosedSession() {
@@ -201,7 +212,8 @@ public class BlockingInputTest extends TestContainer {
 
             server = startServer(AnnotatedServerBinaryEndpoint.class);
             ClientManager client = createClient();
-            client.connectToServer(new ReadFromClosedSessionEndpoint(threadReleasedLatch), getURI(AnnotatedServerBinaryEndpoint.class));
+            client.connectToServer(new ReadFromClosedSessionEndpoint(threadReleasedLatch),
+                                   getURI(AnnotatedServerBinaryEndpoint.class));
 
             assertTrue(threadReleasedLatch.await(1, TimeUnit.SECONDS));
         } catch (Exception e) {

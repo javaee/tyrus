@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -96,11 +96,15 @@ public class TextFrame extends TyrusFrame {
      *
      * @param message      text message (will be encoded using strict UTF-8 encoding).
      * @param continuation {@code true} when this frame is continuation frame, {@code false} otherwise.
-     * @param fin          {@code true} when this frame is last in current partial message batch. Standard (non-continuous)
-     *                     frames have this bit set to {@code true}.
+     * @param fin          {@code true} when this frame is last in current partial message batch. Standard
+     *                     (non-continuous) frames have this bit set to {@code true}.
      */
     public TextFrame(String message, boolean continuation, boolean fin) {
-        super(Frame.builder().payloadData(encode(new StrictUtf8(), message)).opcode(continuation ? (byte) 0x00 : (byte) 0x01).fin(fin).build(), continuation ? FrameType.TEXT_CONTINUATION : FrameType.TEXT);
+        super(Frame.builder()
+                   .payloadData(encode(new StrictUtf8(), message))
+                   .opcode(continuation ? (byte) 0x00 : (byte) 0x01)
+                   .fin(fin)
+                   .build(), continuation ? FrameType.TEXT_CONTINUATION : FrameType.TEXT);
         this.continuation = continuation;
         this.textPayload = message;
     }
@@ -151,7 +155,8 @@ public class TextFrame extends TyrusFrame {
                 if (finalFragment) {
                     currentDecoder.flush(cb);
                     if (b.hasRemaining()) {
-                        throw new IllegalStateException("Final UTF-8 fragment received, but not all bytes consumed by decode process");
+                        throw new IllegalStateException("Final UTF-8 fragment received, but not all bytes consumed by" +
+                                                                " decode process");
                     }
                     currentDecoder.reset();
                 } else {
@@ -206,19 +211,22 @@ public class TextFrame extends TyrusFrame {
         CharsetEncoder ce = charset.newEncoder();
         int en = scale(string.length(), ce.maxBytesPerChar());
         byte[] ba = new byte[en];
-        if (string.length() == 0)
+        if (string.length() == 0) {
             return ba;
+        }
 
         ce.reset();
         ByteBuffer bb = ByteBuffer.wrap(ba);
         CharBuffer cb = CharBuffer.wrap(string);
         try {
             CoderResult cr = ce.encode(cb, bb, true);
-            if (!cr.isUnderflow())
+            if (!cr.isUnderflow()) {
                 cr.throwException();
+            }
             cr = ce.flush(bb);
-            if (!cr.isUnderflow())
+            if (!cr.isUnderflow()) {
                 cr.throwException();
+            }
         } catch (CharacterCodingException x) {
             // Substitution is always enabled,
             // so this shouldn't happen
@@ -235,8 +243,7 @@ public class TextFrame extends TyrusFrame {
 
     // Trim the given byte array to the given length
     private static byte[] safeTrim(byte[] ba, int len) {
-        if (len == ba.length
-                && (System.getSecurityManager() == null)) {
+        if (len == ba.length && (System.getSecurityManager() == null)) {
             return ba;
         } else {
             return copyOf(ba, len);
@@ -245,8 +252,7 @@ public class TextFrame extends TyrusFrame {
 
     private static byte[] copyOf(byte[] original, int newLength) {
         byte[] copy = new byte[newLength];
-        System.arraycopy(original, 0, copy, 0,
-                Math.min(original.length, newLength));
+        System.arraycopy(original, 0, copy, 0, Math.min(original.length, newLength));
         return copy;
     }
 }

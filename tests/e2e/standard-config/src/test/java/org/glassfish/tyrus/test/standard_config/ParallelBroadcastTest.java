@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -94,15 +94,18 @@ public class ParallelBroadcastTest extends TestContainer {
             ClientManager client = createClient();
             client.getProperties().put(ClientProperties.SHARED_CONTAINER, true);
 
-            // The number of threads has to be limited, because all the clients will receive the broadcast simultaneously,
-            // which might lead to creating too many threads and consequently a test failure.
-            client.getProperties().put(ClientProperties.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.defaultConfig().setMaxPoolSize(20));
+            // The number of threads has to be limited, because all the clients will receive the broadcast
+            // simultaneously, which might lead to creating too many threads and consequently a test failure.
+            client.getProperties()
+                  .put(ClientProperties.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.defaultConfig().setMaxPoolSize(20));
 
             for (int i = 0; i < SESSIONS_COUNT - 1; i++) {
-                client.connectToServer(new TextClientEndpoint(messageLatch, messageCounter), getURI(BroadcastServerEndpoint.class));
+                client.connectToServer(new TextClientEndpoint(messageLatch, messageCounter),
+                                       getURI(BroadcastServerEndpoint.class));
             }
 
-            Session session = client.connectToServer(new TextClientEndpoint(messageLatch, messageCounter), getURI(BroadcastServerEndpoint.class));
+            Session session = client.connectToServer(new TextClientEndpoint(messageLatch, messageCounter),
+                                                     getURI(BroadcastServerEndpoint.class));
             session.getBasicRemote().sendText("Broadcast request");
 
             assertTrue(messageLatch.await(30, TimeUnit.SECONDS));
@@ -118,7 +121,8 @@ public class ParallelBroadcastTest extends TestContainer {
     /**
      * Test Tyrus text broadcast, which is parallel by default.
      * <p/>
-     * The number of threads used for the broadcast is {@code Math.min(Runtime.getRuntime().availableProcessors(), sessions.size() / 16)}.
+     * The number of threads used for the broadcast is {@code Math.min(Runtime.getRuntime().availableProcessors(),
+     * sessions.size() / 16)}.
      */
     @Test
     public void testTyrusParallelTextBroadcast() {
@@ -129,7 +133,8 @@ public class ParallelBroadcastTest extends TestContainer {
     /**
      * Test Tyrus binary broadcast, which is parallel by default.
      * <p/>
-     * The number of threads used for the broadcast is {@code Math.min(Runtime.getRuntime().availableProcessors(), sessions.size() / 16)}.
+     * The number of threads used for the broadcast is {@code Math.min(Runtime.getRuntime().availableProcessors(),
+     * sessions.size() / 16)}.
      */
     @Test
     public void testTyrusParallelBinaryBroadcast() {
@@ -178,15 +183,18 @@ public class ParallelBroadcastTest extends TestContainer {
             ClientManager client = createClient();
             client.getProperties().put(ClientProperties.SHARED_CONTAINER, true);
 
-            // The number of threads has to be limited, because all the clients will receive the broadcast simultaneously,
-            // which might lead to creating too many threads and consequently a test failure.
-            client.getProperties().put(ClientProperties.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.defaultConfig().setMaxPoolSize(20));
+            // The number of threads has to be limited, because all the clients will receive the broadcast
+            // simultaneously, which might lead to creating too many threads and consequently a test failure.
+            client.getProperties()
+                  .put(ClientProperties.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.defaultConfig().setMaxPoolSize(20));
 
             for (int i = 0; i < SESSIONS_COUNT - 1; i++) {
-                client.connectToServer(new TextClientEndpoint(messageLatch, messageCounter), getURI(TyrusTextBroadcastServerEndpoint.class));
+                client.connectToServer(new TextClientEndpoint(messageLatch, messageCounter),
+                                       getURI(TyrusTextBroadcastServerEndpoint.class));
             }
 
-            Session session = client.connectToServer(new TextClientEndpoint(messageLatch, messageCounter), getURI(TyrusTextBroadcastServerEndpoint.class));
+            Session session = client.connectToServer(new TextClientEndpoint(messageLatch, messageCounter),
+                                                     getURI(TyrusTextBroadcastServerEndpoint.class));
             session.getBasicRemote().sendText("Broadcast request");
 
             assertTrue(messageLatch.await(30, TimeUnit.SECONDS));
@@ -212,15 +220,18 @@ public class ParallelBroadcastTest extends TestContainer {
             ClientManager client = createClient();
             client.getProperties().put(ClientProperties.SHARED_CONTAINER, true);
 
-            // The number of threads has to be limited, because all the clients will receive the broadcast simultaneously,
-            // which might lead to creating too many threads and consequently a test failure.
-            client.getProperties().put(ClientProperties.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.defaultConfig().setMaxPoolSize(20));
+            // The number of threads has to be limited, because all the clients will receive the broadcast
+            // simultaneously, which might lead to creating too many threads and consequently a test failure.
+            client.getProperties()
+                  .put(ClientProperties.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.defaultConfig().setMaxPoolSize(20));
 
             for (int i = 0; i < SESSIONS_COUNT - 1; i++) {
-                client.connectToServer(new BinaryClientEndpoint(messageLatch, messageCounter), getURI(TyrusBinaryBroadcastServerEndpoint.class));
+                client.connectToServer(new BinaryClientEndpoint(messageLatch, messageCounter),
+                                       getURI(TyrusBinaryBroadcastServerEndpoint.class));
             }
 
-            Session session = client.connectToServer(new BinaryClientEndpoint(messageLatch, messageCounter), getURI(TyrusBinaryBroadcastServerEndpoint.class));
+            Session session = client.connectToServer(new BinaryClientEndpoint(messageLatch, messageCounter),
+                                                     getURI(TyrusBinaryBroadcastServerEndpoint.class));
             session.getBasicRemote().sendText("Broadcast request");
 
             assertTrue(messageLatch.await(30, TimeUnit.SECONDS));
@@ -287,8 +298,11 @@ public class ParallelBroadcastTest extends TestContainer {
                     @Override
                     public void run() {
                         int lowerBound = (SESSIONS_COUNT + THREAD_COUNT - 1) / THREAD_COUNT * partitionId;
-                        int upperBound = Math.min((SESSIONS_COUNT + THREAD_COUNT - 1) / THREAD_COUNT * (partitionId + 1), SESSIONS_COUNT);
-                        System.out.println(Thread.currentThread().getName() + " <" + lowerBound + ", " + upperBound + ")");
+                        int upperBound =
+                                Math.min((SESSIONS_COUNT + THREAD_COUNT - 1) / THREAD_COUNT * (partitionId + 1),
+                                         SESSIONS_COUNT);
+                        System.out.println(
+                                Thread.currentThread().getName() + " <" + lowerBound + ", " + upperBound + ")");
 
                         for (int j = lowerBound; j < upperBound; j++) {
                             openSessions.get(j).getAsyncRemote().sendText("Hi from " + partitionId);

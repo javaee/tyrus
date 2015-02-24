@@ -91,8 +91,8 @@ class Filter {
     /**
      * Initiate connect.
      * <p/>
-     * If the {@link Filter} needs to do something during this phase, it must implement {@link #handleConnect(SocketAddress, Filter)}
-     * method.
+     * If the {@link Filter} needs to do something during this phase, it must implement {@link
+     * #handleConnect(SocketAddress, Filter)} method.
      *
      * @param address        an address where to connect (server or proxy).
      * @param upstreamFilter a filter positioned upstream.
@@ -155,7 +155,8 @@ class Filter {
     /**
      * An event listener that is called, when SSL completes its handshake.
      * <p/>
-     * If the {@link Filter} needs to process this event, it must implement {@link #processSslHandshakeCompleted()} method.
+     * If the {@link Filter} needs to process this event, it must implement {@link #processSslHandshakeCompleted()}
+     * method.
      */
     final void onSslHandshakeCompleted() {
         processSslHandshakeCompleted();
@@ -205,7 +206,8 @@ class Filter {
      * Process {@link #onRead(ByteBuffer)}.
      *
      * @param data read data.
-     * @return {@code true} if the data should be sent to processing to upper filter in the chain, {@code false} otherwise.
+     * @return {@code true} if the data should be sent to processing to upper filter in the chain, {@code false}
+     * otherwise.
      * @see #onRead(ByteBuffer)
      */
     boolean processRead(ByteBuffer data) {

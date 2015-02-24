@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -56,7 +56,8 @@ public class ServiceEndpoint {
     public String onMessage(String message) {
 
         if (message.equals("server")) {
-            final CloseServerEndpoint closeServerEndpoint = SingletonConfigurator.getEndpoint(CloseServerEndpoint.class);
+            final CloseServerEndpoint closeServerEndpoint =
+                    SingletonConfigurator.getEndpoint(CloseServerEndpoint.class);
 
             if (closeServerEndpoint.isAddMessageHandlerExceptionThrown() &&
                     closeServerEndpoint.isRemoveMessageHandlerExceptionThrown() &&
@@ -69,25 +70,32 @@ public class ServiceEndpoint {
                 return NEGATIVE;
             }
         } else if (message.equals("client")) {
-            final CloseClientEndpoint closeClientEndpoint = SingletonConfigurator.getEndpoint(CloseClientEndpoint.class);
+            final CloseClientEndpoint closeClientEndpoint =
+                    SingletonConfigurator.getEndpoint(CloseClientEndpoint.class);
 
             return closeClientEndpoint.isInCloseSendTextExceptionThrown() ? POSITIVE : NEGATIVE;
         } else if (message.equals("idleTimeoutReceiving")) {
-            final IdleTimeoutReceivingEndpoint idleTimeoutReceivingEndpoint = SingletonConfigurator.getEndpoint(IdleTimeoutReceivingEndpoint.class);
+            final IdleTimeoutReceivingEndpoint idleTimeoutReceivingEndpoint =
+                    SingletonConfigurator.getEndpoint(IdleTimeoutReceivingEndpoint.class);
 
             return idleTimeoutReceivingEndpoint.isOnCloseCalled() ? POSITIVE : NEGATIVE;
         } else if (message.equals("idleTimeoutSending")) {
-            final IdleTimeoutSendingEndpoint idleTimeoutSendingEndpoint = SingletonConfigurator.getEndpoint(IdleTimeoutSendingEndpoint.class);
+            final IdleTimeoutSendingEndpoint idleTimeoutSendingEndpoint =
+                    SingletonConfigurator.getEndpoint(IdleTimeoutSendingEndpoint.class);
 
             return idleTimeoutSendingEndpoint.isOnCloseCalled() ? POSITIVE : NEGATIVE;
         } else if (message.equals("idleTimeoutSendingPing")) {
-            final IdleTimeoutSendingPingEndpoint idleTimeoutSendingPingEndpoint = SingletonConfigurator.getEndpoint(IdleTimeoutSendingPingEndpoint.class);
+            final IdleTimeoutSendingPingEndpoint idleTimeoutSendingPingEndpoint =
+                    SingletonConfigurator.getEndpoint(IdleTimeoutSendingPingEndpoint.class);
 
             return idleTimeoutSendingPingEndpoint.isOnCloseCalled() ? POSITIVE : NEGATIVE;
         } else if (message.equals("reset")) {
-            final IdleTimeoutReceivingEndpoint idleTimeoutReceivingEndpoint = SingletonConfigurator.getEndpoint(IdleTimeoutReceivingEndpoint.class);
-            final IdleTimeoutSendingEndpoint idleTimeoutSendingEndpoint = SingletonConfigurator.getEndpoint(IdleTimeoutSendingEndpoint.class);
-            final IdleTimeoutSendingPingEndpoint idleTimeoutSendingPingEndpoint = SingletonConfigurator.getEndpoint(IdleTimeoutSendingPingEndpoint.class);
+            final IdleTimeoutReceivingEndpoint idleTimeoutReceivingEndpoint =
+                    SingletonConfigurator.getEndpoint(IdleTimeoutReceivingEndpoint.class);
+            final IdleTimeoutSendingEndpoint idleTimeoutSendingEndpoint =
+                    SingletonConfigurator.getEndpoint(IdleTimeoutSendingEndpoint.class);
+            final IdleTimeoutSendingPingEndpoint idleTimeoutSendingPingEndpoint =
+                    SingletonConfigurator.getEndpoint(IdleTimeoutSendingPingEndpoint.class);
 
             idleTimeoutReceivingEndpoint.setOnCloseCalled(false);
             idleTimeoutSendingEndpoint.setOnCloseCalled(false);

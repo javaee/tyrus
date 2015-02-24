@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -114,7 +114,8 @@ public class MaxMessageSizeTest extends TestContainer {
                 Endpoint1.closeReason = null;
                 Endpoint1.throwable = null;
                 return POSITIVE;
-            } else if (Endpoint1.closeReason != null && Endpoint1.closeReason.getCloseCode().equals(CloseReason.CloseCodes.TOO_BIG)) {
+            } else if (Endpoint1.closeReason != null &&
+                    Endpoint1.closeReason.getCloseCode().equals(CloseReason.CloseCodes.TOO_BIG)) {
                 return POSITIVE;
             }
 
@@ -266,8 +267,8 @@ public class MaxMessageSizeTest extends TestContainer {
     public static class MyClientEndpoint {
 
         public static volatile CountDownLatch latch;
-        public static volatile Throwable throwable = null;
-        public static volatile CloseReason reason = null;
+        public static volatile Throwable throwable;
+        public static volatile CloseReason reason;
 
         @OnMessage(maxMessageSize = 3)
         public void onMessage(String message) {
@@ -389,7 +390,8 @@ public class MaxMessageSizeTest extends TestContainer {
             assertNotNull(MyClientEndpoint.throwable);
 
             testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "TWO");
-            assertEquals("CloseReason on client is not: " + CloseReason.CloseCodes.TOO_BIG.getCode(), CloseReason.CloseCodes.TOO_BIG.getCode(), MyClientEndpoint.reason.getCloseCode().getCode());
+            assertEquals("CloseReason on client is not: " + CloseReason.CloseCodes.TOO_BIG.getCode(),
+                         CloseReason.CloseCodes.TOO_BIG.getCode(), MyClientEndpoint.reason.getCloseCode().getCode());
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

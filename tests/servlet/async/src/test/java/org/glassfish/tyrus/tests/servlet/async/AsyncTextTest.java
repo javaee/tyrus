@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -98,23 +98,26 @@ public class AsyncTextTest extends TestContainer {
             Assert.assertEquals("Didn't receive all the messages. ", 0, receivedLatch.getCount());
 
             final CountDownLatch serviceLatch = new CountDownLatch(1);
-            client.connectToServer(new Endpoint() {
-                @Override
-                public void onOpen(Session session, EndpointConfig config) {
-                    session.addMessageHandler(new MessageHandler.Whole<Integer>() {
+            client.connectToServer(
+                    new Endpoint() {
                         @Override
-                        public void onMessage(Integer message) {
-                            Assert.assertEquals("Server callback wasn't called at all cases.", 0, message.intValue());
-                            serviceLatch.countDown();
+                        public void onOpen(Session session, EndpointConfig config) {
+                            session.addMessageHandler(new MessageHandler.Whole<Integer>() {
+                                @Override
+                                public void onMessage(Integer message) {
+                                    Assert.assertEquals("Server callback wasn't called at all cases.", 0,
+                                                        message.intValue());
+                                    serviceLatch.countDown();
+                                }
+                            });
+                            try {
+                                session.getBasicRemote().sendText(ServiceEndpoint.TEXT_FUTURE);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         }
-                    });
-                    try {
-                        session.getBasicRemote().sendText(ServiceEndpoint.TEXT_FUTURE);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }, ClientEndpointConfig.Builder.create().build(), getURI(ServiceEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
+                    }, ClientEndpointConfig.Builder.create().build(),
+                    getURI(ServiceEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
 
             serviceLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals("Didn't receive all the messages. ", 0, receivedLatch.getCount());
@@ -178,23 +181,26 @@ public class AsyncTextTest extends TestContainer {
             Assert.assertEquals("Didn't receive all the messages. ", 0, receivedLatch.getCount());
 
             final CountDownLatch serviceLatch = new CountDownLatch(1);
-            client.connectToServer(new Endpoint() {
-                @Override
-                public void onOpen(Session session, EndpointConfig config) {
-                    session.addMessageHandler(new MessageHandler.Whole<Integer>() {
+            client.connectToServer(
+                    new Endpoint() {
                         @Override
-                        public void onMessage(Integer message) {
-                            Assert.assertEquals("Server callback wasn't called at all cases.", 0, message.intValue());
-                            serviceLatch.countDown();
+                        public void onOpen(Session session, EndpointConfig config) {
+                            session.addMessageHandler(new MessageHandler.Whole<Integer>() {
+                                @Override
+                                public void onMessage(Integer message) {
+                                    Assert.assertEquals("Server callback wasn't called at all cases.", 0,
+                                                        message.intValue());
+                                    serviceLatch.countDown();
+                                }
+                            });
+                            try {
+                                session.getBasicRemote().sendText(ServiceEndpoint.TEXT_HANDLER);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         }
-                    });
-                    try {
-                        session.getBasicRemote().sendText(ServiceEndpoint.TEXT_HANDLER);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }, ClientEndpointConfig.Builder.create().build(), getURI(ServiceEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
+                    }, ClientEndpointConfig.Builder.create().build(),
+                    getURI(ServiceEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
 
             serviceLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals("Didn't receive all the messages. ", 0, receivedLatch.getCount());

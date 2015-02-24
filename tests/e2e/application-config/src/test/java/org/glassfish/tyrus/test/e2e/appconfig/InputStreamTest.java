@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -78,9 +78,11 @@ public class InputStreamTest extends TestContainer {
 
     public static class ServerDeployApplicationConfig extends TyrusServerConfiguration {
         public ServerDeployApplicationConfig() {
-            super(new HashSet<Class<?>>() {{
-                add(InputStreamEndpoint.class);
-            }}, Collections.<ServerEndpointConfig>emptySet());
+            super(new HashSet<Class<?>>() {
+                {
+                    add(InputStreamEndpoint.class);
+                }
+            }, Collections.<ServerEndpointConfig>emptySet());
         }
     }
 
@@ -102,15 +104,19 @@ public class InputStreamTest extends TestContainer {
     public static class InputStreamApplicationConfiguration extends TyrusServerConfiguration {
 
         public InputStreamApplicationConfiguration() {
-            super(Collections.<Class<?>>emptySet(), new HashSet<ServerEndpointConfig>() {{
-                add(ServerEndpointConfig.Builder.create(InputStreamProgrammaticEndpoint.class, "/inputStreamProgrammatic").build());
-            }});
+            super(Collections.<Class<?>>emptySet(), new HashSet<ServerEndpointConfig>() {
+                {
+                    add(ServerEndpointConfig.Builder.create(
+                            InputStreamProgrammaticEndpoint.class, "/inputStreamProgrammatic").build());
+                }
+            });
         }
     }
 
     @Test
     public void testInputStreamAnnotated() throws DeploymentException {
-        _testInputStream(InputStreamEndpoint.class, InputStreamEndpoint.class.getAnnotation(ServerEndpoint.class).value());
+        _testInputStream(InputStreamEndpoint.class,
+                         InputStreamEndpoint.class.getAnnotation(ServerEndpoint.class).value());
     }
 
     @Test
@@ -139,7 +145,8 @@ public class InputStreamTest extends TestContainer {
                                 }
                             }
                         });
-                        session.getBasicRemote().sendBinary(ByteBuffer.wrap("Do or do not, there is no try.".getBytes()));
+                        session.getBasicRemote().sendBinary(
+                                ByteBuffer.wrap("Do or do not, there is no try.".getBytes()));
                     } catch (IOException e) {
                         fail();
                     }

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -71,7 +71,7 @@ public class Utils {
      *
      * @param <T> type for which is conversion defined.
      */
-    public static abstract class Stringifier<T> {
+    public abstract static class Stringifier<T> {
 
         /**
          * Convert object to {@link String}.
@@ -203,7 +203,8 @@ public class Utils {
      * Get list of strings from List&lt;T&gt;.
      *
      * @param list        list to be converted.
-     * @param stringifier strignifier used for conversion. When {@code null}, {@link Object#toString()} method will be used.
+     * @param stringifier strignifier used for conversion. When {@code null}, {@link Object#toString()} method will be
+     *                    used.
      * @return converted list.
      */
     public static <T> List<String> getStringList(List<T> list, Stringifier<T> stringifier) {
@@ -222,7 +223,8 @@ public class Utils {
      * Convert list of values to singe {@link String} usable as HTTP header value.
      *
      * @param list        list of values.
-     * @param stringifier strignifier used for conversion. When {@code null}, {@link Object#toString()} method will be used.
+     * @param stringifier strignifier used for conversion. When {@code null}, {@link Object#toString()} method will be
+     *                    used.
      * @return serialized list.
      */
     public static <T> String getHeaderFromList(List<T> list, Stringifier<T> stringifier) {
@@ -245,7 +247,8 @@ public class Utils {
      * Check for null. Throws {@link IllegalArgumentException} if provided value is null.
      *
      * @param reference     object to check.
-     * @param parameterName name of parameter to be formatted into localized message of thrown {@link IllegalArgumentException}.
+     * @param parameterName name of parameter to be formatted into localized message of thrown {@link
+     *                      IllegalArgumentException}.
      * @param <T>           object type.
      */
     public static <T> void checkNotNull(T reference, String parameterName) {
@@ -307,7 +310,8 @@ public class Utils {
      * @param buffer1 second buffer.
      * @return concatenation.
      */
-    public static ByteBuffer appendBuffers(ByteBuffer buffer, ByteBuffer buffer1, int incomingBufferSize, int BUFFER_STEP_SIZE) {
+    public static ByteBuffer appendBuffers(ByteBuffer buffer, ByteBuffer buffer1, int incomingBufferSize,
+                                           int BUFFER_STEP_SIZE) {
 
         final int limit = buffer.limit();
         final int capacity = buffer.capacity();
@@ -336,7 +340,9 @@ public class Utils {
             if (newSize > incomingBufferSize) {
                 throw new IllegalArgumentException(LocalizationMessages.BUFFER_OVERFLOW());
             } else {
-                final int roundedSize = (newSize % BUFFER_STEP_SIZE) > 0 ? ((newSize / BUFFER_STEP_SIZE) + 1) * BUFFER_STEP_SIZE : newSize;
+                final int roundedSize =
+                        (newSize % BUFFER_STEP_SIZE) > 0 ? ((newSize / BUFFER_STEP_SIZE) + 1) * BUFFER_STEP_SIZE :
+                                newSize;
                 final ByteBuffer result = ByteBuffer.allocate(roundedSize > incomingBufferSize ? newSize : roundedSize);
                 result.put(buffer);
                 result.put(buffer1);
@@ -368,7 +374,8 @@ public class Utils {
      * @return typed value or {@code null} if property is not set or value is not assignable.
      */
     @SuppressWarnings("unchecked")
-    public static <T> T getProperty(final Map<String, Object> properties, final String key, final Class<T> type, final T defaultValue) {
+    public static <T> T getProperty(final Map<String, Object> properties, final String key, final Class<T> type,
+                                    final T defaultValue) {
         if (properties != null) {
             final Object o = properties.get(key);
             if (o != null) {
@@ -387,7 +394,8 @@ public class Utils {
                         return (T) (Boolean) (o.toString().equals("1") || Boolean.valueOf(o.toString()));
                     } else if (type.isEnum()) {
                         try {
-                            return (T) Enum.valueOf((Class<? extends Enum>) type, o.toString().trim().toUpperCase(Locale.US));
+                            return (T) Enum
+                                    .valueOf((Class<? extends Enum>) type, o.toString().trim().toUpperCase(Locale.US));
                         } catch (Exception e) {
                             return defaultValue;
                         }
@@ -396,8 +404,9 @@ public class Utils {
                     }
                 } catch (final Throwable t) {
                     LOGGER.log(Level.CONFIG,
-                            String.format("Invalid type of configuration property of %s (%s), %s cannot be cast to %s",
-                                    key, o.toString(), o.getClass().toString(), type.toString())
+                               String.format(
+                                       "Invalid type of configuration property of %s (%s), %s cannot be cast to %s",
+                                       key, o.toString(), o.getClass().toString(), type.toString())
                     );
                     return null;
                 }

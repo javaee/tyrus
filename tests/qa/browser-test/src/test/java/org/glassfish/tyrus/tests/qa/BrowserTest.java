@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.junit.After;
 import org.junit.Assert;
 
@@ -54,7 +55,6 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 
 /**
- *
  * @author Michal Čonos (michal.conos at oracle.com)
  */
 public class BrowserTest {
@@ -80,7 +80,8 @@ public class BrowserTest {
         logger.log(Level.INFO, "==================================================");
     }
 
-    private void twoClientsChat(SeleniumToolkit.Browser alice, SeleniumToolkit.Browser bob) throws InterruptedException, Exception {
+    private void twoClientsChat(SeleniumToolkit.Browser alice, SeleniumToolkit.Browser bob) throws InterruptedException,
+            Exception {
         logger.log(Level.INFO, "============testClientChatWithTwoUsers=================");
         SeleniumToolkit aliceBrowser = new SeleniumToolkit(alice);
         SeleniumToolkit bobBrowser = new SeleniumToolkit(bob);
@@ -90,7 +91,8 @@ public class BrowserTest {
     }
 
     private void chatScalabitlity(SeleniumToolkit.Browser browser) throws InterruptedException, Exception {
-        logger.log(Level.INFO, "=============testScalabilityWith" + TestScenarios.MAX_CHAT_CLIENTS + "Users===============================");
+        logger.log(Level.INFO, "=============testScalabilityWith" + TestScenarios.MAX_CHAT_CLIENTS +
+                "Users===============================");
         List<SeleniumToolkit> toolkits = new ArrayList<SeleniumToolkit>();
         // Launch 100 browsers
         for (int idx = 0; idx < TestScenarios.MAX_CHAT_CLIENTS; idx++) {

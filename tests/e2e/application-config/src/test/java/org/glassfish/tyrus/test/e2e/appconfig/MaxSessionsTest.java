@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -70,14 +70,12 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
- * Tests the implementation of a sessions limiter for both programmatic
- * and annotated endpoint.
+ * Tests the implementation of a sessions limiter for both programmatic and annotated endpoint.
  * <p/>
- * Tests number of both {@link javax.websocket.CloseReason.CloseCodes#NORMAL_CLOSURE}
- * and {@link javax.websocket.CloseReason.CloseCodes#TRY_AGAIN_LATER} close codes
- * on client-side and the fact that onOpen and onClose method on server-side
- * are not called when the client is refused with
- * {@link javax.websocket.CloseReason.CloseCodes#TRY_AGAIN_LATER}.
+ * Tests number of both {@link javax.websocket.CloseReason.CloseCodes#NORMAL_CLOSURE} and {@link
+ * javax.websocket.CloseReason.CloseCodes#TRY_AGAIN_LATER} close codes on client-side and the fact that onOpen and
+ * onClose method on server-side are not called when the client is refused with {@link
+ * javax.websocket.CloseReason.CloseCodes#TRY_AGAIN_LATER}.
  *
  * @author Ondrej Kosatka (ondrej.kosatka at oracle.com)
  */
@@ -96,15 +94,19 @@ public class MaxSessionsTest extends TestContainer {
 
     public static class ServerDeployApplicationConfig extends TyrusServerConfiguration {
         public ServerDeployApplicationConfig() {
-            super(new HashSet<Class<?>>() {{
-                add(AnnotatedLimitedSessionsEndpoint.class);
-                add(ServiceEndpoint.class);
+            super(new HashSet<Class<?>>() {
+                {
+                    add(AnnotatedLimitedSessionsEndpoint.class);
+                    add(ServiceEndpoint.class);
 
-            }}, new HashSet<ServerEndpointConfig>() {{
-                add(TyrusServerEndpointConfig.Builder.create(LimitedSessionsEndpoint.class, PROGRAMMATIC).
-                        maxSessions(SESSION_LIMIT).
-                        build());
-            }});
+                }
+            }, new HashSet<ServerEndpointConfig>() {
+                {
+                    add(TyrusServerEndpointConfig.Builder.create(LimitedSessionsEndpoint.class, PROGRAMMATIC).
+                            maxSessions(SESSION_LIMIT).
+                                                                 build());
+                }
+            });
         }
     }
 
@@ -128,8 +130,8 @@ public class MaxSessionsTest extends TestContainer {
                 return NEGATIVE;
             } else if (message.equals(PROGRAMMATIC)) {
                 try {
-                    if (LimitedSessionsEndpoint.openLatch.await(2, TimeUnit.SECONDS) &&
-                            LimitedSessionsEndpoint.closeLatch.await(2, TimeUnit.SECONDS)) {
+                    if (LimitedSessionsEndpoint.openLatch.await(2, TimeUnit.SECONDS) && LimitedSessionsEndpoint
+                            .closeLatch.await(2, TimeUnit.SECONDS)) {
                         if (!LimitedSessionsEndpoint.forbiddenClose.get()) {
                             return POSITIVE;
                         }
@@ -264,7 +266,8 @@ public class MaxSessionsTest extends TestContainer {
                         System.out.println(String.format("Client session closed with reason: '%s'", closeReason));
                         if (closeReason.getCloseCode().getCode() == CloseReason.CloseCodes.TRY_AGAIN_LATER.getCode()) {
                             limitCloseLatch.countDown();
-                        } else if (closeReason.getCloseCode().getCode() == CloseReason.CloseCodes.NORMAL_CLOSURE.getCode()) {
+                        } else if (closeReason.getCloseCode().getCode() ==
+                                CloseReason.CloseCodes.NORMAL_CLOSURE.getCode()) {
                             normalCloseLatch.countDown();
                         }
                     }
@@ -277,12 +280,14 @@ public class MaxSessionsTest extends TestContainer {
                     assertTrue("Session in limit is closed!", sessions[i].isOpen());
                     sessions[i].close();
                 } else {
-                    assertTrue("Session should be closed just once with close code 1013 - Try Again Later", limitCloseLatch.await(1, TimeUnit.SECONDS));
+                    assertTrue("Session should be closed just once with close code 1013 - Try Again Later",
+                               limitCloseLatch.await(1, TimeUnit.SECONDS));
                     assertFalse("Session should be closed due the limit!", sessions[i].isOpen());
                 }
             }
 
-            assertTrue(String.format("Normal closure of session is expected %d times", SESSION_LIMIT), normalCloseLatch.await(1, TimeUnit.SECONDS));
+            assertTrue(String.format("Normal closure of session is expected %d times", SESSION_LIMIT),
+                       normalCloseLatch.await(1, TimeUnit.SECONDS));
 
             // onClose (on server-side) should be called only for successfully opened sessions
             testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, type);

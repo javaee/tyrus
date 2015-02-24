@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -125,7 +125,8 @@ public class MessageTypesTest extends TestContainer {
         try {
             /*
              Latches used to ensure all messages were sent or received by the server, before the statistics are checked.
-             For every pong, text and binary message sent, 2 are received. For every ping message sent, 1 pong is received.
+             For every pong, text and binary message sent, 2 are received. For every ping message sent, 1 pong is
+             received.
              */
             CountDownLatch messageSentLatch = new CountDownLatch(17);
             CountDownLatch messageReceivedLatch = new CountDownLatch(11);
@@ -138,12 +139,15 @@ public class MessageTypesTest extends TestContainer {
             } else {
                 applicationMonitor = new SessionlessApplicationMonitor();
             }
-            ApplicationEventListener applicationEventListener = new TestApplicationEventListener(applicationMonitor, null, null, messageSentLatch, messageReceivedLatch, null);
+            ApplicationEventListener applicationEventListener =
+                    new TestApplicationEventListener(applicationMonitor, null, null, messageSentLatch,
+                                                     messageReceivedLatch, null);
             getServerProperties().put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, applicationEventListener);
             server = startServer(AnnotatedServerEndpoint.class);
 
             ClientManager client = createClient();
-            Session session = client.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
+            Session session =
+                    client.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
 
             session.getBasicRemote().sendText("some text");
             session.getBasicRemote().sendText("some text", false);
@@ -163,13 +167,21 @@ public class MessageTypesTest extends TestContainer {
             assertTrue(messageReceivedLatch.await(1, TimeUnit.SECONDS));
 
             MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-            String endpointMxBeanNameBase = "org.glassfish.tyrus:type=/jmxTestApp,endpoints=endpoints,endpoint=/jmxServerEndpoint";
+            String endpointMxBeanNameBase =
+                    "org.glassfish.tyrus:type=/jmxTestApp,endpoints=endpoints,endpoint=/jmxServerEndpoint";
             String messageStatisticsNameBase = endpointMxBeanNameBase + ",message_statistics=message_statistics";
 
-            EndpointMXBean endpointBean = JMX.newMXBeanProxy(mBeanServer, new ObjectName(endpointMxBeanNameBase), EndpointMXBean.class);
-            MessageStatisticsMXBean textBean = JMX.newMXBeanProxy(mBeanServer, new ObjectName(messageStatisticsNameBase + ",message_type=text"), MessageStatisticsMXBean.class);
-            MessageStatisticsMXBean binaryBean = JMX.newMXBeanProxy(mBeanServer, new ObjectName(messageStatisticsNameBase + ",message_type=binary"), MessageStatisticsMXBean.class);
-            MessageStatisticsMXBean controlBean = JMX.newMXBeanProxy(mBeanServer, new ObjectName(messageStatisticsNameBase + ",message_type=control"), MessageStatisticsMXBean.class);
+            EndpointMXBean endpointBean =
+                    JMX.newMXBeanProxy(mBeanServer, new ObjectName(endpointMxBeanNameBase), EndpointMXBean.class);
+            MessageStatisticsMXBean textBean =
+                    JMX.newMXBeanProxy(mBeanServer, new ObjectName(messageStatisticsNameBase + ",message_type=text"),
+                                       MessageStatisticsMXBean.class);
+            MessageStatisticsMXBean binaryBean =
+                    JMX.newMXBeanProxy(mBeanServer, new ObjectName(messageStatisticsNameBase + ",message_type=binary"),
+                                       MessageStatisticsMXBean.class);
+            MessageStatisticsMXBean controlBean =
+                    JMX.newMXBeanProxy(mBeanServer, new ObjectName(messageStatisticsNameBase + ",message_type=control"),
+                                       MessageStatisticsMXBean.class);
 
             assertEquals(11, endpointBean.getReceivedMessagesCount());
             assertEquals(17, endpointBean.getSentMessagesCount());

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -54,8 +54,10 @@ import org.junit.Test;
  */
 public class LifeCycleAnnotatedByteBufferPartialMessageTest extends AbstractLifeCycleTestBase {
     @Test
-    public void testLifeCycleAnnotatedByteBufferPartialMessage() throws DeploymentException, InterruptedException, IOException {
+    public void testLifeCycleAnnotatedByteBufferPartialMessage() throws DeploymentException, InterruptedException,
+            IOException {
         IssueManipulator.disableAll();
-        lifeCycle(AnnotatedPartialMessageByteBufferSession.Server.class, AnnotatedPartialMessageByteBufferSession.Client.class);
+        lifeCycle(AnnotatedPartialMessageByteBufferSession.Server.class,
+                  AnnotatedPartialMessageByteBufferSession.Client.class);
     }
 }

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -60,17 +60,21 @@ public class MaxSessionPerRemoteAddrApplicationConfig implements ServerApplicati
 
     @Override
     public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> endpointClasses) {
-        return new HashSet<ServerEndpointConfig>() {{
-            for (String PATH : PATHS) {
-                add(ServerEndpointConfig.Builder.create(EchoEndpoint.class, PATH).build());
+        return new HashSet<ServerEndpointConfig>() {
+            {
+                for (String PATH : PATHS) {
+                    add(ServerEndpointConfig.Builder.create(EchoEndpoint.class, PATH).build());
+                }
             }
-        }};
+        };
     }
 
     @Override
     public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> scanned) {
-        return new HashSet<Class<?>>() {{
-            add(ServiceEndpoint.class);
-        }};
+        return new HashSet<Class<?>>() {
+            {
+                add(ServiceEndpoint.class);
+            }
+        };
     }
 }

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -62,6 +62,7 @@ public class MaxMessageSizeOnServerTest extends AbstractLifeCycleTestBase {
         Set<String> possibleEndings = new HashSet<String>();
         possibleEndings.add(SessionController.SessionState.OPEN_CLIENT.getMessage());
         possibleEndings.add(SessionController.SessionState.OPEN_SERVER.getMessage());
-        lifeCycle(MaxMessageSizeOnServer.Server.class, MaxMessageSizeOnServer.Client.class, possibleEndings, testConf.getURI(), null);
+        lifeCycle(MaxMessageSizeOnServer.Server.class, MaxMessageSizeOnServer.Client.class, possibleEndings,
+                  testConf.getURI(), null);
     }
 }

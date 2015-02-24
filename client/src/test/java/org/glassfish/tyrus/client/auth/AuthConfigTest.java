@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -57,15 +57,18 @@ public class AuthConfigTest {
     public void testDefaultBuilder() {
         AuthConfig authConfig = AuthConfig.builder().build();
         assertEquals("Default AuthConfig should have just 2 authenticators", authConfig.getAuthenticators().size(), 2);
-        assertTrue("Default AuthConfig should have Basic authenticator", authConfig.getAuthenticators().get(AuthConfig.BASIC) instanceof BasicAuthenticator);
-        assertTrue("Default AuthConfig should have Digest authenticator", authConfig.getAuthenticators().get(AuthConfig.DIGEST) instanceof DigestAuthenticator);
+        assertTrue("Default AuthConfig should have Basic authenticator",
+                   authConfig.getAuthenticators().get(AuthConfig.BASIC) instanceof BasicAuthenticator);
+        assertTrue("Default AuthConfig should have Digest authenticator",
+                   authConfig.getAuthenticators().get(AuthConfig.DIGEST) instanceof DigestAuthenticator);
     }
 
     @Test
     public void testDisableBasic() {
         AuthConfig authConfig = AuthConfig.builder().disableProvidedBasicAuth().build();
         assertEquals("AuthConfig should have just 1 authenticators", authConfig.getAuthenticators().size(), 1);
-        assertTrue("AuthConfig should have Digest authenticator", authConfig.getAuthenticators().get(AuthConfig.DIGEST) instanceof DigestAuthenticator);
+        assertTrue("AuthConfig should have Digest authenticator",
+                   authConfig.getAuthenticators().get(AuthConfig.DIGEST) instanceof DigestAuthenticator);
         assertNull("AuthConfig should remove Basic auth", authConfig.getAuthenticators().get(AuthConfig.BASIC));
     }
 
@@ -73,30 +76,38 @@ public class AuthConfigTest {
     public void testDisableDigest() {
         AuthConfig authConfig = AuthConfig.builder().disableProvidedDigestAuth().build();
         assertEquals("AuthConfig should have just 1 authenticators", authConfig.getAuthenticators().size(), 1);
-        assertTrue("AuthConfig should have Basic authenticator", authConfig.getAuthenticators().get(AuthConfig.BASIC) instanceof BasicAuthenticator);
+        assertTrue("AuthConfig should have Basic authenticator",
+                   authConfig.getAuthenticators().get(AuthConfig.BASIC) instanceof BasicAuthenticator);
         assertNull("AuthConfig should remove Digest auth", authConfig.getAuthenticators().get(AuthConfig.DIGEST));
     }
 
     @Test
     public void testOverrideBasic() {
-        AuthConfig authConfig = AuthConfig.builder().registerAuthProvider(AuthConfig.BASIC, new ProprietaryAuthenticator()).build();
+        AuthConfig authConfig =
+                AuthConfig.builder().registerAuthProvider(AuthConfig.BASIC, new ProprietaryAuthenticator()).build();
         assertEquals("Default AuthConfig should have just 2 authenticators", authConfig.getAuthenticators().size(), 2);
-        assertTrue("AuthConfig should have Proprietary authenticator mapped as Basic", authConfig.getAuthenticators().get(AuthConfig.BASIC) instanceof ProprietaryAuthenticator);
+        assertTrue("AuthConfig should have Proprietary authenticator mapped as Basic",
+                   authConfig.getAuthenticators().get(AuthConfig.BASIC) instanceof ProprietaryAuthenticator);
     }
 
     @Test
     public void testAddNewAuthenticator() {
-        AuthConfig authConfig = AuthConfig.builder().registerAuthProvider(PROPRIETARY, new ProprietaryAuthenticator()).build();
+        AuthConfig authConfig =
+                AuthConfig.builder().registerAuthProvider(PROPRIETARY, new ProprietaryAuthenticator()).build();
         assertEquals("AuthConfig should have just 3 authenticators", authConfig.getAuthenticators().size(), 3);
-        assertTrue("AuthConfig should have Basic authenticator", authConfig.getAuthenticators().get(AuthConfig.BASIC) instanceof BasicAuthenticator);
-        assertTrue("AuthConfig should have Digest authenticator", authConfig.getAuthenticators().get(AuthConfig.DIGEST) instanceof DigestAuthenticator);
-        assertTrue("AuthConfig should have Proprietary authenticator", authConfig.getAuthenticators().get(PROPRIETARY) instanceof ProprietaryAuthenticator);
+        assertTrue("AuthConfig should have Basic authenticator",
+                   authConfig.getAuthenticators().get(AuthConfig.BASIC) instanceof BasicAuthenticator);
+        assertTrue("AuthConfig should have Digest authenticator",
+                   authConfig.getAuthenticators().get(AuthConfig.DIGEST) instanceof DigestAuthenticator);
+        assertTrue("AuthConfig should have Proprietary authenticator",
+                   authConfig.getAuthenticators().get(PROPRIETARY) instanceof ProprietaryAuthenticator);
     }
 
     class ProprietaryAuthenticator extends Authenticator {
 
         @Override
-        public String generateAuthorizationHeader(URI uri, String wwwAuthenticateHeader, Credentials credentials) throws AuthenticationException {
+        public String generateAuthorizationHeader(URI uri, String wwwAuthenticateHeader, Credentials credentials) throws
+                AuthenticationException {
             return "authorize me";
         }
     }

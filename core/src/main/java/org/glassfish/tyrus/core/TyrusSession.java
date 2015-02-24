@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -131,17 +131,20 @@ public class TyrusSession implements Session, DistributedSession {
                  String connectionId, final String remoteAddr, DebugContext debugContext) {
         this.container = container;
         this.endpointWrapper = endpointWrapper;
-        this.negotiatedExtensions = extensions == null ? Collections.<Extension>emptyList() : Collections.unmodifiableList(extensions);
+        this.negotiatedExtensions =
+                extensions == null ? Collections.<Extension>emptyList() : Collections.unmodifiableList(extensions);
         this.negotiatedSubprotocol = subprotocol == null ? "" : subprotocol;
         this.isSecure = isSecure;
         this.requestURI = requestURI;
         this.queryString = queryString;
-        this.pathParameters = pathParameters == null ? Collections.<String, String>emptyMap() : Collections.unmodifiableMap(new HashMap<String, String>(pathParameters));
+        this.pathParameters = pathParameters == null ? Collections.<String, String>emptyMap() :
+                Collections.unmodifiableMap(new HashMap<String, String>(pathParameters));
         this.basicRemote = new TyrusRemoteEndpoint.Basic(this, socket, endpointWrapper);
         this.asyncRemote = new TyrusRemoteEndpoint.Async(this, socket, endpointWrapper);
         this.handlerManager = MessageHandlerManager.fromDecoderInstances(endpointWrapper.getDecoders());
         this.userPrincipal = principal;
-        this.requestParameterMap = requestParameterMap == null ? Collections.<String, List<String>>emptyMap() : Collections.unmodifiableMap(new HashMap<String, List<String>>(requestParameterMap));
+        this.requestParameterMap = requestParameterMap == null ? Collections.<String, List<String>>emptyMap() :
+                Collections.unmodifiableMap(new HashMap<String, List<String>>(requestParameterMap));
         this.connectionId = connectionId;
         this.remoteAddr = remoteAddr;
         this.debugContext = debugContext;
@@ -161,11 +164,14 @@ public class TyrusSession implements Session, DistributedSession {
             distributedPropertyMap.put(RemoteSession.DistributedMapKey.NEGOTIATED_EXTENSIONS, negotiatedExtensions);
             distributedPropertyMap.put(RemoteSession.DistributedMapKey.SECURE, isSecure);
             distributedPropertyMap.put(RemoteSession.DistributedMapKey.MAX_IDLE_TIMEOUT, maxIdleTimeout);
-            distributedPropertyMap.put(RemoteSession.DistributedMapKey.MAX_BINARY_MESSAGE_BUFFER_SIZE, maxBinaryMessageBufferSize);
-            distributedPropertyMap.put(RemoteSession.DistributedMapKey.MAX_TEXT_MESSAGE_BUFFER_SIZE, maxTextMessageBufferSize);
+            distributedPropertyMap
+                    .put(RemoteSession.DistributedMapKey.MAX_BINARY_MESSAGE_BUFFER_SIZE, maxBinaryMessageBufferSize);
+            distributedPropertyMap
+                    .put(RemoteSession.DistributedMapKey.MAX_TEXT_MESSAGE_BUFFER_SIZE, maxTextMessageBufferSize);
             distributedPropertyMap.put(RemoteSession.DistributedMapKey.REQUEST_URI, requestURI);
             distributedPropertyMap.put(RemoteSession.DistributedMapKey.REQUEST_PARAMETER_MAP, requestParameterMap);
-            distributedPropertyMap.put(RemoteSession.DistributedMapKey.QUERY_STRING, queryString == null ? "" : queryString);
+            distributedPropertyMap
+                    .put(RemoteSession.DistributedMapKey.QUERY_STRING, queryString == null ? "" : queryString);
             distributedPropertyMap.put(RemoteSession.DistributedMapKey.PATH_PARAMETERS, this.pathParameters);
             distributedPropertyMap.put(RemoteSession.DistributedMapKey.CONNECTION_ID, this.connectionId);
             if (userPrincipal != null) {
@@ -237,7 +243,8 @@ public class TyrusSession implements Session, DistributedSession {
         checkConnectionState(State.CLOSED);
         this.maxBinaryMessageBufferSize = maxBinaryMessageBufferSize;
         if (distributedPropertyMap != null) {
-            distributedPropertyMap.put(RemoteSession.DistributedMapKey.MAX_BINARY_MESSAGE_BUFFER_SIZE, maxBinaryMessageBufferSize);
+            distributedPropertyMap
+                    .put(RemoteSession.DistributedMapKey.MAX_BINARY_MESSAGE_BUFFER_SIZE, maxBinaryMessageBufferSize);
         }
     }
 
@@ -251,7 +258,8 @@ public class TyrusSession implements Session, DistributedSession {
         checkConnectionState(State.CLOSED);
         this.maxTextMessageBufferSize = maxTextMessageBufferSize;
         if (distributedPropertyMap != null) {
-            distributedPropertyMap.put(RemoteSession.DistributedMapKey.MAX_TEXT_MESSAGE_BUFFER_SIZE, maxTextMessageBufferSize);
+            distributedPropertyMap
+                    .put(RemoteSession.DistributedMapKey.MAX_TEXT_MESSAGE_BUFFER_SIZE, maxTextMessageBufferSize);
         }
     }
 
@@ -324,8 +332,8 @@ public class TyrusSession implements Session, DistributedSession {
     /**
      * {@inheritDoc}
      *
-     * @deprecated please use {@link #addMessageHandler(Class, javax.websocket.MessageHandler.Whole)} or
-     * {@link #addMessageHandler(Class, javax.websocket.MessageHandler.Partial)}
+     * @deprecated please use {@link #addMessageHandler(Class, javax.websocket.MessageHandler.Whole)} or {@link
+     * #addMessageHandler(Class, javax.websocket.MessageHandler.Partial)}
      */
     @Override
     public void addMessageHandler(MessageHandler handler) {
@@ -491,7 +499,8 @@ public class TyrusSession implements Session, DistributedSession {
             return;
         }
 
-        heartbeatTask = service.scheduleAtFixedRate(new HeartbeatCommand(), heartbeatInterval, heartbeatInterval, TimeUnit.MILLISECONDS);
+        heartbeatTask = service.scheduleAtFixedRate(new HeartbeatCommand(), heartbeatInterval, heartbeatInterval,
+                                                    TimeUnit.MILLISECONDS);
     }
 
     void restartIdleTimeoutExecutor() {
@@ -509,7 +518,8 @@ public class TyrusSession implements Session, DistributedSession {
                 idleTimeoutFuture.cancel(false);
             }
 
-            idleTimeoutFuture = service.schedule(new IdleTimeoutCommand(), this.getMaxIdleTimeout(), TimeUnit.MILLISECONDS);
+            idleTimeoutFuture =
+                    service.schedule(new IdleTimeoutCommand(), this.getMaxIdleTimeout(), TimeUnit.MILLISECONDS);
         }
     }
 
@@ -524,8 +534,9 @@ public class TyrusSession implements Session, DistributedSession {
 
     private void checkMessageSize(Object message, long maxMessageSize) {
         if (maxMessageSize != -1) {
-            final long messageSize = (message instanceof String ? ((String) message).getBytes(Charset.defaultCharset()).length :
-                    ((ByteBuffer) message).remaining());
+            final long messageSize =
+                    (message instanceof String ? ((String) message).getBytes(Charset.defaultCharset()).length :
+                            ((ByteBuffer) message).remaining());
 
             if (messageSize > maxMessageSize) {
                 throw new MessageTooBigException(LocalizationMessages.MESSAGE_TOO_LONG(maxMessageSize, messageSize));
@@ -533,7 +544,8 @@ public class TyrusSession implements Session, DistributedSession {
         }
     }
 
-    void notifyMessageHandlers(Object message, List<CoderWrapper<Decoder>> availableDecoders) throws DecodeException, IOException {
+    void notifyMessageHandlers(Object message, List<CoderWrapper<Decoder>> availableDecoders) throws DecodeException,
+            IOException {
         boolean decoded = false;
 
         if (availableDecoders.isEmpty()) {
@@ -788,7 +800,8 @@ public class TyrusSession implements Session, DistributedSession {
             // condition is required because scheduled task can be (for some reason) run even when it is cancelled.
             if (session.getMaxIdleTimeout() > 0 && session.isOpen()) {
                 try {
-                    session.close(new CloseReason(CloseReason.CloseCodes.CLOSED_ABNORMALLY, LocalizationMessages.SESSION_CLOSED_IDLE_TIMEOUT()));
+                    session.close(new CloseReason(CloseReason.CloseCodes.CLOSED_ABNORMALLY,
+                                                  LocalizationMessages.SESSION_CLOSED_IDLE_TIMEOUT()));
                 } catch (IOException e) {
                     LOGGER.log(Level.FINE, "Session could not been closed. " + e.getMessage());
                 }

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -64,7 +64,8 @@ public class Server {
     /**
      * Path to static content to be served by created Server instance.
      * <p/>
-     * Value have to be non-empty {@link String} and should represent content root of static content (file system path).
+     * Value have to be non-empty {@link String} and should represent content root of static content (file system
+     * path).
      *
      * @see Server#Server(java.util.Map, Class[])
      * @see Server#Server(String, int, String, java.util.Map, Class[])
@@ -88,10 +89,11 @@ public class Server {
     /**
      * Create new server instance.
      *
-     * @param configuration to be registered with the server. Classes annotated with
-     *                      {@link javax.websocket.server.ServerEndpoint},
-     *                      implementing {@link javax.websocket.server.ServerApplicationConfig}
-     *                      or extending {@link javax.websocket.server.ServerEndpointConfig} are supported.
+     * @param configuration to be registered with the server. Classes annotated with {@link
+     *                      javax.websocket.server.ServerEndpoint}, implementing
+     *                      {@link javax.websocket.server.ServerApplicationConfig} or extending {@link
+     *                      javax.websocket.server.ServerEndpointConfig}
+     *                      are supported.
      */
     public Server(Class<?>... configuration) {
         this(null, 0, null, null, configuration);
@@ -100,11 +102,13 @@ public class Server {
     /**
      * Create new server instance.
      *
-     * @param properties    properties used as a parameter to {@link ServerContainerFactory#createServerContainer(java.util.Map)} call.
-     * @param configuration to be registered with the server. Classes annotated with
-     *                      {@link javax.websocket.server.ServerEndpoint},
-     *                      implementing {@link javax.websocket.server.ServerApplicationConfig}
-     *                      or extending {@link javax.websocket.server.ServerEndpointConfig} are supported.
+     * @param properties    properties used as a parameter to {@link ServerContainerFactory#createServerContainer
+     *                      (java.util.Map)} call.
+     * @param configuration to be registered with the server. Classes annotated with {@link
+     *                      javax.websocket.server.ServerEndpoint}, implementing {@link
+     *                      javax.websocket.server.ServerApplicationConfig} or extending {@link
+     *                      javax.websocket.server.ServerEndpointConfig}
+     *                      are supported.
      */
     public Server(Map<String, Object> properties, Class<?>... configuration) {
         this(null, 0, null, properties, configuration);
@@ -116,13 +120,16 @@ public class Server {
      * @param hostName      hostName of the server.
      * @param port          port of the server.
      * @param contextPath   root path to the server App.
-     * @param properties    properties used as a parameter to {@link ServerContainerFactory#createServerContainer(java.util.Map)} call.
-     * @param configuration to be registered with the server. Classes annotated with
-     *                      {@link javax.websocket.server.ServerEndpoint},
-     *                      implementing {@link javax.websocket.server.ServerApplicationConfig}
-     *                      or extending {@link javax.websocket.server.ServerEndpointConfig} are supported.
+     * @param properties    properties used as a parameter to {@link ServerContainerFactory#createServerContainer
+     *                      (java.util.Map)} call.
+     * @param configuration to be registered with the server. Classes annotated with {@link
+     *                      javax.websocket.server.ServerEndpoint}, implementing
+     *                      {@link javax.websocket.server.ServerApplicationConfig} or extending {@link
+     *                      javax.websocket.server.ServerEndpointConfig}
+     *                      are supported.
      */
-    public Server(String hostName, int port, String contextPath, Map<String, Object> properties, Class<?>... configuration) {
+    public Server(String hostName, int port, String contextPath, Map<String, Object> properties,
+                  Class<?>... configuration) {
         this(hostName, port, contextPath, properties, new HashSet<Class<?>>(Arrays.asList(configuration)));
     }
 
@@ -132,13 +139,16 @@ public class Server {
      * @param hostName      hostName of the server.
      * @param port          port of the server.
      * @param contextPath   root path to the server App.
-     * @param properties    properties used as a parameter to {@link ServerContainerFactory#createServerContainer(java.util.Map)} call.
-     * @param configuration to be registered with the server. Classes annotated with
-     *                      {@link javax.websocket.server.ServerEndpoint},
-     *                      implementing {@link javax.websocket.server.ServerApplicationConfig}
-     *                      or extending {@link javax.websocket.server.ServerEndpointConfig} are supported.
+     * @param properties    properties used as a parameter to {@link ServerContainerFactory#createServerContainer
+     *                      (java.util.Map)} call.
+     * @param configuration to be registered with the server. Classes annotated with {@link
+     *                      javax.websocket.server.ServerEndpoint}, implementing {@link
+     *                      javax.websocket.server.ServerApplicationConfig}
+     *                      or extending {@link javax.websocket.server.ServerEndpointConfig}
+     *                      are supported.
      */
-    public Server(String hostName, int port, String contextPath, Map<String, Object> properties, Set<Class<?>> configuration) {
+    public Server(String hostName, int port, String contextPath, Map<String, Object> properties,
+                  Set<Class<?>> configuration) {
         this.hostName = hostName == null ? DEFAULT_HOST_NAME : hostName;
         this.port = port == 0 ? DEFAULT_PORT : port;
         this.contextPath = contextPath == null ? DEFAULT_CONTEXT_PATH : contextPath;
@@ -148,7 +158,9 @@ public class Server {
 
     public static void main(String[] args) {
         if (args.length < 4) {
-            System.out.println("Please provide: (<hostname>, <port>, <websockets root path>, <;-sep fully qualfied classnames of your bean>) in the command line");
+            System.out.println(
+                    "Please provide: (<hostname>, <port>, <websockets root path>, <;-sep fully qualfied classnames of" +
+                            " your bean>) in the command line");
             System.out.println("e.g. localhost 8021 /websockets/myapp myapp.Bean1;myapp.Bean2");
             System.exit(1);
         }

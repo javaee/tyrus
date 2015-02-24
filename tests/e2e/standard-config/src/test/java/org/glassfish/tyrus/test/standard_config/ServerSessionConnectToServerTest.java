@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -70,7 +70,8 @@ public class ServerSessionConnectToServerTest extends TestContainer {
     private CountDownLatch messageLatch;
 
     @Test
-    public void testConnectToServerWithinServerEndpoint() throws DeploymentException, IOException, InterruptedException {
+    public void testConnectToServerWithinServerEndpoint() throws DeploymentException, IOException,
+            InterruptedException {
         final Server server = startServer(ConnectToServerEndpoint.class, ConnectToServerEchoEndpoint.class);
         try {
             messageLatch = new CountDownLatch(1);
@@ -116,7 +117,8 @@ public class ServerSessionConnectToServerTest extends TestContainer {
         String receivedMessage;
 
         @OnMessage
-        public String onMessage(String message, Session session) throws IOException, DeploymentException, InterruptedException {
+        public String onMessage(String message, Session session) throws IOException, DeploymentException,
+                InterruptedException {
 
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
             final WebSocketContainer serverWebSocketContainer = session.getContainer();
@@ -131,13 +133,17 @@ public class ServerSessionConnectToServerTest extends TestContainer {
                             public void onMessage(String message) {
                                 System.out.println("### Server endpoint received: " + message);
 
-                                if (message.equals("Yo Dawg, I heard you like clients, so we put client into server so you can connectToServer while you connectToServer.")
+                                if (message
+                                        .equals("Yo Dawg, I heard you like clients, so we put client into server so " +
+                                                        "you can connectToServer while you connectToServer.")
                                         && (serverWebSocketContainer.equals(session.getContainer()))) {
                                     messageLatch.countDown();
                                 }
                             }
                         });
-                        session.getBasicRemote().sendText("Yo Dawg, I heard you like clients, so we put client into server so you can connectToServer while you connectToServer.");
+                        session.getBasicRemote().sendText(
+                                "Yo Dawg, I heard you like clients, so we put client into server so you can " +
+                                        "connectToServer while you connectToServer.");
                         System.out.println("### Message from client running inside server endpoint sent.");
                     } catch (IOException e) {
                         e.printStackTrace();

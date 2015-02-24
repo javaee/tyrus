@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -47,7 +47,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * A class containing logic common for {@link org.glassfish.tyrus.ext.monitoring.jmx.ApplicationMonitor},
- * {@link org.glassfish.tyrus.ext.monitoring.jmx.EndpointMonitor} and {@link org.glassfish.tyrus.ext.monitoring.jmx.SessionMonitor}.
+ * {@link org.glassfish.tyrus.ext.monitoring.jmx.EndpointMonitor} and {@link org.glassfish.tyrus.ext.monitoring.jmx
+ * .SessionMonitor}.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
@@ -71,7 +72,7 @@ class BaseMonitor {
 
     void onError(Throwable t) {
         String throwableClassName;
-        if(t.getCause() == null) {
+        if (t.getCause() == null) {
             throwableClassName = t.getClass().getName();
         } else {
             throwableClassName = t.getCause().getClass().getName();

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -79,7 +79,7 @@ import static org.glassfish.tyrus.core.Utils.checkNotNull;
  */
 public class RemoteSession implements Session, DistributedSession {
 
-    private final static Integer SYNC_SEND_TIMEOUT = 30;
+    private static final Integer SYNC_SEND_TIMEOUT = 30;
 
     private final RemoteEndpoint.Basic basicRemote;
     private final RemoteEndpoint.Async asyncRemote;
@@ -244,7 +244,8 @@ public class RemoteSession implements Session, DistributedSession {
             @Override
             public void sendBinary(ByteBuffer partialByte, boolean isLast) throws IOException {
                 checkNotNull(partialByte, "partialByte");
-                final Future<?> future = clusterContext.sendBinary(sessionId, Utils.getRemainingArray(partialByte), isLast);
+                final Future<?> future =
+                        clusterContext.sendBinary(sessionId, Utils.getRemainingArray(partialByte), isLast);
                 processFuture(future);
             }
 
@@ -254,8 +255,10 @@ public class RemoteSession implements Session, DistributedSession {
              * {@link java.util.concurrent.Future#get()} will be invoked and exception processed (if thrown).
              *
              * @param future to be processed.
-             * @throws IOException when {@link java.io.IOException} is the cause of thrown {@link java.util.concurrent.ExecutionException}
-             *                     it will be extracted and rethrown. Otherwise whole ExecutionException will be rethrown wrapped in {@link java.io.IOException}.
+             * @throws IOException when {@link java.io.IOException} is the cause of thrown {@link java.util
+             * .concurrent.ExecutionException}
+             *                     it will be extracted and rethrown. Otherwise whole ExecutionException will be
+             *                     rethrown wrapped in {@link java.io.IOException}.
              */
             private void processFuture(Future<?> future) throws IOException {
                 try {
@@ -276,7 +279,8 @@ public class RemoteSession implements Session, DistributedSession {
             @Override
             public void sendPing(ByteBuffer applicationData) throws IOException, IllegalArgumentException {
                 if (applicationData != null && applicationData.remaining() > 125) {
-                    throw new IllegalArgumentException("Ping applicationData exceeded the maximum allowed payload of 125 bytes.");
+                    throw new IllegalArgumentException(
+                            "Ping applicationData exceeded the maximum allowed payload of 125 bytes.");
                 }
                 clusterContext.sendPing(sessionId, Utils.getRemainingArray(applicationData));
             }
@@ -284,7 +288,8 @@ public class RemoteSession implements Session, DistributedSession {
             @Override
             public void sendPong(ByteBuffer applicationData) throws IOException, IllegalArgumentException {
                 if (applicationData != null && applicationData.remaining() > 125) {
-                    throw new IllegalArgumentException("Pong applicationData exceeded the maximum allowed payload of 125 bytes.");
+                    throw new IllegalArgumentException(
+                            "Pong applicationData exceeded the maximum allowed payload of 125 bytes.");
                 }
                 clusterContext.sendPong(sessionId, Utils.getRemainingArray(applicationData));
             }
@@ -501,7 +506,8 @@ public class RemoteSession implements Session, DistributedSession {
                         }
 
                         @Override
-                        public Void get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+                        public Void get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException,
+                                TimeoutException {
                             throw new ExecutionException(e);
                         }
                     };
@@ -567,7 +573,8 @@ public class RemoteSession implements Session, DistributedSession {
             @Override
             public void sendPing(ByteBuffer applicationData) throws IOException, IllegalArgumentException {
                 if (applicationData != null && applicationData.remaining() > 125) {
-                    throw new IllegalArgumentException("Ping applicationData exceeded the maximum allowed payload of 125 bytes.");
+                    throw new IllegalArgumentException(
+                            "Ping applicationData exceeded the maximum allowed payload of 125 bytes.");
                 }
                 clusterContext.sendPing(sessionId, Utils.getRemainingArray(applicationData));
             }
@@ -575,7 +582,8 @@ public class RemoteSession implements Session, DistributedSession {
             @Override
             public void sendPong(ByteBuffer applicationData) throws IOException, IllegalArgumentException {
                 if (applicationData != null && applicationData.remaining() > 125) {
-                    throw new IllegalArgumentException("Pong applicationData exceeded the maximum allowed payload of 125 bytes.");
+                    throw new IllegalArgumentException(
+                            "Pong applicationData exceeded the maximum allowed payload of 125 bytes.");
                 }
                 clusterContext.sendPong(sessionId, Utils.getRemainingArray(applicationData));
             }
@@ -598,8 +606,8 @@ public class RemoteSession implements Session, DistributedSession {
     }
 
     /**
-     * Get the version of the websocket protocol currently being used. This is taken
-     * as the value of the Sec-WebSocket-Version header used in the opening handshake. i.e. "13".
+     * Get the version of the websocket protocol currently being used. This is taken as the value of the
+     * Sec-WebSocket-Version header used in the opening handshake. i.e. "13".
      *
      * @return the protocol version.
      */
@@ -798,7 +806,8 @@ public class RemoteSession implements Session, DistributedSession {
     }
 
     /**
-     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link UnsupportedOperationException}.
+     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link
+     * UnsupportedOperationException}.
      *
      * @return nothing.
      * @see #getDistributedProperties()
@@ -833,7 +842,8 @@ public class RemoteSession implements Session, DistributedSession {
     }
 
     /**
-     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link UnsupportedOperationException}.
+     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link
+     * UnsupportedOperationException}.
      *
      * @return nothing.
      */
@@ -843,7 +853,8 @@ public class RemoteSession implements Session, DistributedSession {
     }
 
     /**
-     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link UnsupportedOperationException}.
+     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link
+     * UnsupportedOperationException}.
      *
      * @param handler nothing.
      */
@@ -853,7 +864,8 @@ public class RemoteSession implements Session, DistributedSession {
     }
 
     /**
-     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link UnsupportedOperationException}.
+     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link
+     * UnsupportedOperationException}.
      *
      * @param clazz   nothing.
      * @param handler nothing.
@@ -864,7 +876,8 @@ public class RemoteSession implements Session, DistributedSession {
     }
 
     /**
-     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link UnsupportedOperationException}.
+     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link
+     * UnsupportedOperationException}.
      *
      * @param clazz   nothing.
      * @param handler nothing.
@@ -875,7 +888,8 @@ public class RemoteSession implements Session, DistributedSession {
     }
 
     /**
-     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link UnsupportedOperationException}.
+     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link
+     * UnsupportedOperationException}.
      *
      * @return nothing.
      */
@@ -885,7 +899,8 @@ public class RemoteSession implements Session, DistributedSession {
     }
 
     /**
-     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link UnsupportedOperationException}.
+     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link
+     * UnsupportedOperationException}.
      *
      * @param handler nothing.
      */
@@ -895,7 +910,8 @@ public class RemoteSession implements Session, DistributedSession {
     }
 
     /**
-     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link UnsupportedOperationException}.
+     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link
+     * UnsupportedOperationException}.
      *
      * @param milliseconds nothing.
      */
@@ -905,7 +921,8 @@ public class RemoteSession implements Session, DistributedSession {
     }
 
     /**
-     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link UnsupportedOperationException}.
+     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link
+     * UnsupportedOperationException}.
      *
      * @param length nothing.
      */
@@ -915,7 +932,8 @@ public class RemoteSession implements Session, DistributedSession {
     }
 
     /**
-     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link UnsupportedOperationException}.
+     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link
+     * UnsupportedOperationException}.
      *
      * @param length nothing.
      */
@@ -925,7 +943,8 @@ public class RemoteSession implements Session, DistributedSession {
     }
 
     /**
-     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link UnsupportedOperationException}.
+     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link
+     * UnsupportedOperationException}.
      *
      * @return nothing.
      */

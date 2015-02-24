@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -117,11 +117,13 @@ class HttpResponseParser {
 
     private void checkResponseSize(ByteBuffer partToBeAppended) throws ParseException {
         if (buffer.remaining() + partToBeAppended.remaining() > BUFFER_MAX_SIZE) {
-            throw new ParseException("Upgrade response too big, sizes only up to " + BUFFER_MAX_SIZE + "B are supported.");
+            throw new ParseException(
+                    "Upgrade response too big, sizes only up to " + BUFFER_MAX_SIZE + "B are supported.");
         }
     }
 
-    private void parseFirstLine(String[] responseLines, TyrusUpgradeResponse tyrusUpgradeResponse) throws ParseException {
+    private void parseFirstLine(String[] responseLines, TyrusUpgradeResponse tyrusUpgradeResponse) throws
+            ParseException {
         if (responseLines.length == 0) {
             throw new ParseException("Empty HTTP response");
         }

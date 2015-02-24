@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -74,7 +74,7 @@ public class EndpointLifecycleTest extends TestContainer {
 
     private static final String PATH = "/EndpointLifecycleTest1";
 
-    final static int iterations = 3;
+    static final int iterations = 3;
 
     public EndpointLifecycleTest() {
         this.setContextPath("/e2e-test-appconfig");
@@ -82,10 +82,12 @@ public class EndpointLifecycleTest extends TestContainer {
 
     public static class ServerDeployApplicationConfig extends TyrusServerConfiguration {
         public ServerDeployApplicationConfig() {
-            super(new HashSet<Class<?>>() {{
-                add(Annotated.class);
-                add(ServiceEndpoint.class);
-            }}, Collections.<ServerEndpointConfig>emptySet());
+            super(new HashSet<Class<?>>() {
+                {
+                    add(Annotated.class);
+                    add(ServiceEndpoint.class);
+                }
+            }, Collections.<ServerEndpointConfig>emptySet());
         }
     }
 
@@ -112,7 +114,8 @@ public class EndpointLifecycleTest extends TestContainer {
     public void testProgrammaticEndpoint() throws DeploymentException {
 
         final AtomicInteger msgNumber = new AtomicInteger(0);
-        Server server = startServer(ProgrammaticEndpointApplicationConfiguration.class, ServerDeployApplicationConfig.class);
+        Server server = startServer(
+                ProgrammaticEndpointApplicationConfiguration.class, ServerDeployApplicationConfig.class);
 
         final ClientManager client = createClient();
         try {
@@ -205,17 +208,19 @@ public class EndpointLifecycleTest extends TestContainer {
     public static class ProgrammaticEndpointApplicationConfiguration extends TyrusServerConfiguration {
 
         public ProgrammaticEndpointApplicationConfiguration() {
-            super(Collections.<Class<?>>emptySet(),
-                    new HashSet<ServerEndpointConfig>() {{
-                        add(ServerEndpointConfig.Builder.create(Programmatic.class, PATH).build());
-                    }});
+            super(Collections.<Class<?>>emptySet(), new HashSet<ServerEndpointConfig>() {
+                {
+                    add(ServerEndpointConfig.Builder.create(Programmatic.class, PATH).build());
+                }
+            });
         }
     }
 
     @ServerEndpoint(value = "/EndpointLifecycleTest2")
     public static class Annotated {
 
-        private static final Set<String> instancesIds = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+        private static final Set<String> instancesIds =
+                Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 
         @OnOpen
         public void onOpen(Session s) {
@@ -234,7 +239,8 @@ public class EndpointLifecycleTest extends TestContainer {
 
     public static class Programmatic extends Endpoint {
 
-        private static final Set<String> instancesIds = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+        private static final Set<String> instancesIds =
+                Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 
         @Override
         public void onOpen(Session session, EndpointConfig config) {

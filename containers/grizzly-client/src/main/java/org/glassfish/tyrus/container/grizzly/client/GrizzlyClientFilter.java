@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2010-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2010-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -84,7 +84,8 @@ import org.glassfish.grizzly.http.util.HttpStatus;
  * WebSocket {@link Filter} implementation, which supposed to be placed into a {@link FilterChain} right after HTTP
  * Filter: {@link HttpServerFilter}, {@link HttpClientFilter}; depending whether it's server or client side. The
  * <tt>WebSocketFilter</tt> handles websocket connection, handshake phases and, when receives a websocket frame -
- * redirects it to appropriate connection ({@link org.glassfish.tyrus.core.TyrusEndpointWrapper}, {@link org.glassfish.tyrus.core.TyrusWebSocket}) for processing.
+ * redirects it to appropriate connection ({@link org.glassfish.tyrus.core.TyrusEndpointWrapper}, {@link
+ * org.glassfish.tyrus.core.TyrusWebSocket}) for processing.
  *
  * @author Alexey Stashok
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -93,8 +94,9 @@ class GrizzlyClientFilter extends BaseFilter {
 
     private static final Logger LOGGER = Grizzly.logger(GrizzlyClientFilter.class);
 
-    private static final Attribute<org.glassfish.tyrus.spi.Connection> TYRUS_CONNECTION = Grizzly.DEFAULT_ATTRIBUTE_BUILDER
-            .createAttribute(GrizzlyClientFilter.class.getName() + ".Connection");
+    private static final Attribute<org.glassfish.tyrus.spi.Connection> TYRUS_CONNECTION =
+            Grizzly.DEFAULT_ATTRIBUTE_BUILDER
+                    .createAttribute(GrizzlyClientFilter.class.getName() + ".Connection");
 
     private static final Attribute<UpgradeRequest> UPGRADE_REQUEST = Grizzly.DEFAULT_ATTRIBUTE_BUILDER
             .createAttribute(GrizzlyClientFilter.class.getName() + ".UpgradeRequest");
@@ -109,7 +111,6 @@ class GrizzlyClientFilter extends BaseFilter {
     private final Filter sslFilter;
     private final HttpCodecFilter httpCodecFilter;
     private final ClientEngine engine;
-    private final URI uri;
     private final boolean sharedTransport;
     private final Map<String, String> proxyHeaders;
     private final Callable<Void> grizzlyConnector;
@@ -135,7 +136,6 @@ class GrizzlyClientFilter extends BaseFilter {
         this.proxy = proxy;
         this.sslFilter = sslFilter;
         this.httpCodecFilter = httpCodecFilter;
-        this.uri = uri;
         this.sharedTransport = sharedTransport;
         this.proxyHeaders = proxyHeaders;
         this.grizzlyConnector = grizzlyConnector;
@@ -146,8 +146,8 @@ class GrizzlyClientFilter extends BaseFilter {
 
     /**
      * Method handles Grizzly {@link Connection} connect phase. Check if the {@link Connection} is a client-side {@link
-     * org.glassfish.tyrus.core.TyrusWebSocket}, if yes - creates websocket handshake packet and send it to a server. Otherwise, if it's not websocket
-     * connection - pass processing to the next {@link Filter} in a chain.
+     * org.glassfish.tyrus.core.TyrusWebSocket}, if yes - creates websocket handshake packet and send it to a server.
+     * Otherwise, if it's not websocket connection - pass processing to the next {@link Filter} in a chain.
      *
      * @param ctx {@link FilterChainContext}
      * @return {@link NextAction} instruction for {@link FilterChain}, how it should continue the execution
@@ -202,10 +202,10 @@ class GrizzlyClientFilter extends BaseFilter {
     }
 
     /**
-     * Method handles Grizzly {@link Connection} close phase. Check if the {@link Connection} is a {@link org.glassfish.tyrus.core.TyrusWebSocket}, if
-     * yes - tries to close the websocket gracefully (sending close frame) and calls {@link
-     * org.glassfish.tyrus.core.TyrusWebSocket#onClose(org.glassfish.tyrus.core.frame.CloseFrame)}. If the Grizzly {@link Connection} is not websocket - passes processing to the next
-     * filter in the chain.
+     * Method handles Grizzly {@link Connection} close phase. Check if the {@link Connection} is a {@link
+     * org.glassfish.tyrus.core.TyrusWebSocket}, if yes - tries to close the websocket gracefully (sending close frame)
+     * and calls {@link org.glassfish.tyrus.core.TyrusWebSocket#onClose(org.glassfish.tyrus.core.frame.CloseFrame)}. If
+     * the Grizzly {@link Connection} is not websocket - passes processing to the next filter in the chain.
      *
      * @param ctx {@link FilterChainContext}
      * @return {@link NextAction} instruction for {@link FilterChain}, how it should continue the execution
@@ -218,17 +218,19 @@ class GrizzlyClientFilter extends BaseFilter {
         if (connection != null) {
             TaskProcessor taskProcessor = TASK_PROCESSOR.get(ctx.getConnection());
             done = true;
-            taskProcessor.processTask(new CloseTask(connection, CloseReasons.CLOSED_ABNORMALLY.getCloseReason(), ctx.getConnection()));
+            taskProcessor.processTask(
+                    new CloseTask(connection, CloseReasons.CLOSED_ABNORMALLY.getCloseReason(), ctx.getConnection()));
         }
         return ctx.getStopAction();
     }
 
     /**
-     * Handle Grizzly {@link Connection} read phase. If the {@link Connection} has associated {@link org.glassfish.tyrus.core.TyrusWebSocket} object
-     * (websocket connection), we check if websocket handshake has been completed for this connection, if not -
-     * initiate/validate handshake. If handshake has been completed - parse websocket {@link org.glassfish.tyrus.core.frame.Frame}s one by one and
-     * pass processing to appropriate {@link org.glassfish.tyrus.core.TyrusWebSocket}: {@link org.glassfish.tyrus.core.TyrusEndpointWrapper} for server- and client- side
-     * connections.
+     * Handle Grizzly {@link Connection} read phase. If the {@link Connection} has associated {@link
+     * org.glassfish.tyrus.core.TyrusWebSocket} object (websocket connection), we check if websocket handshake has been
+     * completed for this connection, if not - initiate/validate handshake. If handshake has been completed - parse
+     * websocket {@link org.glassfish.tyrus.core.frame.Frame}s one by one and pass processing to appropriate {@link
+     * org.glassfish.tyrus.core.TyrusWebSocket}: {@link org.glassfish.tyrus.core.TyrusEndpointWrapper} for server- and
+     * client- side connections.
      *
      * @param ctx {@link FilterChainContext}
      * @return {@link NextAction} instruction for {@link FilterChain}, how it should continue the execution
@@ -252,7 +254,7 @@ class GrizzlyClientFilter extends BaseFilter {
 
         if (LOGGER.isLoggable(Level.FINE)) {
             LOGGER.log(Level.FINE, "handleRead websocket: {0} content-size={1} headers=\n{2}",
-                    new Object[]{tyrusConnection, message.getContent().remaining(), header});
+                       new Object[]{tyrusConnection, message.getContent().remaining(), header});
         }
 
         // client
@@ -296,7 +298,7 @@ class GrizzlyClientFilter extends BaseFilter {
                     UPGRADE_REQUEST.remove(grizzlyConnection);
                 } else {
                     throw new IOException(String.format("Proxy error. %s: %s", httpStatus.getStatusCode(),
-                            new String(httpStatus.getReasonPhraseBytes(), "UTF-8")));
+                                                        new String(httpStatus.getReasonPhraseBytes(), "UTF-8")));
                 }
 
                 return ctx.getInvokeAction();
@@ -335,7 +337,8 @@ class GrizzlyClientFilter extends BaseFilter {
                         connection.getTransport().shutdownNow();
                     }
                 } catch (IOException e) {
-                    Logger.getLogger(GrizzlyClientFilter.class.getName()).log(Level.INFO, "Exception thrown during shutdown.", e);
+                    Logger.getLogger(GrizzlyClientFilter.class.getName())
+                          .log(Level.INFO, "Exception thrown during shutdown.", e);
                 }
             }
         };
@@ -347,7 +350,8 @@ class GrizzlyClientFilter extends BaseFilter {
                     @Override
                     public void close(CloseReason reason) {
                         // TODO?
-                        // Writer.close() should be called anyway, so is there a need for a CloseListener on client side?
+                        // Writer.close() should be called anyway, so is there a need for a CloseListener on client
+                        // side?
                         grizzlyWriter.close();
                     }
                 }
@@ -478,7 +482,8 @@ class GrizzlyClientFilter extends BaseFilter {
         private final CloseReason closeReason;
         private final Connection grizzlyConnection;
 
-        private CloseTask(org.glassfish.tyrus.spi.Connection connection, CloseReason closeReason, Connection grizzlyConnection) {
+        private CloseTask(org.glassfish.tyrus.spi.Connection connection, CloseReason closeReason,
+                          Connection grizzlyConnection) {
             this.connection = connection;
             this.closeReason = closeReason;
             this.grizzlyConnection = grizzlyConnection;

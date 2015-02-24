@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -103,7 +103,9 @@ public class RemoteApplicationTest extends TestContainer {
                         e.printStackTrace();
                     }
                 }
-            }, ClientEndpointConfig.Builder.create().build(), getURI(TimeoutEndpointResultByHandler.class.getAnnotation(ServerEndpoint.class).value()));
+            }, ClientEndpointConfig.Builder.create().build(),
+                                   getURI(TimeoutEndpointResultByHandler.class.getAnnotation(ServerEndpoint.class)
+                                                                              .value()));
 
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals(1, messageLatch.getCount());
@@ -127,7 +129,8 @@ public class RemoteApplicationTest extends TestContainer {
                         // do nothing
                     }
                 }
-            }, ClientEndpointConfig.Builder.create().build(), getURI(ServiceEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
+            }, ClientEndpointConfig.Builder.create().build(),
+                                   getURI(ServiceEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
 
             serviceMessageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals(0, serviceMessageLatch.getCount());
@@ -162,7 +165,9 @@ public class RemoteApplicationTest extends TestContainer {
                         e.printStackTrace();
                     }
                 }
-            }, ClientEndpointConfig.Builder.create().build(), getURI(TimeoutEndpointResultByFuture.class.getAnnotation(ServerEndpoint.class).value()));
+            }, ClientEndpointConfig.Builder.create().build(),
+                                   getURI(TimeoutEndpointResultByFuture.class.getAnnotation(ServerEndpoint.class)
+                                                                             .value()));
 
             messageLatch.await(1, TimeUnit.SECONDS);
             Assert.assertEquals(1, messageLatch.getCount());
@@ -186,7 +191,8 @@ public class RemoteApplicationTest extends TestContainer {
                         // do nothing
                     }
                 }
-            }, ClientEndpointConfig.Builder.create().build(), getURI(ServiceEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
+            }, ClientEndpointConfig.Builder.create().build(),
+                                   getURI(ServiceEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
 
             serviceMessageLatch.await(1, TimeUnit.SECONDS);
             Assert.assertEquals(0, serviceMessageLatch.getCount());
@@ -223,7 +229,9 @@ public class RemoteApplicationTest extends TestContainer {
                         e.printStackTrace();
                     }
                 }
-            }, ClientEndpointConfig.Builder.create().build(), getURI(NoTimeoutEndpointResultByHandler.class.getAnnotation(ServerEndpoint.class).value()));
+            }, ClientEndpointConfig.Builder.create().build(),
+                                   getURI(NoTimeoutEndpointResultByHandler.class.getAnnotation(ServerEndpoint.class)
+                                                                                .value()));
 
             messageLatch.await(2, TimeUnit.SECONDS);
             Assert.assertEquals("Received message should be one.", 0, messageLatch.getCount());
@@ -247,7 +255,8 @@ public class RemoteApplicationTest extends TestContainer {
                         // do nothing
                     }
                 }
-            }, ClientEndpointConfig.Builder.create().build(), getURI(ServiceEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
+            }, ClientEndpointConfig.Builder.create().build(),
+                                   getURI(ServiceEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
 
             serviceMessageLatch.await(1, TimeUnit.SECONDS);
             Assert.assertEquals("One message should be received.", 0, serviceMessageLatch.getCount());
@@ -283,7 +292,9 @@ public class RemoteApplicationTest extends TestContainer {
                         e.printStackTrace();
                     }
                 }
-            }, ClientEndpointConfig.Builder.create().build(), getURI(NoTimeoutEndpointResultByFuture.class.getAnnotation(ServerEndpoint.class).value()));
+            }, ClientEndpointConfig.Builder.create().build(), getURI(NoTimeoutEndpointResultByFuture.class
+                                                                             .getAnnotation(ServerEndpoint.class)
+                                                                             .value()));
             clientSession.getBasicRemote().sendText(messageToSend);
 
             messageLatch.await(3, TimeUnit.SECONDS);
@@ -308,7 +319,8 @@ public class RemoteApplicationTest extends TestContainer {
                         // do nothing
                     }
                 }
-            }, ClientEndpointConfig.Builder.create().build(), getURI(ServiceEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
+            }, ClientEndpointConfig.Builder.create().build(),
+                                   getURI(ServiceEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
 
             serviceMessageLatch.await(1, TimeUnit.SECONDS);
             Assert.assertEquals("One message should be received.", 0, serviceMessageLatch.getCount());

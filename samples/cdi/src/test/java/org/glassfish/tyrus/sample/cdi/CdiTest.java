@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -160,12 +160,14 @@ public class CdiTest extends TestContainer {
     }
 
     @Test
-    public void testInjectedStatefulTwoMessagesFromTwoClients() throws InterruptedException, DeploymentException, IOException {
+    public void testInjectedStatefulTwoMessagesFromTwoClients() throws InterruptedException, DeploymentException,
+            IOException {
         testFromTwoClients("/injectingstateful", 0);
     }
 
     @Test
-    public void testInjectedSingletonTwoMessagesFromTwoClients() throws InterruptedException, DeploymentException, IOException {
+    public void testInjectedSingletonTwoMessagesFromTwoClients() throws InterruptedException, DeploymentException,
+            IOException {
         testFromTwoClients("/injectingsingleton", 1);
     }
 
@@ -179,7 +181,8 @@ public class CdiTest extends TestContainer {
         testFromTwoClients("/singleton", 1);
     }
 
-    public void testFromTwoClients(String path, int diff) throws DeploymentException, InterruptedException, IOException {
+    public void testFromTwoClients(String path, int diff) throws DeploymentException, InterruptedException,
+            IOException {
         final String host = System.getProperty("tyrus.test.host");
         if (host == null) {
             return;
@@ -192,7 +195,8 @@ public class CdiTest extends TestContainer {
         assertEquals("The difference is not as expected", diff, value2 - value1);
     }
 
-    public int testOneClient(ClientManager client, String path) throws InterruptedException, DeploymentException, IOException {
+    public int testOneClient(ClientManager client, String path) throws InterruptedException, DeploymentException,
+            IOException {
 
         final CountDownLatch messageLatch = new CountDownLatch(1);
         client.connectToServer(new Endpoint() {
@@ -325,7 +329,8 @@ public class CdiTest extends TestContainer {
     }
 
     @Test
-    public void testProgrammaticStatelessRemoteInterface() throws DeploymentException, InterruptedException, IOException {
+    public void testProgrammaticStatelessRemoteInterface() throws DeploymentException, InterruptedException,
+            IOException {
         final String host = System.getProperty("tyrus.test.host");
         if (host == null) {
             return;

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -110,8 +110,12 @@ public class TyrusExtension implements Extension, Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         TyrusExtension that = (TyrusExtension) o;
 
@@ -260,13 +264,15 @@ public class TyrusExtension implements Extension, Serializable {
                                 break;
                             case ';':
                                 next = ParserState.PARAM_NAME;
-                                params.add(new TyrusParameter(paramName.toString().trim(), paramValue.toString().trim()));
+                                params.add(new TyrusParameter(paramName.toString().trim(), paramValue.toString().trim
+                                        ()));
                                 paramName = new StringBuilder();
                                 paramValue = new StringBuilder();
                                 break;
                             case ',':
                                 next = ParserState.NAME;
-                                params.add(new TyrusParameter(paramName.toString().trim(), paramValue.toString().trim()));
+                                params.add(new TyrusParameter(paramName.toString().trim(), paramValue.toString().trim
+                                        ()));
                                 paramName = new StringBuilder();
                                 paramValue = new StringBuilder();
                                 if (name.length() > 0) {
@@ -377,7 +383,8 @@ public class TyrusExtension implements Extension, Serializable {
             if ((name.length() > 0) && (next != ParserState.ERROR)) {
                 if (paramName.length() > 0) {
                     final String paramValueString = paramValue.toString();
-                    params.add(new TyrusParameter(paramName.toString().trim(), paramValueString.equals("") ? null : paramValueString));
+                    params.add(new TyrusParameter(paramName.toString().trim(), paramValueString.equals("") ? null :
+                            paramValueString));
                 }
                 extensions.add(new TyrusExtension(name.toString().trim(), params));
                 params.clear();

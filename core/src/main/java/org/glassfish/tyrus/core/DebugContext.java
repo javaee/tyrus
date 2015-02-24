@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -54,8 +54,8 @@ import org.glassfish.tyrus.spi.UpgradeResponse;
 
 /**
  * A {@link java.util.logging.Logger} wrapper that gives logging records a common formatting and temporarily stores log
- * records and postpones their logging until they can be provided with a session ID. After a session ID has been provided,
- * messages are logged immediately.
+ * records and postpones their logging until they can be provided with a session ID. After a session ID has been
+ * provided, messages are logged immediately.
  * <p/>
  * Log records are provided with a session ID, so that log records from a single upgrade request can be easily linked
  * together in a log of a busy server or client.
@@ -131,7 +131,8 @@ public class DebugContext {
      * @param t            throwable that has been thrown.
      * @param messageParts message parts that will be stringified and concatenated to create a log message.
      */
-    public void appendLogMessageWithThrowable(Logger logger, Level loggingLevel, Type type, Throwable t, Object... messageParts) {
+    public void appendLogMessageWithThrowable(Logger logger, Level loggingLevel, Type type, Throwable t,
+                                              Object... messageParts) {
         if (logger.isLoggable(loggingLevel)) {
 
             String message = stringifyMessageParts(messageParts);
@@ -159,7 +160,8 @@ public class DebugContext {
      * @param t            throwable that has been thrown.
      * @param messageParts message parts that will be stringified and concatenated to create a log message.
      */
-    public void appendTraceMessageWithThrowable(Logger logger, Level loggingLevel, Type type, Throwable t, Object... messageParts) {
+    public void appendTraceMessageWithThrowable(Logger logger, Level loggingLevel, Type type, Throwable t,
+                                                Object... messageParts) {
         if (this.tracingLevel.intValue() <= loggingLevel.intValue()) {
             String message = stringifyMessageParts(messageParts);
             appendTracingHeader(message);
@@ -184,8 +186,8 @@ public class DebugContext {
     }
 
     /**
-     * Set a session ID that will be used as a common identifier for logged messages related to the same upgrade request.
-     * Setting the session ID will cause the pending messages to be written into the log.
+     * Set a session ID that will be used as a common identifier for logged messages related to the same upgrade
+     * request. Setting the session ID will cause the pending messages to be written into the log.
      *
      * @param sessionId session ID.
      */
@@ -208,9 +210,12 @@ public class DebugContext {
                 System.out.println(formatLogMessage(logRecord.message, logRecord.type, logRecord.timestamp));
             } else if (logRecord.logger.isLoggable(logRecord.loggingLevel)) {
                 if (logRecord.t != null) {
-                    logRecord.logger.log(logRecord.loggingLevel, formatLogMessage(logRecord.message, logRecord.type, logRecord.timestamp), logRecord.t);
+                    logRecord.logger.log(logRecord.loggingLevel,
+                                         formatLogMessage(logRecord.message, logRecord.type, logRecord.timestamp),
+                                         logRecord.t);
                 } else {
-                    logRecord.logger.log(logRecord.loggingLevel, formatLogMessage(logRecord.message, logRecord.type, logRecord.timestamp));
+                    logRecord.logger.log(logRecord.loggingLevel,
+                                         formatLogMessage(logRecord.message, logRecord.type, logRecord.timestamp));
                 }
             }
         }
@@ -229,7 +234,8 @@ public class DebugContext {
 
     private void appendTracingHeader(String message) {
         String headerName = UpgradeResponse.TRACING_HEADER_PREFIX + String.format("%02d%n", tracingHeaders.size());
-        tracingHeaders.put(headerName, Arrays.asList("[" + (System.nanoTime() - startTimestamp) / 1000000 + " ms] " + message));
+        tracingHeaders.put(headerName,
+                           Arrays.asList("[" + (System.nanoTime() - startTimestamp) / 1000000 + " ms] " + message));
     }
 
     private String formatLogMessage(String message, Type type, long timestamp) {
@@ -303,7 +309,8 @@ public class DebugContext {
         private Throwable t;
         /**
          * {@code true} if the record should be printed into standard output - used if a message should be "logged"
-         * even though the logging has been turned off or the configured logging level is too high.
+         * even
+         * though the logging has been turned off or the configured logging level is too high.
          */
         private boolean printToSout;
         /**

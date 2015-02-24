@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -81,23 +81,27 @@ public class GrizzlyServerThreadPoolConfigsTest extends TestContainer {
     public GrizzlyServerThreadPoolConfigsTest() {
         final Map<String, Object> properties = getServerProperties();
 
-        properties.put(GrizzlyServerContainer.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.defaultConfig().setThreadFactory(new ThreadFactory() {
-            @Override
-            public Thread newThread(Runnable r) {
-                Logger.getLogger(GrizzlyClientThreadPoolConfigsTest.class.getName()).log(Level.INFO, "Worker thread factory called: " + r);
-                workerThreadLatch.countDown();
-                return new Thread(r);
-            }
-        }));
+        properties.put(GrizzlyServerContainer.WORKER_THREAD_POOL_CONFIG,
+                       ThreadPoolConfig.defaultConfig().setThreadFactory(new ThreadFactory() {
+                           @Override
+                           public Thread newThread(Runnable r) {
+                               Logger.getLogger(GrizzlyClientThreadPoolConfigsTest.class.getName())
+                                     .log(Level.INFO, "Worker thread factory called: " + r);
+                               workerThreadLatch.countDown();
+                               return new Thread(r);
+                           }
+                       }));
 
-        properties.put(GrizzlyServerContainer.SELECTOR_THREAD_POOL_CONFIG, ThreadPoolConfig.defaultConfig().setThreadFactory(new ThreadFactory() {
-            @Override
-            public Thread newThread(Runnable r) {
-                Logger.getLogger(GrizzlyClientThreadPoolConfigsTest.class.getName()).log(Level.INFO, "Selector thread factory called: " + r);
-                selectorThreadLatch.countDown();
-                return new Thread(r);
-            }
-        }));
+        properties.put(GrizzlyServerContainer.SELECTOR_THREAD_POOL_CONFIG,
+                       ThreadPoolConfig.defaultConfig().setThreadFactory(new ThreadFactory() {
+                           @Override
+                           public Thread newThread(Runnable r) {
+                               Logger.getLogger(GrizzlyClientThreadPoolConfigsTest.class.getName())
+                                     .log(Level.INFO, "Selector thread factory called: " + r);
+                               selectorThreadLatch.countDown();
+                               return new Thread(r);
+                           }
+                       }));
 
     }
 

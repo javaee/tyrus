@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -71,12 +71,15 @@ public abstract class Authenticator {
      * {@link WebSocketContainer}.connectToServer(...) method call.
      *
      * @param uri                   Uri of the server endpoint.
-     * @param wwwAuthenticateHeader "{@value UpgradeResponse#WWW_AUTHENTICATE}" header value received in a handshake response.
-     * @param credentials           credentials passed by property {@link ClientProperties#CREDENTIALS}. Can be {@code null}
-     *                              when there were no {@link Credentials} registered.
+     * @param wwwAuthenticateHeader "{@value UpgradeResponse#WWW_AUTHENTICATE}" header value received in a handshake
+     *                              response.
+     * @param credentials           credentials passed by property {@link ClientProperties#CREDENTIALS}. Can be {@code
+     *                              null} when there were no {@link Credentials} registered.
      * @return value for {@value UpgradeRequest#AUTHORIZATION} header which will be put into next handshake request.
-     * @throws AuthenticationException when it is not possible to create "{@value UpgradeRequest#AUTHORIZATION}" header.
+     * @throws AuthenticationException when it is not possible to create "{@value UpgradeRequest#AUTHORIZATION}"
+     *                                 header.
      */
-    public abstract String generateAuthorizationHeader(final URI uri, final String wwwAuthenticateHeader, final Credentials credentials) throws AuthenticationException;
+    public abstract String generateAuthorizationHeader(final URI uri, final String wwwAuthenticateHeader,
+                                                       final Credentials credentials) throws AuthenticationException;
 
 }

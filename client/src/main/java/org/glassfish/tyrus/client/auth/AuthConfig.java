@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -51,8 +51,8 @@ import org.glassfish.tyrus.core.Beta;
 /**
  * AuthConfig serves as a configuration of HTTP authentication.
  * <p/>
- * An instance of this class can be created by {@link AuthConfig} and it must be registered to property bag in
- * {@link ClientManager}.
+ * An instance of this class can be created by {@link AuthConfig} and it must be registered to property bag in {@link
+ * ClientManager}.
  *
  * @author Ondrej Kosatka (ondrej.kosatka at oracle.com)
  * @see Authenticator
@@ -85,9 +85,11 @@ public class AuthConfig {
     }
 
     /**
-     * Get an unmodifiable map of authenticators, where case insensitive authentication scheme to {@link Authenticator}.
+     * Get an unmodifiable map of authenticators, where case insensitive authentication scheme to {@link
+     * Authenticator}.
      *
-     * @return unmodifiable map of authenticators. Case insensitive authentication scheme is mapped to {@link Authenticator}.
+     * @return unmodifiable map of authenticators. Case insensitive authentication scheme is mapped to {@link
+     * Authenticator}.
      */
     public Map<String, Authenticator> getAuthenticators() {
         return authenticators;
@@ -122,10 +124,11 @@ public class AuthConfig {
     }
 
     /**
-     * The AuthConfig.Builder is a class used for creating an instance of {@link AuthConfig} for purpose of HTTP Authentication.
+     * The AuthConfig.Builder is a class used for creating an instance of {@link AuthConfig} for purpose of HTTP
+     * Authentication.
      * <p/>
-     * Example 1 - building an authentication configuration enhanced with user defined NTLM authentication and overridden
-     * Basic Authentication:
+     * Example 1 - building an authentication configuration enhanced with user defined NTLM authentication and
+     * overridden Basic Authentication:
      * <pre><code>
      * AuthConfig authConfig = AuthConfig.Builder.create().
      *                          registerAuthProvider("NTLM", myAuthenticator).
@@ -142,9 +145,10 @@ public class AuthConfig {
      * @see Credentials
      * @see Authenticator
      */
-    public final static class Builder {
+    public static final class Builder {
 
-        private final Map<String, Authenticator> authenticators = new TreeMap<String, Authenticator>(String.CASE_INSENSITIVE_ORDER);
+        private final Map<String, Authenticator> authenticators =
+                new TreeMap<String, Authenticator>(String.CASE_INSENSITIVE_ORDER);
 
         private Builder() {
             authenticators.put(BASIC, new BasicAuthenticator());

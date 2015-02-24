@@ -94,7 +94,9 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
         public void sendText(String text) throws IOException {
             checkNotNull(text, "text");
 
-            session.getDebugContext().appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_OUT, "Sending text message: ", text);
+            session.getDebugContext()
+                   .appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_OUT, "Sending text message: ",
+                                     text);
 
             final Future<?> future = webSocket.sendText(text);
             try {
@@ -108,7 +110,8 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
         public void sendBinary(ByteBuffer data) throws IOException {
             checkNotNull(data, "data");
 
-            session.getDebugContext().appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_OUT, "Sending binary message");
+            session.getDebugContext()
+                   .appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_OUT, "Sending binary message");
 
             final Future<?> future = webSocket.sendBinary(Utils.getRemainingArray(data));
             try {
@@ -122,7 +125,8 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
         public void sendText(String partialMessage, boolean isLast) throws IOException {
             checkNotNull(partialMessage, "partialMessage");
 
-            session.getDebugContext().appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_OUT, "Sending partial text message: ", partialMessage);
+            session.getDebugContext().appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_OUT,
+                                                       "Sending partial text message: ", partialMessage);
 
             final Future<?> future = webSocket.sendText(partialMessage, isLast);
             try {
@@ -136,7 +140,8 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
         public void sendBinary(ByteBuffer partialByte, boolean isLast) throws IOException {
             checkNotNull(partialByte, "partialByte");
 
-            session.getDebugContext().appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_OUT, "Sending partial binary message");
+            session.getDebugContext().appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_OUT,
+                                                       "Sending partial binary message");
 
             final Future<?> future = webSocket.sendBinary(Utils.getRemainingArray(partialByte), isLast);
             try {
@@ -152,8 +157,9 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
          * {@link java.util.concurrent.Future#get()} will be invoked and exception processed (if thrown).
          *
          * @param future to be processed.
-         * @throws IOException when {@link java.io.IOException} is the cause of thrown {@link java.util.concurrent.ExecutionException}
-         *                     it will be extracted and rethrown. Otherwise whole ExecutionException will be rethrown wrapped in {@link java.io.IOException}.
+         * @throws IOException when {@link java.io.IOException} is the cause of thrown {@link
+         *                     java.util.concurrent.ExecutionException} it will be extracted and rethrown. Otherwise
+         *                     whole ExecutionException will be rethrown wrapped in {@link java.io.IOException}.
          */
         private void processFuture(Future<?> future) throws IOException {
             try {
@@ -270,7 +276,8 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
         /**
          * Sends the message asynchronously.
          * <p/>
-         * IMPORTANT NOTE: There is no need to start new thread here. All writer operations are by default asynchronous,
+         * IMPORTANT NOTE: There is no need to start new thread here. All writer operations are by default
+         * asynchronous,
          * the only difference between sync and async writer are that sync send should wait for future.get().
          *
          * @param message message to be sent
@@ -282,12 +289,14 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
 
             switch (type) {
                 case TEXT:
-                    session.getDebugContext().appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_OUT, "Sending text message: ", message);
+                    session.getDebugContext().appendLogMessage(
+                            LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_OUT, "Sending text message: ", message);
                     result = webSocket.sendText((String) message);
                     break;
 
                 case BINARY:
-                    session.getDebugContext().appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_OUT, "Sending binary message");
+                    session.getDebugContext().appendLogMessage(
+                            LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_OUT, "Sending binary message");
                     result = webSocket.sendBinary(Utils.getRemainingArray((ByteBuffer) message));
                     break;
 
@@ -321,7 +330,8 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
                 }
 
                 @Override
-                public Void get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+                public Void get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException,
+                        TimeoutException {
                     finalResult.get(timeout, unit);
                     return null;
                 }
@@ -365,7 +375,8 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
     Future<?> sendSyncObject(Object o) {
         Object toSend;
         try {
-            session.getDebugContext().appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_OUT, "Sending object: ", o);
+            session.getDebugContext()
+                   .appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_OUT, "Sending object: ", o);
             toSend = endpointWrapper.doEncode(session, o);
         } catch (final Exception e) {
             return new Future<Object>() {
@@ -390,7 +401,8 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
                 }
 
                 @Override
-                public Object get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+                public Object get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException,
+                        TimeoutException {
                     throw new ExecutionException(e);
                 }
             };

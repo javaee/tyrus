@@ -42,15 +42,13 @@ package org.glassfish.tyrus.core.uri.internal;
 import java.util.Comparator;
 
 /**
- * A path pattern that is a regular expression generated from a URI path
- * template.
- * <p>
+ * A path pattern that is a regular expression generated from a URI path template.
+ * <p/>
  * The path pattern is normalized by removing a terminating "/" if present.
- * <p>
- * The path pattern is post-fixed with a right hand pattern that consists of either
- * a matching group that matches zero or more path segments,
- * see {@link RightHandPath#capturingZeroOrMoreSegments}, or zero path
- * segments, see {@link RightHandPath#capturingZeroSegments}.
+ * <p/>
+ * The path pattern is post-fixed with a right hand pattern that consists of either a matching group that matches zero
+ * or more path segments, see {@link RightHandPath#capturingZeroOrMoreSegments}, or zero path segments, see {@link
+ * RightHandPath#capturingZeroSegments}.
  *
  * @author Paul Sandoz
  */
@@ -61,17 +59,19 @@ public final class PathPattern extends PatternWithGroups {
      */
     public static final PathPattern EMPTY_PATTERN = new PathPattern();
     /**
-     * Path pattern matching the end of a URI path. Can be either empty {@code ""}
-     * or contain a trailing slash {@code "/"}.
+     * Path pattern matching the end of a URI path. Can be either empty {@code ""} or contain a trailing slash {@code
+     * "/"}.
      */
-    public static final PathPattern END_OF_PATH_PATTERN = new PathPattern("", PathPattern.RightHandPath.capturingZeroSegments);
+    public static final PathPattern END_OF_PATH_PATTERN =
+            new PathPattern("", PathPattern.RightHandPath.capturingZeroSegments);
     /**
      * Path pattern matching the any URI path.
      */
-    public static final PathPattern OPEN_ROOT_PATH_PATTERN = new PathPattern("", RightHandPath.capturingZeroOrMoreSegments);
+    public static final PathPattern OPEN_ROOT_PATH_PATTERN =
+            new PathPattern("", RightHandPath.capturingZeroOrMoreSegments);
     /**
-     * Path pattern comparator that defers to {@link UriTemplate#COMPARATOR comparing
-     * the templates} associated with the patterns.
+     * Path pattern comparator that defers to {@link UriTemplate#COMPARATOR comparing the templates} associated with the
+     * patterns.
      */
     public static final Comparator<PathPattern> COMPARATOR = new Comparator<PathPattern>() {
 
@@ -82,19 +82,16 @@ public final class PathPattern extends PatternWithGroups {
     };
 
     /**
-     * The set of right hand path patterns that may be appended to a path
-     * pattern.
+     * The set of right hand path patterns that may be appended to a path pattern.
      */
     public static enum RightHandPath {
 
         /**
-         * A capturing group that matches zero or more path segments and
-         * keeps the matching path template open.
+         * A capturing group that matches zero or more path segments and keeps the matching path template open.
          */
         capturingZeroOrMoreSegments("(/.*)?"),
         /**
-         * A capturing group that matches zero segments and effectively
-         * closes the matching path template.
+         * A capturing group that matches zero segments and effectively closes the matching path template.
          */
         capturingZeroSegments("(/)?");
         //
@@ -110,8 +107,8 @@ public final class PathPattern extends PatternWithGroups {
     }
 
     /**
-     * Return a new path pattern with a same path template but
-     * a {@link RightHandPath#capturingZeroSegments closed} right hand path.
+     * Return a new path pattern with a same path template but a {@link RightHandPath#capturingZeroSegments closed}
+     * right hand path.
      *
      * @param pattern an (open) path pattern to convert to a closed pattern.
      * @return closed path pattern for the same path template.
@@ -129,8 +126,7 @@ public final class PathPattern extends PatternWithGroups {
     }
 
     /**
-     * Create a path pattern and post fix with
-     * {@link RightHandPath#capturingZeroOrMoreSegments}.
+     * Create a path pattern and post fix with {@link RightHandPath#capturingZeroOrMoreSegments}.
      *
      * @param template the path template.
      * @see #PathPattern(String, PathPattern.RightHandPath)
@@ -140,15 +136,15 @@ public final class PathPattern extends PatternWithGroups {
     }
 
     /**
-     * Create a path pattern and post fix with
-     * {@link RightHandPath#capturingZeroOrMoreSegments}.
+     * Create a path pattern and post fix with {@link RightHandPath#capturingZeroOrMoreSegments}.
      *
      * @param template the path template
      * @see #PathPattern(PathTemplate, PathPattern.RightHandPath)
      */
     public PathPattern(PathTemplate template) {
         super(postfixWithCapturingGroup(template.getPattern().getRegex()),
-                addIndexForRightHandPathCapturingGroup(template.getNumberOfRegexGroups(), template.getPattern().getGroupIndexes()));
+              addIndexForRightHandPathCapturingGroup(template.getNumberOfRegexGroups(),
+                                                     template.getPattern().getGroupIndexes()));
 
         this.template = template;
     }
@@ -171,7 +167,8 @@ public final class PathPattern extends PatternWithGroups {
      */
     public PathPattern(PathTemplate template, RightHandPath rhpp) {
         super(postfixWithCapturingGroup(template.getPattern().getRegex(), rhpp),
-                addIndexForRightHandPathCapturingGroup(template.getNumberOfRegexGroups(), template.getPattern().getGroupIndexes()));
+              addIndexForRightHandPathCapturingGroup(template.getNumberOfRegexGroups(),
+                                                     template.getPattern().getGroupIndexes()));
 
         this.template = template;
     }

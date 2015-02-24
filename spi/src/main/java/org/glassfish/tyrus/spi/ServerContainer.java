@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -46,33 +46,34 @@ import javax.websocket.DeploymentException;
 
 /**
  * HTTP server abstraction.
+ * <p/>
+ * TODO rename the class to avoid findbugs
  *
  * @author Martin Matula (martin.matula at oracle.com)
- *
- * TODO rename the class to avoid findbugs
  */
 public interface ServerContainer extends javax.websocket.server.ServerContainer {
 
     /**
-     * Starts the server.
+     * Start the server.
+     * <p/>
      * Creates a new embedded HTTP server (if supported) listening to incoming connections at a given root path
      * and port.
      *
      * @param rootPath context root
      * @param port     TCP port
-     *
-     * @throws IOException if something goes wrong.
+     * @throws IOException                         if something goes wrong.
+     * @throws javax.websocket.DeploymentException when there is any issue with endpoints or other, non-specific
+     *                                             issues.
      */
     void start(String rootPath, int port) throws IOException, DeploymentException;
 
     /**
-     * Stops the server.
+     * Stop the server.
      */
     void stop();
 
     /**
-     * Returns WebSocketEngine to upgrade requests and setting up the
-     * connection
+     * Return WebSocketEngine to upgrade requests and setting up the connection.
      *
      * @return websocket engine
      */

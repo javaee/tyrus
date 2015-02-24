@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -75,17 +75,19 @@ public class SampleBasicAuthTest extends TestContainer {
     public void testDisabledBasicAuth() throws InterruptedException, IOException, AuthenticationException {
         AuthConfig authConfig = AuthConfig.Builder.create().
                 disableProvidedBasicAuth().
-                build();
+                                                          build();
         Credentials credentials = new Credentials("ws_user", "password");
         try {
             testEcho(authConfig, credentials);
         } catch (DeploymentException e) {
-            assertTrue("Invalid auth config should throw an AuthenticationException", e.getCause() instanceof AuthenticationException);
+            assertTrue("Invalid auth config should throw an AuthenticationException",
+                       e.getCause() instanceof AuthenticationException);
         }
     }
 
     @Test
-    public void testSimplestBasicAuth() throws DeploymentException, InterruptedException, IOException, AuthenticationException {
+    public void testSimplestBasicAuth() throws DeploymentException, InterruptedException, IOException,
+            AuthenticationException {
         Credentials credentials = new Credentials("ws_user", "password");
         testEcho(null, credentials);
     }
@@ -97,7 +99,8 @@ public class SampleBasicAuthTest extends TestContainer {
         try {
             testEcho(authConfig, credentials);
         } catch (DeploymentException e) {
-            assertTrue("Invalid auth config should throw an AuthenticationException", e.getCause() instanceof AuthenticationException);
+            assertTrue("Invalid auth config should throw an AuthenticationException",
+                       e.getCause() instanceof AuthenticationException);
         }
     }
 
@@ -108,11 +111,13 @@ public class SampleBasicAuthTest extends TestContainer {
         try {
             testEcho(authConfig, credentials);
         } catch (DeploymentException e) {
-            assertTrue("Invalid auth config should throw an AuthenticationException", e.getCause() instanceof AuthenticationException);
+            assertTrue("Invalid auth config should throw an AuthenticationException",
+                       e.getCause() instanceof AuthenticationException);
         }
     }
 
-    public void testEcho(AuthConfig authConfig, Credentials credentials) throws DeploymentException, InterruptedException, IOException {
+    public void testEcho(AuthConfig authConfig, Credentials credentials) throws DeploymentException,
+            InterruptedException, IOException {
         if (System.getProperty("tyrus.test.host") == null) {
             return;
         }

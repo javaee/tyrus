@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -48,6 +48,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -61,7 +62,6 @@ import org.openqa.selenium.safari.SafariDriver;
 
 
 /**
- *
  * @author mikc
  */
 public class SeleniumToolkit {
@@ -69,7 +69,9 @@ public class SeleniumToolkit {
     enum Browser {
 
         FIREFOX, IE, CHROME, SAFARI
-    };
+    }
+
+    ;
     private final String WIN_FIREFOX_BIN = "C:/Program Files (x86)/Mozilla Firefox/firefox.exe";
     private static final Logger logger = Logger.getLogger(SeleniumToolkit.class.getCanonicalName());
     private static List<WebDriver> webDriverInstances = new CopyOnWriteArrayList<WebDriver>();
@@ -94,31 +96,31 @@ public class SeleniumToolkit {
 
         }
     }
-    
+
     public WebDriver getDriver() {
         return driver;
     }
-    
+
     String getEnv(String key) {
         String value;
-        
+
         value = System.getProperty(key);
-        if(value==null) {
+        if (value == null) {
             value = System.getenv(key);
         }
-        
-        logger.log(Level.INFO, "Retrived {0}={1}", new Object[] {key, value});
+
+        logger.log(Level.INFO, "Retrived {0}={1}", new Object[]{key, value});
         return value;
     }
 
     public static boolean onWindows() {
         return Platform.WINDOWS.is(Platform.getCurrent());
     }
-    
+
     public static boolean onMac() {
         return Platform.MAC.is(Platform.getCurrent());
     }
-    
+
     public static boolean safariPlatform() {
         return onMac() || onWindows();
     }
@@ -128,7 +130,7 @@ public class SeleniumToolkit {
         driver.manage().window().maximize();
         webDriverInstances.add(driver);
     }
-    
+
     public void setUpSafari() {
         try {
             //System.setProperty("webdriver.safari.driver", getEnv("SAFARI_EXTENSION"));
@@ -138,12 +140,11 @@ public class SeleniumToolkit {
         } catch (Exception ex) {
             logger.log(Level.SEVERE, "Safari Setup FAILED: {0}", ex.getLocalizedMessage());
             ex.printStackTrace();
-        }
-        finally {
-           assert driver!=null : "Driver is null";
+        } finally {
+            assert driver != null : "Driver is null";
         }
     }
-    
+
     public void setUpChrome() {
         ChromeDriverService service;
 
@@ -158,29 +159,27 @@ public class SeleniumToolkit {
             driver = new ChromeDriver(service);
             commonBrowserSetup();
             logger.log(Level.INFO, "Chrome Setup PASSED");
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             logger.log(Level.SEVERE, "Chrome Setup FAILED: {0}", ex.getLocalizedMessage());
             ex.printStackTrace();
-        }
-        finally {
-           assert driver!=null : "Driver is null";
+        } finally {
+            assert driver != null : "Driver is null";
         }
     }
 
     public void setUpExplorer() {
         try {
             System.setProperty(InternetExplorerDriverService.IE_DRIVER_EXE_PROPERTY, getEnv("IE_DRIVER"));
-            assert new File(System.getProperty(InternetExplorerDriverService.IE_DRIVER_EXE_PROPERTY)).exists() : "IE_DRIVER exists";
+            assert new File(System.getProperty(InternetExplorerDriverService.IE_DRIVER_EXE_PROPERTY)).exists() :
+                    "IE_DRIVER exists";
             driver = new InternetExplorerDriver();
             commonBrowserSetup();
             logger.log(Level.INFO, "IE Setup PASSED");
         } catch (Exception ex) {
             logger.log(Level.SEVERE, "IE Setup FAILED: {0}", ex.getLocalizedMessage());
             ex.printStackTrace();
-        }
-        finally {
-           assert driver!=null : "Driver is null";
+        } finally {
+            assert driver != null : "Driver is null";
         }
     }
 
@@ -199,9 +198,8 @@ public class SeleniumToolkit {
         } catch (Exception ex) {
             logger.log(Level.SEVERE, "FF Setup FAILED: {0}", ex.getLocalizedMessage());
             ex.printStackTrace();
-        }
-        finally {
-            assert driver!=null : "Driver is null";
+        } finally {
+            assert driver != null : "Driver is null";
         }
     }
 
@@ -235,23 +233,24 @@ public class SeleniumToolkit {
         driver.get(url);
         Thread.sleep(sleepTime);
         takeScreenshot(driver);
-        logger.log(Level.INFO, "========BODY=======\n{0}\n=======================", driver.findElement(By.tagName("body")).getText());
+        logger.log(Level.INFO, "========BODY=======\n{0}\n=======================",
+                   driver.findElement(By.tagName("body")).getText());
     }
-    
+
     public void click(By by) throws Exception {
         WebElement el = driver.findElement(by);
-        if(el==null) {
-            throw new Exception("Can't find element: "+by.toString());
+        if (el == null) {
+            throw new Exception("Can't find element: " + by.toString());
         }
         Thread.sleep(sleepTime);
         takeScreenshot(driver);
         el.click();
     }
-    
+
     public void sendKeys(By by, String text) throws InterruptedException, Exception {
         WebElement el = driver.findElement(by);
-        if(el==null) {
-            throw new Exception("Can't find element: "+by.toString());
+        if (el == null) {
+            throw new Exception("Can't find element: " + by.toString());
         }
         Thread.sleep(sleepTime);
         takeScreenshot(driver);
@@ -268,15 +267,15 @@ public class SeleniumToolkit {
             driver.quit();
         }
     }
-    
+
     public String getTextById(String id) {
         return driver.findElement(By.id(id)).getText();
     }
-    
+
     public String getValue(By by) {
         return driver.findElement(by).getAttribute("value");
     }
-    
+
     public String getTextByTagName(String name) {
         return driver.findElement(By.tagName(name)).getText();
     }

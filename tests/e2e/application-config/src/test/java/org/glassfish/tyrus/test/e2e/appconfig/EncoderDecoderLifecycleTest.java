@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -86,10 +86,12 @@ public class EncoderDecoderLifecycleTest extends TestContainer {
 
     public static class ServerDeployApplicationConfig extends TyrusServerConfiguration {
         public ServerDeployApplicationConfig() {
-            super(new HashSet<Class<?>>() {{
-                add(MyEndpointAnnotated.class);
-                add(ServiceEndpoint.class);
-            }}, Collections.<ServerEndpointConfig> emptySet());
+            super(new HashSet<Class<?>>() {
+                {
+                    add(MyEndpointAnnotated.class);
+                    add(ServiceEndpoint.class);
+                }
+            }, Collections.<ServerEndpointConfig>emptySet());
         }
     }
 
@@ -133,7 +135,7 @@ public class EncoderDecoderLifecycleTest extends TestContainer {
                 if (decCount == 1 && encCount == 1 && initialized == codersCount && destroyed == codersCount) {
                     return POSITIVE;
                 }
-            }  else if (message.equals("SecondClient")) {
+            } else if (message.equals("SecondClient")) {
                 if (decCount == 2 && encCount == 2) {
                     return POSITIVE;
                 }
@@ -325,7 +327,8 @@ public class EncoderDecoderLifecycleTest extends TestContainer {
             testViaServiceEndpoint(serviceClient, ServiceEndpoint.class, POSITIVE, "Cleanup");
 
             WebSocketContainer client = ContainerProvider.getWebSocketContainer();
-            Session session = client.connectToServer(ClientEndpoint.class, ClientEndpointConfig.Builder.create().build(),
+            Session session = client.connectToServer(
+                    ClientEndpoint.class, ClientEndpointConfig.Builder.create().build(),
                     getURI("/myEndpointAnnotated"));
 
             messageLatch.await(5, TimeUnit.SECONDS);
@@ -344,7 +347,7 @@ public class EncoderDecoderLifecycleTest extends TestContainer {
 
             messageLatch = new CountDownLatch(1);
             session = client.connectToServer(ClientEndpoint.class, ClientEndpointConfig.Builder.create().build(),
-                    getURI("/myEndpointAnnotated"));
+                                             getURI("/myEndpointAnnotated"));
             messageLatch.await(5, TimeUnit.SECONDS);
 
             testViaServiceEndpoint(serviceClient, ServiceEndpoint.class, POSITIVE, "SecondClient");
@@ -403,11 +406,16 @@ public class EncoderDecoderLifecycleTest extends TestContainer {
     public static class MyApplicationConfiguration implements ServerApplicationConfig {
         @Override
         public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> scanned) {
-            return new HashSet<ServerEndpointConfig>() {{
-                add(ServerEndpointConfig.Builder.create(MyEndpointProgrammatic.class, "/myEndpoint").
-                        decoders(Arrays.<Class<? extends Decoder>>asList(MyDecoderNotToBeCalled.class, MyDecoder.class)).
-                        encoders(Arrays.<Class<? extends Encoder>>asList(MyEncoder.class)).build());
-            }};
+            return new HashSet<ServerEndpointConfig>() {
+                {
+                    //noinspection unchecked
+                    add(ServerEndpointConfig.Builder
+                                .create(MyEndpointProgrammatic.class, "/myEndpoint")
+                                .decoders(Arrays.<Class<? extends Decoder>>asList(MyDecoderNotToBeCalled.class,
+                                                                                  MyDecoder.class))
+                                .encoders(Arrays.<Class<? extends Encoder>>asList(MyEncoder.class)).build());
+                }
+            };
         }
 
         @Override
@@ -430,8 +438,8 @@ public class EncoderDecoderLifecycleTest extends TestContainer {
             testViaServiceEndpoint(serviceClient, ServiceEndpoint.class, POSITIVE, "Cleanup");
 
             WebSocketContainer client = ContainerProvider.getWebSocketContainer();
-            Session session = client.connectToServer(ClientEndpoint.class, ClientEndpointConfig.Builder.create().build(),
-                    getURI("/myEndpoint"));
+            Session session = client.connectToServer(
+                    ClientEndpoint.class, ClientEndpointConfig.Builder.create().build(), getURI("/myEndpoint"));
 
             messageLatch.await(5, TimeUnit.SECONDS);
 
@@ -449,7 +457,7 @@ public class EncoderDecoderLifecycleTest extends TestContainer {
 
             messageLatch = new CountDownLatch(1);
             session = client.connectToServer(ClientEndpoint.class, ClientEndpointConfig.Builder.create().build(),
-                    getURI("/myEndpoint"));
+                                             getURI("/myEndpoint"));
             messageLatch.await(5, TimeUnit.SECONDS);
 
             testViaServiceEndpoint(serviceClient, ServiceEndpoint.class, POSITIVE, "SecondClient");

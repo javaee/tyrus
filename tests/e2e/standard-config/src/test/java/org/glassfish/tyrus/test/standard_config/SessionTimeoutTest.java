@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -72,7 +72,7 @@ public class SessionTimeoutTest extends TestContainer {
 
     @ServerEndpoint(value = "/timeout3")
     public static class SessionTimeoutEndpoint {
-        private final static CountDownLatch onClosedCalled = new CountDownLatch(1);
+        private static final CountDownLatch onClosedCalled = new CountDownLatch(1);
         private static final long TIMEOUT = 300;
 
         @OnOpen
@@ -138,7 +138,8 @@ public class SessionTimeoutTest extends TestContainer {
                     return POSITIVE;
                 }
             } else if (message.equals("SessionTimeoutChangedEndpoint")) {
-                if (SessionTimeoutChangedEndpoint.latch.await(1, TimeUnit.SECONDS) && SessionTimeoutChangedEndpoint.closedNormally.get()) {
+                if (SessionTimeoutChangedEndpoint.latch.await(1, TimeUnit.SECONDS) &&
+                        SessionTimeoutChangedEndpoint.closedNormally.get()) {
                     return POSITIVE;
                 }
             }

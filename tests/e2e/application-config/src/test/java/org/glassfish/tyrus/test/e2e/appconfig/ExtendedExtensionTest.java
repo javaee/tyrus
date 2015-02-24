@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -89,13 +89,17 @@ public class ExtendedExtensionTest extends TestContainer {
         public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> endpointClasses) {
             Set<ServerEndpointConfig> endpointConfigs = new HashSet<ServerEndpointConfig>();
             endpointConfigs.add(
-                    ServerEndpointConfig.Builder.create(ExtendedExtensionEndpoint.class, "/extendedExtensionEndpoint")
-                            .extensions(Arrays.<Extension>asList(new TestExtendedExtension(1))).build()
-            );
+                    ServerEndpointConfig.Builder
+                            .create(ExtendedExtensionEndpoint.class, "/extendedExtensionEndpoint")
+                            .extensions(Collections.<Extension>singletonList(new TestExtendedExtension(1)))
+                            .build());
             endpointConfigs.add(
-                    ServerEndpointConfig.Builder.create(ExtendedExtensionOrderedEndpoint.class, "/extendedExtensionOrderedEndpoint")
-                            .extensions(Arrays.<Extension>asList(new TestExtendedServerExtension(2, "ext1"), new TestExtendedServerExtension(3, "ext2"))).build()
-            );
+                    ServerEndpointConfig.Builder
+                            .create(ExtendedExtensionOrderedEndpoint.class, "/extendedExtensionOrderedEndpoint")
+                            .extensions(Arrays.<Extension>asList(
+                                    new TestExtendedServerExtension(2, "ext1"),
+                                    new TestExtendedServerExtension(3, "ext2")))
+                            .build());
             return endpointConfigs;
         }
 
@@ -107,11 +111,11 @@ public class ExtendedExtensionTest extends TestContainer {
 
     /**
      * {@link org.glassfish.tyrus.test.e2e.appconfig.ExtendedExtensionTest.Constants#MESSAGE} cannot be directly in
-     * {@link org.glassfish.tyrus.test.e2e.appconfig.ExtendedExtensionTest}, because {@link org.glassfish.tyrus.test.tools.TestContainer}
-     * is not be available at runtime.
+     * {@link org.glassfish.tyrus.test.e2e.appconfig.ExtendedExtensionTest}, because {@link
+     * org.glassfish.tyrus.test.tools.TestContainer} is not be available at runtime.
      */
     private static class Constants {
-        final static byte[] MESSAGE = {'h', 'e', 'l', 'l', 'o'};
+        static final byte[] MESSAGE = {'h', 'e', 'l', 'l', 'o'};
     }
 
     @Test
@@ -125,8 +129,8 @@ public class ExtendedExtensionTest extends TestContainer {
             final TestExtendedExtension clientExtension = new TestExtendedExtension(0);
             extensions.add(clientExtension);
 
-            final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create().extensions(extensions)
-                    .configurator(new LoggingClientEndpointConfigurator()).build();
+            final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create().extensions
+                    (extensions).configurator(new LoggingClientEndpointConfigurator()).build();
 
             ClientManager client = createClient();
             final Session session = client.connectToServer(new Endpoint() {
@@ -178,7 +182,9 @@ public class ExtendedExtensionTest extends TestContainer {
 
                         if ((message[0] ^ TestExtendedExtension.MASK) == Constants.MESSAGE[0] &&
                                 (message[1] ^ TestExtendedExtension.MASK) == Constants.MESSAGE[1] &&
-                                Arrays.equals(Arrays.copyOfRange(message, 2, 4), Arrays.copyOfRange(Constants.MESSAGE, 2, 4))) {
+                                Arrays.equals(
+                                        Arrays.copyOfRange(message, 2, 4),
+                                        Arrays.copyOfRange(Constants.MESSAGE, 2, 4))) {
                             session.getBasicRemote().sendObject(message);
                         }
                     } catch (IOException e) {
@@ -208,8 +214,8 @@ public class ExtendedExtensionTest extends TestContainer {
 
     public static class TestExtendedExtension implements ExtendedExtension {
 
-        public final static byte MASK = 0x55;
-        public final static String NAME = "TestExtendedExtension";
+        public static final byte MASK = 0x55;
+        public static final String NAME = "TestExtendedExtension";
 
         protected final int index;
         private final String name;
@@ -248,7 +254,8 @@ public class ExtendedExtensionTest extends TestContainer {
         }
 
         @Override
-        public List<Extension.Parameter> onExtensionNegotiation(ExtendedExtension.ExtensionContext context, List<Extension.Parameter> requestedParameters) {
+        public List<Extension.Parameter> onExtensionNegotiation(ExtendedExtension.ExtensionContext context,
+                                                                List<Extension.Parameter> requestedParameters) {
             print("onExtensionNegotiation :: " + context + " :: " + requestedParameters);
             return requestedParameters;
         }
@@ -309,8 +316,10 @@ public class ExtendedExtensionTest extends TestContainer {
             extensions.add(clientExtension2);
 
 
-            final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create().extensions(extensions)
-                    .configurator(new LoggingClientEndpointConfigurator()).build();
+            final ClientEndpointConfig clientConfiguration =
+                    ClientEndpointConfig.Builder
+                            .create().extensions(extensions)
+                            .configurator(new LoggingClientEndpointConfigurator()).build();
 
             ClientManager client = createClient();
             final Session session = client.connectToServer(new Endpoint() {
@@ -383,7 +392,8 @@ public class ExtendedExtensionTest extends TestContainer {
         }
 
         private void check(Frame frame) {
-            if (!Arrays.equals(Arrays.copyOfRange(frame.getPayloadData(), index, Constants.MESSAGE.length), Arrays.copyOfRange(Constants.MESSAGE, index, Constants.MESSAGE.length))) {
+            if (!Arrays.equals(Arrays.copyOfRange(frame.getPayloadData(), index, Constants.MESSAGE.length),
+                               Arrays.copyOfRange(Constants.MESSAGE, index, Constants.MESSAGE.length))) {
                 throw new IllegalArgumentException();
             } else {
                 for (int i = 0; i < index; i++) {
@@ -434,7 +444,8 @@ public class ExtendedExtensionTest extends TestContainer {
         }
 
         private void check(Frame frame) {
-            if (!Arrays.equals(Arrays.copyOfRange(frame.getPayloadData(), index, Constants.MESSAGE.length), Arrays.copyOfRange(Constants.MESSAGE, index, Constants.MESSAGE.length))) {
+            if (!Arrays.equals(Arrays.copyOfRange(frame.getPayloadData(), index, Constants.MESSAGE.length), Arrays
+                    .copyOfRange(Constants.MESSAGE, index, Constants.MESSAGE.length))) {
                 throw new IllegalArgumentException();
             } else {
                 for (int i = 0; i < index; i++) {
@@ -460,8 +471,7 @@ public class ExtendedExtensionTest extends TestContainer {
                         if ((message[0] ^ TestExtendedExtension.MASK) == Constants.MESSAGE[0] &&
                                 (message[1] ^ TestExtendedExtension.MASK) == Constants.MESSAGE[1] &&
                                 (message[2] ^ TestExtendedExtension.MASK) == Constants.MESSAGE[2] &&
-                                (message[3] ^ TestExtendedExtension.MASK) == Constants.MESSAGE[3]
-                                ) {
+                                (message[3] ^ TestExtendedExtension.MASK) == Constants.MESSAGE[3]) {
                             session.getBasicRemote().sendObject(message);
                         }
                     } catch (IOException e) {

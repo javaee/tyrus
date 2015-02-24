@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -90,17 +90,21 @@ public class SessionCleanUpTest extends TestContainer {
 
             CountDownLatch sessionOpenedLatch = new CountDownLatch(1);
             CountDownLatch sessionClosedLatch = new CountDownLatch(1);
-            ApplicationEventListener applicationEventListener = new TestApplicationEventListener(new SessionAwareApplicationMonitor(), sessionOpenedLatch, sessionClosedLatch, null, null, null);
+            ApplicationEventListener applicationEventListener =
+                    new TestApplicationEventListener(new SessionAwareApplicationMonitor(), sessionOpenedLatch,
+                                                     sessionClosedLatch, null, null, null);
             getServerProperties().put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, applicationEventListener);
             server = startServer(AnnotatedServerEndpoint.class);
 
             ClientManager client = createClient();
-            Session session = client.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
+            Session session =
+                    client.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
             assertTrue(sessionOpenedLatch.await(1, TimeUnit.SECONDS));
 
             String applicationMxBeanName = "org.glassfish.tyrus:type=/serializationTestApp";
             MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-            ApplicationMXBean applicationMXBean = JMX.newMXBeanProxy(mBeanServer, new ObjectName(applicationMxBeanName), ApplicationMXBean.class);
+            ApplicationMXBean applicationMXBean =
+                    JMX.newMXBeanProxy(mBeanServer, new ObjectName(applicationMxBeanName), ApplicationMXBean.class);
 
             assertEquals(1, applicationMXBean.getEndpointMXBeans().size());
             EndpointMXBean endpointMXBean = applicationMXBean.getEndpointMXBeans().get(0);
@@ -109,8 +113,12 @@ public class SessionCleanUpTest extends TestContainer {
             SessionMXBean sessionMXBean = endpointMXBean.getSessionMXBeans().get(0);
 
             Set<String> registeredMXBeanNames = getRegisteredMXBeanNames();
-            String sessionMXBeanName = "org.glassfish.tyrus:type=/serializationTestApp,endpoints=endpoints,endpoint=/serverEndpoint,sessions=sessions,session=" + sessionMXBean.getSessionId();
-            String sessionMessageTypesNameBase = sessionMXBeanName + ",message_statistics=message_statistics,message_type=";
+            String sessionMXBeanName =
+                    "org.glassfish.tyrus:type=/serializationTestApp,endpoints=endpoints,endpoint=/serverEndpoint," +
+                            "sessions=sessions,session=" +
+                            sessionMXBean.getSessionId();
+            String sessionMessageTypesNameBase =
+                    sessionMXBeanName + ",message_statistics=message_statistics,message_type=";
             assertTrue(registeredMXBeanNames.contains(sessionMXBeanName));
             assertTrue(registeredMXBeanNames.contains(sessionMessageTypesNameBase + "text"));
             assertTrue(registeredMXBeanNames.contains(sessionMessageTypesNameBase + "binary"));

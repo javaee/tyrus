@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -103,12 +103,15 @@ public class OpenSessionsTest extends TestContainer {
             } else {
                 applicationMonitor = new SessionlessApplicationMonitor();
             }
-            ApplicationEventListener applicationEventListener = new TestApplicationEventListener(applicationMonitor, sessionOpenedLatch, sessionClosedLatch, null, null, null);
+            ApplicationEventListener applicationEventListener =
+                    new TestApplicationEventListener(applicationMonitor, sessionOpenedLatch, sessionClosedLatch, null,
+                                                     null, null);
             getServerProperties().put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, applicationEventListener);
             server = startServer(AnnotatedServerEndpoint.class);
 
             client.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
-            Session session2 = client.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
+            Session session2 =
+                    client.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
             client.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
             assertTrue(sessionOpenedLatch.await(1, TimeUnit.SECONDS));
             session2.close();
@@ -116,12 +119,16 @@ public class OpenSessionsTest extends TestContainer {
 
             MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
             String fullApplicationMXBeanName = "org.glassfish.tyrus:type=/jmxSessionTestApp";
-            ApplicationMXBean applicationBean = JMX.newMXBeanProxy(mBeanServer, new ObjectName(fullApplicationMXBeanName), ApplicationMXBean.class);
+            ApplicationMXBean applicationBean =
+                    JMX.newMXBeanProxy(mBeanServer, new ObjectName(fullApplicationMXBeanName), ApplicationMXBean.class);
             assertEquals(2, applicationBean.getOpenSessionsCount());
             assertEquals(3, applicationBean.getMaximalOpenSessionsCount());
 
-            String fullEndpointMXBeanName = "org.glassfish.tyrus:type=/jmxSessionTestApp,endpoints=endpoints,endpoint=/jmxSessionStatisticsEndpoint";
-            EndpointMXBean endpointBean = JMX.newMXBeanProxy(mBeanServer, new ObjectName(fullEndpointMXBeanName), EndpointMXBean.class);
+            String fullEndpointMXBeanName =
+                    "org.glassfish.tyrus:type=/jmxSessionTestApp,endpoints=endpoints," +
+                            "endpoint=/jmxSessionStatisticsEndpoint";
+            EndpointMXBean endpointBean =
+                    JMX.newMXBeanProxy(mBeanServer, new ObjectName(fullEndpointMXBeanName), EndpointMXBean.class);
             assertEquals(2, endpointBean.getOpenSessionsCount());
             assertEquals(3, endpointBean.getMaximalOpenSessionsCount());
         } catch (Exception e) {

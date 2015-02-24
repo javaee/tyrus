@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -59,7 +59,8 @@ public abstract class ClusterContext {
     /**
      * ClusterContext registration property.
      * <p/>
-     * ClusterContext is registered to the Server container via properties passed to {@link org.glassfish.tyrus.spi.ServerContainerFactory#createServerContainer(java.util.Map)}.
+     * ClusterContext is registered to the Server container via properties passed to
+     * {@link org.glassfish.tyrus.spi.ServerContainerFactory#createServerContainer(java.util.Map)}.
      */
     public static final String CLUSTER_CONTEXT = "org.glassfish.tyrus.core.cluster.ClusterContext";
 
@@ -68,9 +69,9 @@ public abstract class ClusterContext {
      *
      * @param sessionId remote session id.
      * @param text      text to be sent.
-     * @return future representing the send event. {@link java.util.concurrent.Future#get()} returns when there is an acknowledge
-     * from the other node that the message has been successfully sent. If there is any exception, it will be wrapped into
-     * {@link java.util.concurrent.ExecutionException} and thrown.
+     * @return future representing the send event. {@link java.util.concurrent.Future#get()} returns when there is an
+     * acknowledge from the other node that the message has been successfully sent. If there is any exception, it will
+     * be wrapped into {@link java.util.concurrent.ExecutionException} and thrown.
      */
     public abstract Future<Void> sendText(String sessionId, String text);
 
@@ -80,9 +81,9 @@ public abstract class ClusterContext {
      * @param sessionId remote session id.
      * @param text      text to be sent.
      * @param isLast    {@code true} when the partial message being sent is the last part of the message.
-     * @return future representing the send event. {@link java.util.concurrent.Future#get()} returns when there is an acknowledge
-     * from the other node that the message has been successfully sent. If there is any exception, it will be wrapped into
-     * {@link java.util.concurrent.ExecutionException} and thrown.
+     * @return future representing the send event. {@link java.util.concurrent.Future#get()} returns when there is an
+     * acknowledge from the other node that the message has been successfully sent. If there is any exception, it will
+     * be wrapped into {@link java.util.concurrent.ExecutionException} and thrown.
      */
     public abstract Future<Void> sendText(String sessionId, String text, boolean isLast);
 
@@ -91,9 +92,9 @@ public abstract class ClusterContext {
      *
      * @param sessionId remote session id.
      * @param data      data to be sent.
-     * @return future representing the send event. {@link java.util.concurrent.Future#get()} returns when there is an acknowledge
-     * from the other node that the message has been successfully sent. If there is any exception, it will be wrapped into
-     * {@link java.util.concurrent.ExecutionException} and thrown.
+     * @return future representing the send event. {@link java.util.concurrent.Future#get()} returns when there is an
+     * acknowledge from the other node that the message has been successfully sent. If there is any exception, it will
+     * be wrapped into {@link java.util.concurrent.ExecutionException} and thrown.
      */
     public abstract Future<Void> sendBinary(String sessionId, byte[] data);
 
@@ -103,9 +104,9 @@ public abstract class ClusterContext {
      * @param sessionId remote session id.
      * @param data      data to be sent.
      * @param isLast    {@code true} when the partial message being sent is the last part of the message.
-     * @return future representing the send event. {@link java.util.concurrent.Future#get()} returns when there is an acknowledge
-     * from the other node that the message has been successfully sent. If there is any exception, it will be wrapped into
-     * {@link java.util.concurrent.ExecutionException} and thrown.
+     * @return future representing the send event. {@link java.util.concurrent.Future#get()} returns when there is an
+     * acknowledge from the other node that the message has been successfully sent. If there is any exception, it will
+     * be wrapped into {@link java.util.concurrent.ExecutionException} and thrown.
      */
     public abstract Future<Void> sendBinary(String sessionId, byte[] data, boolean isLast);
 
@@ -114,9 +115,9 @@ public abstract class ClusterContext {
      *
      * @param sessionId remote session id.
      * @param data      data to be sent as ping message payload.
-     * @return future representing the send event. {@link java.util.concurrent.Future#get()} returns when there is an acknowledge
-     * from the other node that the message has been successfully sent. If there is any exception, it will be wrapped into
-     * {@link java.util.concurrent.ExecutionException} and thrown.
+     * @return future representing the send event. {@link java.util.concurrent.Future#get()} returns when there is an
+     * acknowledge from the other node that the message has been successfully sent. If there is any exception, it will
+     * be wrapped into {@link java.util.concurrent.ExecutionException} and thrown.
      */
     public abstract Future<Void> sendPing(String sessionId, byte[] data);
 
@@ -125,9 +126,9 @@ public abstract class ClusterContext {
      *
      * @param sessionId remote session id.
      * @param data      data to be sent as pong message payload.
-     * @return future representing the send event. {@link java.util.concurrent.Future#get()} returns when there is an acknowledge
-     * from the other node that the message has been successfully sent. If there is any exception, it will be wrapped into
-     * {@link java.util.concurrent.ExecutionException} and thrown.
+     * @return future representing the send event. {@link java.util.concurrent.Future#get()} returns when there is an
+     * acknowledge from the other node that the message has been successfully sent. If there is any exception, it will
+     * be wrapped into {@link java.util.concurrent.ExecutionException} and thrown.
      */
     public abstract Future<Void> sendPong(String sessionId, byte[] data);
 
@@ -136,7 +137,8 @@ public abstract class ClusterContext {
      *
      * @param sessionId   remote session id.
      * @param text        text to be sent.
-     * @param sendHandler sendhandler instance on which {@link javax.websocket.SendHandler#onResult(javax.websocket.SendResult)} will be invoked.
+     * @param sendHandler sendhandler instance on which
+     *                    {@link javax.websocket.SendHandler#onResult(javax.websocket.SendResult)} will be invoked.
      * @see javax.websocket.SendHandler
      */
     public abstract void sendText(String sessionId, String text, SendHandler sendHandler);
@@ -146,7 +148,8 @@ public abstract class ClusterContext {
      *
      * @param sessionId   remote session id.
      * @param data        data to be sent.
-     * @param sendHandler sendhandler instance on which {@link javax.websocket.SendHandler#onResult(javax.websocket.SendResult)} will be invoked.
+     * @param sendHandler sendhandler instance on which
+     *                    {@link javax.websocket.SendHandler#onResult(javax.websocket.SendResult)} will be invoked.
      * @see javax.websocket.SendHandler
      */
     public abstract void sendBinary(String sessionId, byte[] data, SendHandler sendHandler);
@@ -181,9 +184,10 @@ public abstract class ClusterContext {
      * Close remote session.
      *
      * @param sessionId remote session id.
-     * @return future representing the event. {@link java.util.concurrent.Future#get()} returns when there is an acknowledge
-     * from the other node that the command was successfully executed. If there is any exception, it will be wrapped into
-     * {@link java.util.concurrent.ExecutionException} and thrown.
+     * @return future representing the event. {@link java.util.concurrent.Future#get()} returns when there is an
+     * acknowledge from the other node that the command was successfully executed. If there is any exception, it will
+     * be
+     * wrapped into {@link java.util.concurrent.ExecutionException} and thrown.
      */
     public abstract Future<Void> close(String sessionId);
 
@@ -192,9 +196,10 @@ public abstract class ClusterContext {
      *
      * @param sessionId   remote session id.
      * @param closeReason custom close reason.
-     * @return future representing the event. {@link java.util.concurrent.Future#get()} returns when there is an acknowledge
-     * from the other node that the command was successfully executed. If there is any exception, it will be wrapped into
-     * {@link java.util.concurrent.ExecutionException} and thrown.
+     * @return future representing the event. {@link java.util.concurrent.Future#get()} returns when there is an
+     * acknowledge from the other node that the command was successfully executed. If there is any exception, it will
+     * be
+     * wrapped into {@link java.util.concurrent.ExecutionException} and thrown.
      */
     public abstract Future<Void> close(String sessionId, CloseReason closeReason);
 
@@ -228,7 +233,8 @@ public abstract class ClusterContext {
      *
      * @param sessionId    session id to be registered.
      * @param endpointPath endpoint path identifying sessions alignment to the endpoint.
-     * @param listener     session event listener. When remote node sends a message to this session, it will be invoked.
+     * @param listener     session event listener. When remote node sends a message to this session, it will be
+     *                     invoked.
      * @see org.glassfish.tyrus.core.cluster.SessionEventListener
      */
     public abstract void registerSession(String sessionId, String endpointPath, SessionEventListener listener);
@@ -236,8 +242,9 @@ public abstract class ClusterContext {
     /**
      * Register session listener.
      * <p/>
-     * Gets notification about session creation {@link org.glassfish.tyrus.core.cluster.SessionListener#onSessionOpened(String)}
-     * and destruction {@link org.glassfish.tyrus.core.cluster.SessionListener#onSessionClosed(String)}.
+     * Gets notification about session creation {@link org.glassfish.tyrus.core.cluster
+     * .SessionListener#onSessionOpened(String)} and destruction {@link org.glassfish.tyrus.core.cluster
+     * .SessionListener#onSessionClosed(String)}.
      *
      * @param endpointPath endpoint path identifying sessions alignment to the endpoint.
      * @param listener     listener instance.
@@ -248,9 +255,9 @@ public abstract class ClusterContext {
     /**
      * Register broadcast listener.
      * <p/>
-     * Gets notification about broadcasted messages. Used as an optimized variant of standard websocket broadcast patter.
-     * In this case, only one message is sent to all cluster nodes (instead {@code n} when {@code n} represent number of
-     * clients connected to remote nodes).
+     * Gets notification about broadcasted messages. Used as an optimized variant of standard websocket broadcast
+     * pattern. In this case, only one message is sent to all cluster nodes (instead {@code n} when {@code n} represent
+     * number of clients connected to remote nodes).
      *
      * @param endpointPath endpoint path identifying sessions alignment to the endpoint.
      * @param listener     listener instance.
@@ -300,7 +307,8 @@ public abstract class ClusterContext {
     /**
      * Shutdown this ClusterContext.
      * <p/>
-     * This will stop whole clustered node, any operation related to this cluster context will fail after this method is invoked.
+     * This will stop whole clustered node, any operation related to this cluster context will fail after this method
+     * is invoked.
      */
     public abstract void shutdown();
 }

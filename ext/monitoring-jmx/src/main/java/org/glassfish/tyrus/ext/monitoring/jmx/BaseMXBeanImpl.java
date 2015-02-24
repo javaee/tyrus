@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -54,7 +54,10 @@ class BaseMXBeanImpl extends MessageStatisticsMXBeanImpl implements BaseMXBean, 
     private final MessageStatisticsMXBean binaryMessageStatisticsMXBean;
     private final MessageStatisticsMXBean controlMessageStatisticsMXBean;
 
-    BaseMXBeanImpl(MessageStatisticsSource sentMessageStatistics, MessageStatisticsSource receivedMessageStatistics, Callable<List<ErrorCount>> errorCounts, MessageStatisticsMXBean textMessageStatisticsMXBean, MessageStatisticsMXBean binaryMessageStatisticsMXBean, MessageStatisticsMXBean controlMessageStatisticsMXBean) {
+    BaseMXBeanImpl(MessageStatisticsSource sentMessageStatistics, MessageStatisticsSource receivedMessageStatistics,
+                   Callable<List<ErrorCount>> errorCounts, MessageStatisticsMXBean textMessageStatisticsMXBean,
+                   MessageStatisticsMXBean binaryMessageStatisticsMXBean,
+                   MessageStatisticsMXBean controlMessageStatisticsMXBean) {
         super(sentMessageStatistics, receivedMessageStatistics);
         this.errorCounts = errorCounts;
         this.textMessageStatisticsMXBean = textMessageStatisticsMXBean;

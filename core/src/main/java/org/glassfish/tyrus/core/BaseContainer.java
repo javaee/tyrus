@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -65,7 +65,8 @@ public abstract class BaseContainer extends ExecutorServiceProvider implements W
     private final ScheduledExecutorService managedScheduledExecutorService;
     private final ThreadFactory threadFactory;
     /**
-     * This lock ensures that only one instance of each type of executors will be created and it also prevents a situation
+     * This lock ensures that only one instance of each type of executors will be created and it also prevents a
+     * situation
      * when a client is given an executor that is just about to be shut down.
      */
     private final Object EXECUTORS_CLEAN_UP_LOCK = new Object();
@@ -197,7 +198,8 @@ public abstract class BaseContainer extends ExecutorServiceProvider implements W
             final Object o = aClass.newInstance();
 
             final Method lookupMethod = aClass.getMethod("lookup", String.class);
-            return (ScheduledExecutorService) lookupMethod.invoke(o, "java:comp/DefaultManagedScheduledExecutorService");
+            return (ScheduledExecutorService) lookupMethod
+                    .invoke(o, "java:comp/DefaultManagedScheduledExecutorService");
         } catch (Exception e) {
             // ignore
             if (LOGGER.isLoggable(Level.FINE)) {

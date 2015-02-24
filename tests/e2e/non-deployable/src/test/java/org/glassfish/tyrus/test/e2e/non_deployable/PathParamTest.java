@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -75,8 +75,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
- * Tests @PathParam annotation in @OnMessage method signature.
- * Cannot be moved to standard tests due the expected deployment exception.
+ * Tests @PathParam annotation in @OnMessage method signature. Cannot be moved to standard tests due the expected
+ * deployment exception.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
@@ -93,11 +93,8 @@ public class PathParamTest extends TestContainer {
     public static class PathParamTestEndpoint {
 
         @OnMessage
-        public String doThat1(@PathParam("first") String first,
-                              @PathParam("second") String second,
-                              @PathParam("third") String third,
-                              @PathParam("fourth") String fourth,
-                              String message, Session peer) {
+        public String doThat1(@PathParam("first") String first, @PathParam("second") String second, @PathParam
+                ("third") String third, @PathParam("fourth") String fourth, String message, Session peer) {
 
             if (first != null && second != null && third != null && fourth == null && message != null && peer != null) {
                 return message + first + second + third;
@@ -167,9 +164,8 @@ public class PathParamTest extends TestContainer {
         public static volatile Throwable onErrorThrowable = null;
 
         @OnMessage
-        public String doThat2(@PathParam("one") String one,
-                              @PathParam("two") Integer two,
-                              String message, Session peer) {
+        public String doThat2(@PathParam("one") String one, @PathParam("two") Integer two, String message, Session
+                peer) {
 
             assertNotNull(one);
             assertNotNull(two);
@@ -231,9 +227,8 @@ public class PathParamTest extends TestContainer {
     public static class PathParamTestBeanErrorNotPrimitive {
 
         @OnMessage
-        public String doThat3(@PathParam("first") String first,
-                              @PathParam("second") PathParamTest second,
-                              String message, Session peer) {
+        public String doThat3(@PathParam("first") String first, @PathParam("second") PathParamTest second, String
+                message, Session peer) {
 
             return message + first + second;
         }
@@ -259,17 +254,14 @@ public class PathParamTest extends TestContainer {
     public static class PathParamTestEndpointPrimitiveBoxing {
 
         @OnMessage
-        public String doThat4(@PathParam("one") String one,
-                              @PathParam("second") Integer second,
-                              @PathParam("third") Boolean third,
-                              @PathParam("fourth") Long fourth,
-                              @PathParam("fifth") Float fifth,
-                              @PathParam("sixth") Double sixth,
-                              @PathParam("seventh") Character seventh,
-                              @PathParam("eighth") Byte eighth,
-                              String message, Session peer) {
+        public String doThat4(@PathParam("one") String one, @PathParam("second") Integer second,
+                              @PathParam("third") Boolean third, @PathParam("fourth") Long fourth,
+                              @PathParam("fifth") Float fifth, @PathParam("sixth") Double sixth,
+                              @PathParam("seventh") Character seventh, @PathParam("eighth") Byte eighth, String message,
+                              Session peer) {
 
-            if (one != null && second != null && third != null && fourth != null && fifth != null && sixth != null && seventh != null && eighth != null && message != null && peer != null) {
+            if (one != null && second != null && third != null && fourth != null && fifth != null && sixth != null &&
+                    seventh != null && eighth != null && message != null && peer != null) {
                 return message + one + second + third + fourth + fifth + sixth + seventh + eighth;
             } else {
                 return "Error";
@@ -281,15 +273,11 @@ public class PathParamTest extends TestContainer {
     public static class PathParamTestEndpointPrimitives {
 
         @OnMessage
-        public String doThat5(@PathParam("first") String first,
-                              @PathParam("second") int second,
-                              @PathParam("third") boolean third,
-                              @PathParam("fourth") long fourth,
-                              @PathParam("fifth") float fifth,
-                              @PathParam("sixth") double sixth,
-                              @PathParam("seventh") char seventh,
-                              @PathParam("eighth") byte eighth,
-                              String message, Session peer) {
+        public String doThat5(
+                @PathParam("first") String first, @PathParam("second") int second, @PathParam("third") boolean third,
+                @PathParam("fourth") long fourth, @PathParam("fifth") float fifth,
+                @PathParam("sixth") double sixth, @PathParam("seventh") char seventh, @PathParam("eighth") byte eighth,
+                String message, Session peer) {
             if (message != null && peer != null) {
                 return message + first + second + third + fourth + fifth + sixth + seventh + eighth;
             } else {
@@ -310,7 +298,8 @@ public class PathParamTest extends TestContainer {
 
     @Test
     public void testPathParamPrimitivesBoxing() throws DeploymentException {
-        testPathParamPrimitive(PathParamTestEndpointPrimitiveBoxing.class, getURI("/pathparam4/first/2/true/4/5/6/c/0"));
+        testPathParamPrimitive(PathParamTestEndpointPrimitiveBoxing.class, getURI
+                ("/pathparam4/first/2/true/4/5/6/c/0"));
     }
 
     public void testPathParamPrimitive(Class<?> testedClass, URI uri) throws DeploymentException {
@@ -342,7 +331,8 @@ public class PathParamTest extends TestContainer {
                 }
             }, cec, uri);
             messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertEquals(SENT_MESSAGE + "first" + "2" + "true" + "4" + "5.0" + "6.0" + "c" + "0", receivedMessage);
+            Assert.assertEquals(SENT_MESSAGE + "first" + "2" + "true" + "4" + "5.0" + "6.0" + "c" + "0",
+                                receivedMessage);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

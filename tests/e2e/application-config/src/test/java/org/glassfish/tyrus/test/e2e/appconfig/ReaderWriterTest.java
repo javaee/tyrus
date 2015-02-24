@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -78,9 +78,11 @@ public class ReaderWriterTest extends TestContainer {
 
     public static class ServerDeployApplicationConfig extends TyrusServerConfiguration {
         public ServerDeployApplicationConfig() {
-            super(new HashSet<Class<?>>() {{
-                add(ReaderEndpoint.class);
-            }}, Collections.<ServerEndpointConfig>emptySet());
+            super(new HashSet<Class<?>>() {
+                {
+                    add(ReaderEndpoint.class);
+                }
+            }, Collections.<ServerEndpointConfig>emptySet());
         }
     }
 
@@ -102,9 +104,12 @@ public class ReaderWriterTest extends TestContainer {
     public static class ReaderEndpointApplicationConfiguration extends TyrusServerConfiguration {
 
         public ReaderEndpointApplicationConfiguration() {
-            super(Collections.<Class<?>>emptySet(), new HashSet<ServerEndpointConfig>() {{
-                add(ServerEndpointConfig.Builder.create(ReaderProgrammaticEndpoint.class, "/readerProgrammatic").build());
-            }});
+            super(Collections.<Class<?>>emptySet(), new HashSet<ServerEndpointConfig>() {
+                {
+                    add(ServerEndpointConfig.Builder.create(ReaderProgrammaticEndpoint.class, "/readerProgrammatic")
+                                                    .build());
+                }
+            });
         }
     }
 

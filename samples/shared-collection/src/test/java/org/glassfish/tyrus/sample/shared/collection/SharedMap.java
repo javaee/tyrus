@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -71,7 +71,7 @@ import org.glassfish.tyrus.client.ClientManager;
  */
 class SharedMap implements Map<String, String> {
 
-    private final static UpdateListener NOOP_UPDATE_LISTENER = new UpdateListener() {
+    private static final UpdateListener NOOP_UPDATE_LISTENER = new UpdateListener() {
         @Override
         public void onUpdate() {
 
@@ -93,10 +93,11 @@ class SharedMap implements Map<String, String> {
      * @throws DeploymentException when there is an issue with underlying WebSocket connection.
      * @throws IOException         when there is an issue with underlying WebSocket connection.
      */
-    public SharedMap(ClientManager clientManager, URI sharedCollectionEndpointUri, UpdateListener updateListener) throws DeploymentException, IOException {
+    public SharedMap(ClientManager clientManager, URI sharedCollectionEndpointUri, UpdateListener updateListener) throws
+            DeploymentException, IOException {
         sharedMapEndpoint = new SharedMapEndpoint();
         clientManager.connectToServer(sharedMapEndpoint, ClientEndpointConfig.Builder.create().build(),
-                sharedCollectionEndpointUri);
+                                      sharedCollectionEndpointUri);
         this.updateListener = updateListener == null ? NOOP_UPDATE_LISTENER : updateListener;
     }
 
@@ -129,9 +130,9 @@ class SharedMap implements Map<String, String> {
     public String put(String key, String value) {
         final String put = map.put(key, value);
         sharedMapEndpoint.send(Json.createObjectBuilder()
-                        .add("event", "put")
-                        .add("key", key)
-                        .add("value", value).build()
+                                   .add("event", "put")
+                                   .add("key", key)
+                                   .add("value", value).build()
         );
         updateListener.onUpdate();
         return put;
@@ -141,8 +142,8 @@ class SharedMap implements Map<String, String> {
     public String remove(Object key) {
         final String remove = map.remove(key);
         sharedMapEndpoint.send(Json.createObjectBuilder()
-                        .add("event", "remove")
-                        .add("key", key.toString()).build()
+                                   .add("event", "remove")
+                                   .add("key", key.toString()).build()
         );
         updateListener.onUpdate();
         return remove;
@@ -159,7 +160,7 @@ class SharedMap implements Map<String, String> {
     public void clear() {
         map.clear();
         sharedMapEndpoint.send(Json.createObjectBuilder()
-                        .add("event", "clear").build()
+                                   .add("event", "clear").build()
         );
         updateListener.onUpdate();
     }
@@ -207,8 +208,8 @@ class SharedMap implements Map<String, String> {
 
     private class SharedMapEndpoint extends Endpoint implements MessageHandler.Whole<Reader> {
 
-        private volatile Session session = null;
-        private volatile boolean online = false;
+        private volatile Session session;
+        private volatile boolean online;
 
         @Override
         public void onOpen(Session session, EndpointConfig config) {
