@@ -404,8 +404,8 @@ public final class ProtocolHandler {
 
                 case SENDING_TEXT:
                     checkSendingFragment();
-                    // it is ok to let this "pass" to default case, since the result of "checkSendingFragment" can be
-                    // only IllegalStateException or sendingFragment = SendingFragmentState.IDLE.
+                    sendingFragment = (last ? SendingFragmentState.IDLE : SendingFragmentState.SENDING_BINARY);
+                    return send(new BinaryFrame(Arrays.copyOfRange(bytes, off, off + len), false, last));
 
                 default:
                     // IDLE
@@ -433,8 +433,8 @@ public final class ProtocolHandler {
 
                 case SENDING_BINARY:
                     checkSendingFragment();
-                    // it is ok to let this "pass" to default case, since the result of "checkSendingFragment" can be
-                    // only IllegalStateException or sendingFragment = SendingFragmentState.IDLE.
+                    sendingFragment = (last ? SendingFragmentState.IDLE : SendingFragmentState.SENDING_TEXT);
+                    return send(new TextFrame(fragment, false, last));
 
                 default:
                     // IDLE
@@ -451,13 +451,14 @@ public final class ProtocolHandler {
         final CloseFrame outgoingCloseFrame;
         final CloseReason closeReason = new CloseReason(CloseReason.CloseCodes.getCloseCode(code), reason);
 
-        if (code == CloseReason.CloseCodes.NO_STATUS_CODE.getCode() ||
-                code == CloseReason.CloseCodes.CLOSED_ABNORMALLY.getCode() ||
-                code == CloseReason.CloseCodes.TLS_HANDSHAKE_FAILURE.getCode() ||
+        if (code == CloseReason.CloseCodes.NO_STATUS_CODE.getCode()
+                || code == CloseReason.CloseCodes.CLOSED_ABNORMALLY.getCode()
+                || code == CloseReason.CloseCodes.TLS_HANDSHAKE_FAILURE.getCode()
                 // client side cannot send SERVICE_RESTART or TRY_AGAIN_LATER
                 // will be replaced with NORMAL_CLOSURE
-                (client && (code == CloseReason.CloseCodes.SERVICE_RESTART.getCode() || code == CloseReason
-                        .CloseCodes.TRY_AGAIN_LATER.getCode()))) {
+                || (client && (code == CloseReason.CloseCodes.SERVICE_RESTART.getCode()
+                || code == CloseReason.CloseCodes.TRY_AGAIN_LATER.getCode()))) {
+
             outgoingCloseFrame = new CloseFrame(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, reason));
         } else {
             outgoingCloseFrame = new CloseFrame(closeReason);
@@ -796,8 +797,8 @@ public final class ProtocolHandler {
         if (!client) {
             if (tyrusFrame.isControlFrame() && tyrusFrame instanceof CloseFrame) {
                 CloseReason.CloseCode closeCode = ((CloseFrame) tyrusFrame).getCloseReason().getCloseCode();
-                if (closeCode.equals(CloseReason.CloseCodes.SERVICE_RESTART) ||
-                        closeCode.equals(CloseReason.CloseCodes.TRY_AGAIN_LATER)) {
+                if (closeCode.equals(CloseReason.CloseCodes.SERVICE_RESTART)
+                        || closeCode.equals(CloseReason.CloseCodes.TRY_AGAIN_LATER)) {
                     throw new ProtocolException("Illegal close code: " + closeCode);
                 }
             }

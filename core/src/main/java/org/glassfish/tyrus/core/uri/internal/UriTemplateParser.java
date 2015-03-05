@@ -320,9 +320,8 @@ public class UriTemplateParser {
             // Template name character
             nameBuffer.append(c);
         } else {
-            throw new IllegalArgumentException("Illegal character '" + c
-                                                       + "' at position " + ci.pos() +
-                                                       " is not as the start of a name");
+            throw new IllegalArgumentException(
+                    "Illegal character '" + c + "' at position " + ci.pos() + " is not as the start of a name");
         }
 
         String nameRegexString = "";
@@ -350,14 +349,12 @@ public class UriTemplateParser {
                     break;
                 } else {
                     // Error
-                    throw new IllegalArgumentException("Illegal character '" + c
-                                                               + "' at position " + ci.pos() +
-                                                               " is not allowed after a name");
+                    throw new IllegalArgumentException(
+                            "Illegal character '" + c + "' at position " + ci.pos() + " is not allowed after a name");
                 }
             } else {
-                throw new IllegalArgumentException("Illegal character '" + c
-                                                           + "' at position " + ci.pos() +
-                                                           " is not allowed as part of a name");
+                throw new IllegalArgumentException(
+                        "Illegal character '" + c + "' at position " + ci.pos() + " is not allowed as part of a name");
             }
         }
 
@@ -415,10 +412,9 @@ public class UriTemplateParser {
                         ? TEMPLATE_VALUE_PATTERN : Pattern.compile(nameRegexString);
                 if (nameToPattern.containsKey(name)) {
                     if (!nameToPattern.get(name).equals(namePattern)) {
-                        throw new IllegalArgumentException("The name '" + name
-                                                                   + "' is declared "
-                                                                   +
-                                                                   "more than once with different regular expressions");
+                        throw new IllegalArgumentException(
+                                "The name '" + name
+                                        + "' is declared more than once with different regular expressions");
                     }
                 } else {
                     nameToPattern.put(name, namePattern);
@@ -431,17 +427,17 @@ public class UriTemplateParser {
                 skipGroup = g;
             }
 
-            regex.append('(').
-                    append(namePattern).
-                         append(')');
+            regex.append('(')
+                 .append(namePattern)
+                 .append(')');
 
-            normalizedTemplate.append('{').
-                    append(name).
-                                      append('}');
+            normalizedTemplate.append('{')
+                              .append(name)
+                              .append('}');
         } catch (PatternSyntaxException ex) {
-            throw new IllegalArgumentException("Invalid syntax for the expression '" + nameRegexString
-                                                       + "' associated with the name '" + name + "'",
-                                               ex);
+            throw new IllegalArgumentException(
+                    "Invalid syntax for the expression '" + nameRegexString + "' associated with the name '"
+                            + name + "'", ex);
         }
 
         // Tell the next time through the loop how many to skip

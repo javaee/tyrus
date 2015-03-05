@@ -213,7 +213,7 @@ abstract class Striped64 extends Number {
     final void retryUpdate(long x, HashCode hc, boolean wasUncontended) {
         int h = hc.code;
         boolean collide = false;                // True if last slot nonempty
-        for (; ; ) {
+        while (true) {
             Cell[] as;
             Cell a;
             int n;
@@ -227,9 +227,9 @@ abstract class Striped64 extends Number {
                             try {               // Recheck under lock
                                 Cell[] rs;
                                 int m, j;
-                                if ((rs = cells) != null &&
-                                        (m = rs.length) > 0 &&
-                                        rs[j = (m - 1) & h] == null) {
+                                if ((rs = cells) != null
+                                        && (m = rs.length) > 0
+                                        && rs[j = (m - 1) & h] == null) {
                                     rs[j] = r;
                                     created = true;
                                 }
@@ -243,8 +243,7 @@ abstract class Striped64 extends Number {
                         }
                     }
                     collide = false;
-                } else if (!wasUncontended)       // CAS already known to fail
-                {
+                } else if (!wasUncontended) {   // CAS already known to fail
                     wasUncontended = true;      // Continue after rehash
                 } else if (a.cas(v = a.value, fn(v, x))) {
                     break;

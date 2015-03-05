@@ -199,16 +199,17 @@ public class PerMessageDeflateExtension implements ExtendedExtension {
             }
 
             boolean strip = false;
-            if (completeResult.length >= 4 &&
-                    completeResult[completeResult.length - 4] == TAIL[0] &&
-                    completeResult[completeResult.length - 3] == TAIL[1] &&
-                    completeResult[completeResult.length - 2] == TAIL[2] &&
-                    completeResult[completeResult.length - 1] == TAIL[3]) {
+            if (completeResult.length >= 4
+                    && completeResult[completeResult.length - 4] == TAIL[0]
+                    && completeResult[completeResult.length - 3] == TAIL[1]
+                    && completeResult[completeResult.length - 2] == TAIL[2]
+                    && completeResult[completeResult.length - 1] == TAIL[3]) {
                 strip = true;
             }
 
-            return Frame.builder(frame).payloadData(completeResult).payloadLength(strip ? completeResult.length - 4 :
-                                                                                          completeResult.length)
+            return Frame.builder(frame)
+                        .payloadData(completeResult)
+                        .payloadLength(strip ? completeResult.length - 4 : completeResult.length)
                         .rsv1(true).build();
         } else {
             return frame;

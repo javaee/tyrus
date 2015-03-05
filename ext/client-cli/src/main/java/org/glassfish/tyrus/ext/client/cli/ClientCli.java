@@ -188,8 +188,8 @@ public class ClientCli {
                 }
 
                 if (i != args.length) {
-                    ClientCli.print(console, null, String.format("Invalid argument count, usage cmd [--proxy " +
-                                                                         "proxyUrl] [ws uri]"), false);
+                    ClientCli.print(console, null, String.format("Invalid argument count, usage cmd [--proxy "
+                                                                         + "proxyUrl] [ws uri]"), false);
                     return;
                 }
             }

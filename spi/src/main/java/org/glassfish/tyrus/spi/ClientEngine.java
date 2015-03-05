@@ -68,8 +68,8 @@ public interface ClientEngine {
      * @return info with upgrade status.
      * @see #processError(Throwable)
      */
-    ClientUpgradeInfo processResponse(UpgradeResponse upgradeResponse, final Writer writer, final Connection
-            .CloseListener closeListener);
+    ClientUpgradeInfo processResponse(UpgradeResponse upgradeResponse, final Writer writer,
+                                      final Connection.CloseListener closeListener);
 
     /**
      * Process error.

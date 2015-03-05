@@ -374,9 +374,9 @@ class ClientFilter extends Filter {
         if (proxyHeaders == null) {
             if (wlsProxyUsername != null && wlsProxyPassword != null) {
                 proxyHeaders = new HashMap<>();
-                proxyHeaders.put("Proxy-Authorization", "Basic " +
-                        Base64Utils.encodeToString(
-                                (wlsProxyUsername + ":" + wlsProxyPassword).getBytes(Charset.forName("UTF-8")), false));
+                proxyHeaders.put("Proxy-Authorization", "Basic "
+                        + Base64Utils.encodeToString(
+                        (wlsProxyUsername + ":" + wlsProxyPassword).getBytes(Charset.forName("UTF-8")), false));
             }
         } else {
             boolean proxyAuthPresent = false;
@@ -388,9 +388,9 @@ class ClientFilter extends Filter {
 
             // if (proxyAuthPresent == true) then do nothing, proxy authorization header is already added.
             if (!proxyAuthPresent && wlsProxyUsername != null && wlsProxyPassword != null) {
-                proxyHeaders.put("Proxy-Authorization", "Basic " +
-                        Base64Utils.encodeToString(
-                                (wlsProxyUsername + ":" + wlsProxyPassword).getBytes(Charset.forName("UTF-8")), false));
+                proxyHeaders.put("Proxy-Authorization", "Basic "
+                        + Base64Utils.encodeToString(
+                        (wlsProxyUsername + ":" + wlsProxyPassword).getBytes(Charset.forName("UTF-8")), false));
             }
         }
         return proxyHeaders;

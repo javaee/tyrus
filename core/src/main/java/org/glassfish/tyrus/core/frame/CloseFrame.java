@@ -95,8 +95,8 @@ public class CloseFrame extends TyrusFrame {
             };
         } else {
             closeCode = (int) Utils.toLong(data, 0, 2);
-            if (closeCode < 1000 || closeCode == 1004 || closeCode == 1005 || closeCode == 1006 ||
-                    (closeCode > 1013 && closeCode < 3000) || closeCode > 4999) {
+            if (closeCode < 1000 || closeCode == 1004 || closeCode == 1005 || closeCode == 1006
+                    || (closeCode > 1013 && closeCode < 3000) || closeCode > 4999) {
                 throw new ProtocolException("Illegal status code: " + closeCode);
             }
             if (data.length > 2) {

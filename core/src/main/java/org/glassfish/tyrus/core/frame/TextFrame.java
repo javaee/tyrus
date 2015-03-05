@@ -155,8 +155,8 @@ public class TextFrame extends TyrusFrame {
                 if (finalFragment) {
                     currentDecoder.flush(cb);
                     if (b.hasRemaining()) {
-                        throw new IllegalStateException("Final UTF-8 fragment received, but not all bytes consumed by" +
-                                                                " decode process");
+                        throw new IllegalStateException(
+                                "Final UTF-8 fragment received, but not all bytes consumed by decode process");
                     }
                     currentDecoder.reset();
                 } else {

@@ -357,8 +357,8 @@ class MessageHandlerManager {
 
     private boolean checkTextDecoders(Class<?> requiredType) {
         for (Class<? extends Decoder> decoderClass : decoders) {
-            if (isTextDecoder(decoderClass) && requiredType.isAssignableFrom(AnnotatedEndpoint.getDecoderClassType
-                    (decoderClass))) {
+            if (isTextDecoder(decoderClass)
+                    && requiredType.isAssignableFrom(AnnotatedEndpoint.getDecoderClassType(decoderClass))) {
                 return true;
             }
         }
@@ -368,8 +368,8 @@ class MessageHandlerManager {
 
     private boolean checkBinaryDecoders(Class<?> requiredType) {
         for (Class<? extends Decoder> decoderClass : decoders) {
-            if (isBinaryDecoder(decoderClass) && requiredType.isAssignableFrom(AnnotatedEndpoint.getDecoderClassType
-                    (decoderClass))) {
+            if (isBinaryDecoder(decoderClass)
+                    && requiredType.isAssignableFrom(AnnotatedEndpoint.getDecoderClassType(decoderClass))) {
                 return true;
             }
         }
@@ -378,13 +378,13 @@ class MessageHandlerManager {
     }
 
     private boolean isTextDecoder(Class<? extends Decoder> decoderClass) {
-        return Decoder.Text.class.isAssignableFrom(decoderClass) || Decoder.TextStream.class.isAssignableFrom
-                (decoderClass);
+        return Decoder.Text.class.isAssignableFrom(decoderClass)
+                || Decoder.TextStream.class.isAssignableFrom(decoderClass);
     }
 
     private boolean isBinaryDecoder(Class<? extends Decoder> decoderClass) {
-        return Decoder.Binary.class.isAssignableFrom(decoderClass) || Decoder.BinaryStream.class.isAssignableFrom
-                (decoderClass);
+        return Decoder.Binary.class.isAssignableFrom(decoderClass)
+                || Decoder.BinaryStream.class.isAssignableFrom(decoderClass);
     }
 
     boolean isWholeTextHandlerPresent() {

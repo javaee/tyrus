@@ -116,8 +116,8 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
     public void init(FilterConfig filterConfig) throws ServletException {
 
         ServletContext servletContext = filterConfig.getServletContext();
-        this.serverContainer = (org.glassfish.tyrus.server.TyrusServerContainer) servletContext.getAttribute
-                (ServerContainer.class.getName());
+        this.serverContainer = (org.glassfish.tyrus.server.TyrusServerContainer) servletContext
+                .getAttribute(ServerContainer.class.getName());
 
         try {
             // TODO? - port/contextPath .. is it really relevant here?
@@ -263,8 +263,8 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
                     LOGGER.fine("Upgrading Servlet request");
 
                     handler.setHandler(httpServletRequest.upgrade(TyrusHttpUpgradeHandler.class));
-                    final String frameBufferSize = request.getServletContext().getInitParameter
-                            (TyrusHttpUpgradeHandler.FRAME_BUFFER_SIZE);
+                    final String frameBufferSize =
+                            request.getServletContext().getInitParameter(TyrusHttpUpgradeHandler.FRAME_BUFFER_SIZE);
                     if (frameBufferSize != null) {
                         handler.setIncomingBufferSize(Integer.parseInt(frameBufferSize));
                     }

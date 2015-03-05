@@ -149,8 +149,8 @@ public class TextAndBinaryProgrammaticDecoder extends TestContainer {
                 {
                     add(ServerEndpointConfig.Builder
                                 .create(TextAndBinaryDecoderEndpoint.class, "/textAndBinaryDecoderEndpoint")
-                                .decoders(Arrays.<Class<? extends Decoder>>asList
-                                        (TextContainerDecoder.class, BinaryContainerDecoder.class))
+                                .decoders(Arrays.<Class<? extends Decoder>>asList(TextContainerDecoder.class,
+                                                                                  BinaryContainerDecoder.class))
                                 .build());
                     add(ServerEndpointConfig.Builder
                                 .create(AnnotatedEndpoint.class, "/annotatedEndpointRegisteredProgramatically")

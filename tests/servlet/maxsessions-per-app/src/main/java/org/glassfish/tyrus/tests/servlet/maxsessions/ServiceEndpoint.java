@@ -63,8 +63,8 @@ public class ServiceEndpoint {
 
         if (message.startsWith("/echo")) {
             try {
-                if (MaxSessionPerAppApplicationConfig.openLatch.await(1, TimeUnit.SECONDS) &&
-                        MaxSessionPerAppApplicationConfig.closeLatch.await(1, TimeUnit.SECONDS)) {
+                if (MaxSessionPerAppApplicationConfig.openLatch.await(1, TimeUnit.SECONDS)
+                        && MaxSessionPerAppApplicationConfig.closeLatch.await(1, TimeUnit.SECONDS)) {
                     if (!EchoEndpoint.forbiddenClose.get()) {
                         return POSITIVE;
                     }

@@ -88,8 +88,9 @@ public class SubProtocolTest extends TestContainer {
         try {
             final CountDownLatch messageLatch = new CountDownLatch(1);
 
-            final ClientEndpointConfig clientEndpointConfig = ClientEndpointConfig.Builder.create().
-                    preferredSubprotocols(Arrays.asList("MBWS.huawei.com", "soap", "v10.stomp")).build();
+            final ClientEndpointConfig clientEndpointConfig =
+                    ClientEndpointConfig.Builder.create().preferredSubprotocols(
+                            Arrays.asList("MBWS.huawei.com", "soap", "v10.stomp")).build();
             ContainerProvider.getWebSocketContainer().connectToServer(new javax.websocket.Endpoint() {
                 @Override
                 public void onOpen(final Session session, EndpointConfig config) {
@@ -123,17 +124,19 @@ public class SubProtocolTest extends TestContainer {
         try {
             final CountDownLatch messageLatch = new CountDownLatch(1);
 
-            final ClientEndpointConfig clientEndpointConfig = ClientEndpointConfig.Builder.create().
-                    configurator(new ClientEndpointConfig.Configurator() {
-                        @Override
-                        public void afterResponse(HandshakeResponse hr) {
-                            final Map<String, List<String>> headers = hr.getHeaders();
+            final ClientEndpointConfig clientEndpointConfig =
+                    ClientEndpointConfig.Builder.create()
+                                                .configurator(new ClientEndpointConfig.Configurator() {
+                                                    @Override
+                                                    public void afterResponse(HandshakeResponse hr) {
+                                                        final Map<String, List<String>> headers = hr.getHeaders();
 
-                            // TYRUS-250: SEC_WEBSOCKET_PROTOCOL cannot be present when there is no negotiated
-                            //            subprotocol.
-                            assertNull(headers.get(UpgradeRequest.SEC_WEBSOCKET_PROTOCOL));
-                        }
-                    }).preferredSubprotocols(Arrays.asList("a", "b", "c")).build();
+                                                        // TYRUS-250: SEC_WEBSOCKET_PROTOCOL cannot be present when
+                                                        // there is no negotiated
+                                                        //            subprotocol.
+                                                        assertNull(headers.get(UpgradeRequest.SEC_WEBSOCKET_PROTOCOL));
+                                                    }
+                                                }).preferredSubprotocols(Arrays.asList("a", "b", "c")).build();
             ClientManager client = createClient();
             client.connectToServer(new javax.websocket.Endpoint() {
                 @Override

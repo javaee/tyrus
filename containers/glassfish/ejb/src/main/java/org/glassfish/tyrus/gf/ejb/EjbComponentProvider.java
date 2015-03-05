@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -80,8 +80,8 @@ public class EjbComponentProvider extends ComponentProvider {
             InitialContext ic = new InitialContext();
             result = (T) lookup(ic, c, name);
         } catch (NamingException ex) {
-            String message = "An instance of EJB class " + c.getName() +
-                    " could not be looked up using simple form name or the fully-qualified form name.";
+            String message = "An instance of EJB class " + c.getName()
+                    + " could not be looked up using simple form name or the fully-qualified form name.";
             LOGGER.log(Level.SEVERE, message, ex);
         }
 
@@ -90,9 +90,9 @@ public class EjbComponentProvider extends ComponentProvider {
 
     @Override
     public boolean isApplicable(Class<?> c) {
-        return (c.isAnnotationPresent(Singleton.class) ||
-                c.isAnnotationPresent(Stateful.class) ||
-                c.isAnnotationPresent(Stateless.class));
+        return (c.isAnnotationPresent(Singleton.class)
+                || c.isAnnotationPresent(Stateful.class)
+                || c.isAnnotationPresent(Stateless.class));
     }
 
     @Override
@@ -154,9 +154,9 @@ public class EjbComponentProvider extends ComponentProvider {
         try {
             return lookupSimpleForm(ic, name);
         } catch (NamingException ex) {
-            LOGGER.log(Level.WARNING, "An instance of EJB class " + c.getName() +
-                    " could not be looked up using simple form name. " +
-                    "Attempting to look up using the fully-qualified form name.", ex);
+            LOGGER.log(Level.WARNING, "An instance of EJB class " + c.getName()
+                    + " could not be looked up using simple form name. "
+                    + "Attempting to look up using the fully-qualified form name.", ex);
 
             return lookupFullyQualfiedForm(ic, c, name);
         }

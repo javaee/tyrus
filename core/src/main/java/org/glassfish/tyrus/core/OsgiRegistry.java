@@ -296,8 +296,8 @@ public final class OsgiRegistry implements SynchronousBundleListener {
                         final URL url = enumeration.nextElement();
                         final String path = url.getPath();
 
-                        final String className = (packagePath +
-                                path.substring(path.lastIndexOf('/'))).replace('/', '.').replace(".class", "");
+                        final String className = (packagePath + path.substring(path.lastIndexOf('/')))
+                                .replace('/', '.').replace(".class", "");
 
                         classToBundleMapping.put(className, bundle);
                         result.add(url);

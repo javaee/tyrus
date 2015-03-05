@@ -128,8 +128,8 @@ public class ExtensionsTest extends TestContainer {
             extensions.add(new TyrusExtension("ext1", list1));
             extensions.add(new TyrusExtension("ext2", list2));
 
-            final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create().extensions
-                    (extensions).build();
+            final ClientEndpointConfig clientConfiguration =
+                    ClientEndpointConfig.Builder.create().extensions(extensions).build();
 
             final CountDownLatch messageLatch = new CountDownLatch(4);
             ClientManager client = createClient();
@@ -188,8 +188,8 @@ public class ExtensionsTest extends TestContainer {
         @OnOpen
         public void onOpen(Session s) {
             final List<Extension> negotiatedExtensions = s.getNegotiatedExtensions();
-            if (negotiatedExtensions.size() == 1 && negotiatedExtensions.get(0).getName().equals
-                    (MULTIPLE_REQUEST_EXTENSION_NAME)) {
+            if (negotiatedExtensions.size() == 1 && negotiatedExtensions.get(0).getName()
+                                                                        .equals(MULTIPLE_REQUEST_EXTENSION_NAME)) {
                 try {
                     s.getBasicRemote().sendText(SENT_MESSAGE);
                 } catch (IOException e) {
@@ -236,13 +236,13 @@ public class ExtensionsTest extends TestContainer {
             extensions.add(new TyrusExtension(MULTIPLE_REQUEST_EXTENSION_NAME, null));
             extensions.add(new TyrusExtension(MULTIPLE_REQUEST_EXTENSION_NAME, parameterList));
 
-            final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create().extensions
-                    (extensions).build();
+            final ClientEndpointConfig clientConfiguration =
+                    ClientEndpointConfig.Builder.create().extensions(extensions).build();
 
             ClientManager client = createClient();
             final CountDownLatch clientLatch = new CountDownLatch(2);
-            MultipleRequestExtensionsClientEndpoint clientEndpoint = new MultipleRequestExtensionsClientEndpoint
-                    (clientLatch);
+            MultipleRequestExtensionsClientEndpoint clientEndpoint =
+                    new MultipleRequestExtensionsClientEndpoint(clientLatch);
             client.connectToServer(clientEndpoint, clientConfiguration, getURI(MultipleRequestExtensionsTestEndpoint
                                                                                        .class));
 
@@ -274,8 +274,8 @@ public class ExtensionsTest extends TestContainer {
                     public void onMessage(String message) {
                         receivedMessage = message;
                         final List<Extension> negotiatedExtensions = session.getNegotiatedExtensions();
-                        if (negotiatedExtensions.size() == 1 && negotiatedExtensions.get(0).getName().equals
-                                (MULTIPLE_REQUEST_EXTENSION_NAME)) {
+                        if (negotiatedExtensions.size() == 1
+                                && negotiatedExtensions.get(0).getName().equals(MULTIPLE_REQUEST_EXTENSION_NAME)) {
                             messageLatch.countDown();
                         }
                     }

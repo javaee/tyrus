@@ -281,8 +281,8 @@ public class RedirectTest extends TestContainer {
             messageLatch.await(1, TimeUnit.SECONDS);
             assertTrue("Redirect for this 3xx code is not supported. HandshakeException must be thrown.", false);
         } catch (DeploymentException e) {
-            assertTrue("Redirect for this 3xx code is not supported. HandshakeException must be thrown.", e.getCause
-                    () instanceof HandshakeException);
+            assertTrue("Redirect for this 3xx code is not supported. HandshakeException must be thrown.",
+                       e.getCause() instanceof HandshakeException);
         } finally {
             if (httpServer != null) {
                 httpServer.shutdownNow();
@@ -344,8 +344,8 @@ public class RedirectTest extends TestContainer {
             messageLatch.await(1, TimeUnit.SECONDS);
             assertTrue("Redirect is not allowed. RedirectException must be thrown.", false);
         } catch (DeploymentException e) {
-            assertTrue("Redirect is not allowed. RedirectException must be thrown.", e.getCause() instanceof
-                    RedirectException);
+            assertTrue("Redirect is not allowed. RedirectException must be thrown.",
+                       e.getCause() instanceof RedirectException);
         } finally {
             if (httpServer != null) {
                 httpServer.shutdownNow();
@@ -406,8 +406,8 @@ public class RedirectTest extends TestContainer {
             messageLatch.await(1, TimeUnit.SECONDS);
             assertTrue("Redirect is not allowed. RedirectException must be thrown.", false);
         } catch (DeploymentException e) {
-            assertTrue("Redirect is not allowed. RedirectException must be thrown.", e.getCause() instanceof
-                    RedirectException);
+            assertTrue("Redirect is not allowed. RedirectException must be thrown.",
+                       e.getCause() instanceof RedirectException);
         } finally {
             if (httpServer != null) {
                 httpServer.shutdownNow();
@@ -497,18 +497,18 @@ public class RedirectTest extends TestContainer {
         HttpServer httpServer = null;
         try {
             httpServer = createHttpServer(REDIRECTION_PORT);
-            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI +
-                    REDIRECTION_PATH + 1), REDIRECTION_PATH + 0);
-            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI +
-                    REDIRECTION_PATH + 2), REDIRECTION_PATH + 1);
-            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI +
-                    REDIRECTION_PATH + 3), REDIRECTION_PATH + 2);
-            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI +
-                    REDIRECTION_PATH + 4), REDIRECTION_PATH + 3);
-            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI +
-                    REDIRECTION_PATH + 5), REDIRECTION_PATH + 4);
-            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI +
-                    REDIRECTION_PATH + 6), REDIRECTION_PATH + 5);
+            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI
+                    + REDIRECTION_PATH + 1), REDIRECTION_PATH + 0);
+            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI
+                    + REDIRECTION_PATH + 2), REDIRECTION_PATH + 1);
+            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI
+                    + REDIRECTION_PATH + 3), REDIRECTION_PATH + 2);
+            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI
+                    + REDIRECTION_PATH + 4), REDIRECTION_PATH + 3);
+            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI
+                    + REDIRECTION_PATH + 5), REDIRECTION_PATH + 4);
+            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI
+                    + REDIRECTION_PATH + 6), REDIRECTION_PATH + 5);
             httpServer.start();
 
             final ClientManager client = createClient();
@@ -566,12 +566,12 @@ public class RedirectTest extends TestContainer {
         HttpServer httpServer = null;
         try {
             httpServer = createHttpServer(REDIRECTION_PORT);
-            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI +
-                    REDIRECTION_PATH + 1), REDIRECTION_PATH + 0);
-            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI +
-                    REDIRECTION_PATH + 2), REDIRECTION_PATH + 1);
-            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI +
-                    REDIRECTION_PATH + 3), REDIRECTION_PATH + 2);
+            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI
+                    + REDIRECTION_PATH + 1), REDIRECTION_PATH + 0);
+            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI
+                    + REDIRECTION_PATH + 2), REDIRECTION_PATH + 1);
+            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI
+                    + REDIRECTION_PATH + 3), REDIRECTION_PATH + 2);
             httpServer.start();
 
             final ClientManager client = createClient();
@@ -636,8 +636,8 @@ public class RedirectTest extends TestContainer {
         try {
 
             httpServer = createHttpServer(REDIRECTION_PORT);
-            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI +
-                    REDIRECTION_PATH + 1), REDIRECTION_PATH + 0);
+            httpServer.getServerConfiguration().addHttpHandler(
+                    new RedirectHandler(httpStatus, REDIRECTION_URI + REDIRECTION_PATH + 1), REDIRECTION_PATH + 0);
             httpServer.start();
 
             final ClientManager client = createClient();

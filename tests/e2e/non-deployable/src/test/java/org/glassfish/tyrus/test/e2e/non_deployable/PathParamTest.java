@@ -260,8 +260,8 @@ public class PathParamTest extends TestContainer {
                               @PathParam("seventh") Character seventh, @PathParam("eighth") Byte eighth, String message,
                               Session peer) {
 
-            if (one != null && second != null && third != null && fourth != null && fifth != null && sixth != null &&
-                    seventh != null && eighth != null && message != null && peer != null) {
+            if (one != null && second != null && third != null && fourth != null && fifth != null && sixth != null
+                    && seventh != null && eighth != null && message != null && peer != null) {
                 return message + one + second + third + fourth + fifth + sixth + seventh + eighth;
             } else {
                 return "Error";
@@ -298,8 +298,8 @@ public class PathParamTest extends TestContainer {
 
     @Test
     public void testPathParamPrimitivesBoxing() throws DeploymentException {
-        testPathParamPrimitive(PathParamTestEndpointPrimitiveBoxing.class, getURI
-                ("/pathparam4/first/2/true/4/5/6/c/0"));
+        testPathParamPrimitive(PathParamTestEndpointPrimitiveBoxing.class,
+                               getURI("/pathparam4/first/2/true/4/5/6/c/0"));
     }
 
     public void testPathParamPrimitive(Class<?> testedClass, URI uri) throws DeploymentException {

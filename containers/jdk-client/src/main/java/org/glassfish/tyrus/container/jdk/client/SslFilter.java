@@ -203,8 +203,8 @@ class SslFilter extends Filter {
         SSLEngineResult.HandshakeStatus hs = sslEngine.getHandshakeStatus();
         try {
             // SSL handshake logic
-            if (hs != SSLEngineResult.HandshakeStatus.FINISHED &&
-                    hs != SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING) {
+            if (hs != SSLEngineResult.HandshakeStatus.FINISHED
+                    && hs != SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING) {
                 synchronized (handshakeLock) {
 
                     if (hs != SSLEngineResult.HandshakeStatus.NEED_UNWRAP) {
@@ -224,18 +224,18 @@ class SslFilter extends Filter {
                             handshakeCompleted = true;
 
                             // apply a custom host verifier if present
-                            if (customHostnameVerifier != null &&
-                                    !customHostnameVerifier.verify(serverHost, sslEngine.getSession())) {
+                            if (customHostnameVerifier != null
+                                    && !customHostnameVerifier.verify(serverHost, sslEngine.getSession())) {
                                 handleSslError(new SSLException(
-                                        "Server host name verification using " + customHostnameVerifier.getClass() +
-                                                " has failed"));
+                                        "Server host name verification using " + customHostnameVerifier.getClass()
+                                                + " has failed"));
                             }
 
                             onSslHandshakeCompleted();
                             return false;
                         }
-                        if (!networkData.hasRemaining() ||
-                                result.getHandshakeStatus() != SSLEngineResult.HandshakeStatus.NEED_UNWRAP) {
+                        if (!networkData.hasRemaining()
+                                || result.getHandshakeStatus() != SSLEngineResult.HandshakeStatus.NEED_UNWRAP) {
                             // all data has been read or the engine needs to do something else than read
                             break;
                         }
@@ -274,8 +274,8 @@ class SslFilter extends Filter {
                 while (true) {
                     SSLEngineResult.HandshakeStatus hs = sslEngine.getHandshakeStatus();
 
-                    if (handshakeCompleted || (hs != SSLEngineResult.HandshakeStatus.NEED_WRAP &&
-                            hs != SSLEngineResult.HandshakeStatus.NEED_TASK)) {
+                    if (handshakeCompleted || (hs != SSLEngineResult.HandshakeStatus.NEED_WRAP
+                            && hs != SSLEngineResult.HandshakeStatus.NEED_TASK)) {
                         return;
                     }
 
@@ -319,8 +319,8 @@ class SslFilter extends Filter {
                             }
                             if (sslEngine.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NEED_UNWRAP) {
                                 handleSslError(new SSLException(
-                                        "SSL handshake error has occurred - more data needed for validating the " +
-                                                "certificate"));
+                                        "SSL handshake error has occurred - more data needed for validating the "
+                                                + "certificate"));
                                 return;
                             }
                             break;

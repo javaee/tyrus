@@ -121,9 +121,8 @@ public class Base64Utils {
         // Count illegal characters (including '\r', '\n') to know what size the returned array will be,
         // so we don't have to reallocate & copy it later.
         int sepCnt = 0; // Number of separator characters. (Actually illegal characters, but that's a bonus...)
-        for (int i = 0; i < sLen; i++)  // If input is "pure" (I.e. no line separators or illegal chars) base64 this
-        // loop can be commented out.
-        {
+        for (int i = 0; i < sLen; i++) {  // If input is "pure" (I.e. no line separators or illegal chars) base64 this
+            // loop can be commented out.
             if (IA[sArr[i]] < 0) {
                 sepCnt++;
             }
@@ -313,10 +312,9 @@ public class Base64Utils {
         // Count illegal characters (including '\r', '\n') to know what size the returned array will be,
         // so we don't have to reallocate & copy it later.
         int sepCnt = 0; // Number of separator characters. (Actually illegal characters, but that's a bonus...)
-        for (int i = 0; i < sLen; i++)      // If input is "pure" (I.e. no line separators or illegal chars) base64
-        // this loop can be commented out.
-        {
-            if (IA[sArr[i] & 0xff] < 0) {
+        for (byte aSArr : sArr) {    // If input is "pure" (I.e. no line separators or illegal chars) base64
+            // this loop can be commented out.
+            if (IA[aSArr & 0xff] < 0) {
                 sepCnt++;
             }
         }
@@ -472,9 +470,8 @@ public class Base64Utils {
         // Count illegal characters (including '\r', '\n') to know what size the returned array will be,
         // so we don't have to reallocate & copy it later.
         int sepCnt = 0; // Number of separator characters. (Actually illegal characters, but that's a bonus...)
-        for (int i = 0; i < sLen; i++)  // If input is "pure" (I.e. no line separators or illegal chars) base64 this
-        // loop can be commented out.
-        {
+        for (int i = 0; i < sLen; i++) { // If input is "pure" (I.e. no line separators or illegal chars) base64 this
+            // loop can be commented out.
             if (IA[str.charAt(i)] < 0) {
                 sepCnt++;
             }
@@ -563,8 +560,10 @@ public class Base64Utils {
         int d = 0;
         for (int cc = 0, eLen = (len / 3) * 3; d < eLen; ) {
             // Assemble three bytes into an int from four "valid" characters.
-            int i = IA[s.charAt(sIx++)] << 18 | IA[s.charAt(sIx++)] << 12 | IA[s.charAt(sIx++)] << 6 | IA[s.charAt
-                    (sIx++)];
+            int i = IA[s.charAt(sIx++)] << 18
+                    | IA[s.charAt(sIx++)] << 12
+                    | IA[s.charAt(sIx++)] << 6
+                    | IA[s.charAt(sIx++)];
 
             // Add the bytes
             dArr[d++] = (byte) (i >> 16);

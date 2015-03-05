@@ -122,8 +122,9 @@ public class OnCloseTest extends TestContainer {
 
                 @Override
                 public void onClose(Session session, CloseReason closeReason) {
-                    if (closeReason != null &&
-                            closeReason.getCloseCode().getCode() == CloseReason.CloseCodes.NORMAL_CLOSURE.getCode()) {
+                    if (closeReason != null
+                            && closeReason.getCloseCode().getCode()
+                            == CloseReason.CloseCodes.NORMAL_CLOSURE.getCode()) {
                         messageLatch.countDown();
                     }
                 }
@@ -171,9 +172,9 @@ public class OnCloseTest extends TestContainer {
 
                 @Override
                 public void onClose(Session session, CloseReason closeReason) {
-                    if (closeReason != null &&
-                            closeReason.getCloseCode().getCode() == CloseReason.CloseCodes.NORMAL_CLOSURE.getCode() &&
-                            closeReason.getReasonPhrase().equals("")) {
+                    if (closeReason != null
+                            && closeReason.getCloseCode().getCode() == CloseReason.CloseCodes.NORMAL_CLOSURE.getCode()
+                            && closeReason.getReasonPhrase().equals("")) {
                         closeLatch.countDown();
                     }
                 }
@@ -222,9 +223,9 @@ public class OnCloseTest extends TestContainer {
 
                 @Override
                 public void onClose(Session session, CloseReason closeReason) {
-                    if (closeReason != null &&
-                            closeReason.getCloseCode().getCode() == CloseReason.CloseCodes.NORMAL_CLOSURE.getCode() &&
-                            closeReason.getReasonPhrase().equals("")) {
+                    if (closeReason != null
+                            && closeReason.getCloseCode().getCode() == CloseReason.CloseCodes.NORMAL_CLOSURE.getCode()
+                            && closeReason.getReasonPhrase().equals("")) {
                         closeLatch.countDown();
                     }
                 }
@@ -307,9 +308,9 @@ public class OnCloseTest extends TestContainer {
 
                 @Override
                 public void onClose(Session session, CloseReason closeReason) {
-                    if (closeReason != null &&
-                            closeReason.getCloseCode().getCode() == 4000 &&
-                            closeReason.getReasonPhrase().equals(CUSTOM_REASON)) {
+                    if (closeReason != null
+                            && closeReason.getCloseCode().getCode() == 4000
+                            && closeReason.getReasonPhrase().equals(CUSTOM_REASON)) {
                         messageLatch.countDown();
                     }
                 }
@@ -450,8 +451,7 @@ public class OnCloseTest extends TestContainer {
                 @Override
                 public void onClose(Session session, CloseReason closeReason) {
                     System.out.println("#### received: " + closeReason);
-                    if (closeReason != null &&
-                            closeReason.getCloseCode().getCode() == closeCode) {
+                    if (closeReason != null && closeReason.getCloseCode().getCode() == closeCode) {
                         messageLatch.countDown();
                     }
                 }
@@ -543,9 +543,9 @@ public class OnCloseTest extends TestContainer {
         @OnMessage
         public String message(String message, Session session) {
             if (message.equals("OnCloseWithCustomReasonEndpoint")) {
-                if (OnCloseWithCustomReasonEndpoint.closeReason != null &&
-                        OnCloseWithCustomReasonEndpoint.closeReason.getCloseCode().getCode() == 4000 &&
-                        OnCloseWithCustomReasonEndpoint.closeReason.getReasonPhrase().equals(CUSTOM_REASON)) {
+                if (OnCloseWithCustomReasonEndpoint.closeReason != null
+                        && OnCloseWithCustomReasonEndpoint.closeReason.getCloseCode().getCode() == 4000
+                        && OnCloseWithCustomReasonEndpoint.closeReason.getReasonPhrase().equals(CUSTOM_REASON)) {
                     return POSITIVE;
                 }
             } else if (message.equals("DoubleCloseEndpoint")) {

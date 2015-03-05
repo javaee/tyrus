@@ -162,8 +162,8 @@ public class RegisteredEndpointsTest extends TestContainer {
             proxy = JMX.newMXBeanProxy(mBeanServer, new ObjectName(fullMxBeanName), ApplicationMXBean.class);
             List<EndpointClassNamePathPair> registeredEndpoints = proxy.getEndpoints();
             for (EndpointClassNamePathPair registeredEndpoint : registeredEndpoints) {
-                if (registeredEndpoint.getEndpointPath().equals(endpoint.getEndpointPath()) &&
-                        registeredEndpoint.getEndpointClassName().equals(endpoint.getEndpointClassName())) {
+                if (registeredEndpoint.getEndpointPath().equals(endpoint.getEndpointPath())
+                        && registeredEndpoint.getEndpointClassName().equals(endpoint.getEndpointClassName())) {
                     result = true;
                     break;
                 }

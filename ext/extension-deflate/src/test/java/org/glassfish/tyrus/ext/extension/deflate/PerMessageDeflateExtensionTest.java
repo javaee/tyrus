@@ -116,8 +116,9 @@ public class PerMessageDeflateExtensionTest extends TestContainer {
             ArrayList<Extension> extensions = new ArrayList<Extension>();
             extensions.add(new PerMessageDeflateExtension());
 
-            final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create().extensions
-                    (extensions).configurator(new LoggingClientEndpointConfigurator()).build();
+            final ClientEndpointConfig clientConfiguration =
+                    ClientEndpointConfig.Builder.create().extensions(extensions)
+                                                .configurator(new LoggingClientEndpointConfigurator()).build();
 
             ClientManager client = ClientManager.createClient();
             final Session session = client.connectToServer(new Endpoint() {

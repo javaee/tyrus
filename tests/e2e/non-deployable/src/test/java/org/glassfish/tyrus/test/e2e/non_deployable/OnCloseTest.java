@@ -85,8 +85,8 @@ public class OnCloseTest extends TestContainer {
 
                 @Override
                 public void onClose(Session session, CloseReason closeReason) {
-                    if (closeReason != null && closeReason.getCloseCode().getCode() ==
-                            CloseReason.CloseCodes.CLOSED_ABNORMALLY.getCode()) {
+                    if (closeReason != null && closeReason.getCloseCode().getCode()
+                            == CloseReason.CloseCodes.CLOSED_ABNORMALLY.getCode()) {
                         messageLatch.countDown();
                     }
                 }

@@ -109,10 +109,16 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
         final ApplicationEventListener applicationEventListener = createApplicationEventListener(ctx);
         final TyrusServerContainer serverContainer = new TyrusServerContainer(classes) {
 
-            private final WebSocketEngine engine = TyrusWebSocketEngine.builder(this).applicationEventListener
-                    (applicationEventListener).incomingBufferSize(incomingBufferSize).maxSessionsPerApp
-                    (maxSessionsPerApp).maxSessionsPerRemoteAddr(maxSessionsPerRemoteAddr).parallelBroadcastEnabled
-                    (parallelBroadcastEnabled).tracingType(tracingType).tracingThreshold(tracingThreshold).build();
+            private final WebSocketEngine engine =
+                    TyrusWebSocketEngine.builder(this)
+                                        .applicationEventListener(applicationEventListener)
+                                        .incomingBufferSize(incomingBufferSize)
+                                        .maxSessionsPerApp(maxSessionsPerApp)
+                                        .maxSessionsPerRemoteAddr(maxSessionsPerRemoteAddr)
+                                        .parallelBroadcastEnabled(parallelBroadcastEnabled)
+                                        .tracingType(tracingType)
+                                        .tracingThreshold(tracingThreshold)
+                                        .build();
 
             @Override
             public void register(Class<?> endpointClass) throws DeploymentException {
@@ -166,8 +172,8 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
             try {
                 return Integer.parseInt(initParameter);
             } catch (NumberFormatException e) {
-                LOGGER.log(Level.CONFIG, "Invalid configuration value [" + paramName + " = " + initParameter + "], " +
-                        "integer expected");
+                LOGGER.log(Level.CONFIG, "Invalid configuration value [" + paramName + " = " + initParameter + "], "
+                        + "integer expected");
             }
         }
 
@@ -193,8 +199,8 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
                 return false;
             }
 
-            LOGGER.log(Level.CONFIG, "Invalid configuration value [" + paramName + " = " + initParameter + "], " +
-                    "boolean expected");
+            LOGGER.log(Level.CONFIG, "Invalid configuration value [" + paramName + " = " + initParameter + "], "
+                    + "boolean expected");
             return null;
         }
 
@@ -231,14 +237,14 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
             if (o instanceof ApplicationEventListener) {
                 return (ApplicationEventListener) o;
             } else {
-                LOGGER.log(Level.WARNING, "Class " + listenerClassName + " does not implement " +
-                        "ApplicationEventListener");
+                LOGGER.log(Level.WARNING, "Class " + listenerClassName + " does not implement "
+                        + "ApplicationEventListener");
             }
         } catch (ClassNotFoundException e) {
             LOGGER.log(Level.WARNING, "ApplicationEventListener implementation " + listenerClassName + " not found", e);
         } catch (InstantiationException | IllegalAccessException e) {
-            LOGGER.log(Level.WARNING, "ApplicationEventListener implementation " + listenerClassName + " could not " +
-                    "have been instantiated", e);
+            LOGGER.log(Level.WARNING, "ApplicationEventListener implementation " + listenerClassName + " could not "
+                    + "have been instantiated", e);
         }
         return null;
     }

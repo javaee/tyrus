@@ -129,8 +129,9 @@ public class ExtendedExtensionTest extends TestContainer {
             final TestExtendedExtension clientExtension = new TestExtendedExtension(0);
             extensions.add(clientExtension);
 
-            final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create().extensions
-                    (extensions).configurator(new LoggingClientEndpointConfigurator()).build();
+            final ClientEndpointConfig clientConfiguration =
+                    ClientEndpointConfig.Builder.create().extensions(extensions)
+                                                .configurator(new LoggingClientEndpointConfigurator()).build();
 
             ClientManager client = createClient();
             final Session session = client.connectToServer(new Endpoint() {
@@ -180,11 +181,10 @@ public class ExtendedExtensionTest extends TestContainer {
                     try {
                         print("server onMessage.");
 
-                        if ((message[0] ^ TestExtendedExtension.MASK) == Constants.MESSAGE[0] &&
-                                (message[1] ^ TestExtendedExtension.MASK) == Constants.MESSAGE[1] &&
-                                Arrays.equals(
-                                        Arrays.copyOfRange(message, 2, 4),
-                                        Arrays.copyOfRange(Constants.MESSAGE, 2, 4))) {
+                        if ((message[0] ^ TestExtendedExtension.MASK) == Constants.MESSAGE[0]
+                                && (message[1] ^ TestExtendedExtension.MASK) == Constants.MESSAGE[1]
+                                && Arrays.equals(Arrays.copyOfRange(message, 2, 4),
+                                                 Arrays.copyOfRange(Constants.MESSAGE, 2, 4))) {
                             session.getBasicRemote().sendObject(message);
                         }
                     } catch (IOException e) {
@@ -468,10 +468,10 @@ public class ExtendedExtensionTest extends TestContainer {
                     try {
                         print("server onMessage.");
 
-                        if ((message[0] ^ TestExtendedExtension.MASK) == Constants.MESSAGE[0] &&
-                                (message[1] ^ TestExtendedExtension.MASK) == Constants.MESSAGE[1] &&
-                                (message[2] ^ TestExtendedExtension.MASK) == Constants.MESSAGE[2] &&
-                                (message[3] ^ TestExtendedExtension.MASK) == Constants.MESSAGE[3]) {
+                        if ((message[0] ^ TestExtendedExtension.MASK) == Constants.MESSAGE[0]
+                                && (message[1] ^ TestExtendedExtension.MASK) == Constants.MESSAGE[1]
+                                && (message[2] ^ TestExtendedExtension.MASK) == Constants.MESSAGE[2]
+                                && (message[3] ^ TestExtendedExtension.MASK) == Constants.MESSAGE[3]) {
                             session.getBasicRemote().sendObject(message);
                         }
                     } catch (IOException e) {

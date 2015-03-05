@@ -560,10 +560,10 @@ public class UriComponent {
         try {
             final int equals = param.indexOf('=');
             if (equals > 0) {
-                params.add((decodeNames) ? URLDecoder.decode(param.substring(0, equals), "UTF-8") :
-                                   param.substring(0, equals),
-                           (decodeValues) ? URLDecoder.decode(param.substring(equals + 1), "UTF-8") :
-                                   param.substring(equals + 1));
+                params.add((decodeNames) ? URLDecoder.decode(param.substring(0, equals), "UTF-8")
+                                   : param.substring(0, equals),
+                           (decodeValues) ? URLDecoder.decode(param.substring(equals + 1), "UTF-8")
+                                   : param.substring(equals + 1));
             } else if (equals == 0) {
                 // no key declared, ignore
             } else if (param.length() > 0) {
@@ -722,9 +722,8 @@ public class UriComponent {
         final int equals = param.indexOf('=');
         if (equals > 0) {
             params.add(UriComponent.decode(param.substring(0, equals), UriComponent.Type.MATRIX_PARAM),
-                       (decode) ? UriComponent.decode(param.substring(equals + 1), UriComponent.Type.MATRIX_PARAM) :
-                               param
-                                       .substring(equals + 1));
+                       (decode) ? UriComponent.decode(param.substring(equals + 1), UriComponent.Type.MATRIX_PARAM)
+                               : param.substring(equals + 1));
         } else if (equals == 0) {
             // no key declared, ignore
         } else if (param.length() > 0) {

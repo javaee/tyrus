@@ -138,8 +138,8 @@ public class SessionTimeoutTest extends TestContainer {
                     return POSITIVE;
                 }
             } else if (message.equals("SessionTimeoutChangedEndpoint")) {
-                if (SessionTimeoutChangedEndpoint.latch.await(1, TimeUnit.SECONDS) &&
-                        SessionTimeoutChangedEndpoint.closedNormally.get()) {
+                if (SessionTimeoutChangedEndpoint.latch.await(1, TimeUnit.SECONDS)
+                        && SessionTimeoutChangedEndpoint.closedNormally.get()) {
                     return POSITIVE;
                 }
             }

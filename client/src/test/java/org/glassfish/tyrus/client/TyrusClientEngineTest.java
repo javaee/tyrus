@@ -169,8 +169,8 @@ public class TyrusClientEngineTest {
 
         ClientEngine.ClientUpgradeInfo clientUpgradeInfo =
                 engine.processResponse(getAuthenticateResponse(), null, null);
-        assertTrue(clientUpgradeInfo.getUpgradeStatus().toString(), clientUpgradeInfo.getUpgradeStatus() ==
-                ClientEngine.ClientUpgradeStatus.ANOTHER_UPGRADE_REQUEST_REQUIRED);
+        assertTrue(clientUpgradeInfo.getUpgradeStatus().toString(), clientUpgradeInfo.getUpgradeStatus()
+                == ClientEngine.ClientUpgradeStatus.ANOTHER_UPGRADE_REQUEST_REQUIRED);
 
         upgradeRequest = engine.createUpgradeRequest(null);
         assertNotNull("", upgradeRequest);
@@ -193,8 +193,8 @@ public class TyrusClientEngineTest {
 
         ClientEngine.ClientUpgradeInfo clientUpgradeInfo =
                 engine.processResponse(getRedirectionsResponse(ENDPOINT_URI_WS), null, null);
-        assertTrue(clientUpgradeInfo.getUpgradeStatus().toString(), clientUpgradeInfo.getUpgradeStatus() ==
-                ClientEngine.ClientUpgradeStatus.ANOTHER_UPGRADE_REQUEST_REQUIRED);
+        assertTrue(clientUpgradeInfo.getUpgradeStatus().toString(), clientUpgradeInfo.getUpgradeStatus()
+                == ClientEngine.ClientUpgradeStatus.ANOTHER_UPGRADE_REQUEST_REQUIRED);
 
         upgradeRequest = engine.createUpgradeRequest(null);
         assertNotNull("", upgradeRequest);
@@ -244,15 +244,15 @@ public class TyrusClientEngineTest {
 
         ClientEngine.ClientUpgradeInfo clientUpgradeInfo =
                 engine.processResponse(getRedirectionsResponse(ENDPOINT_URI_WS), null, null);
-        assertTrue("Another request should be required", clientUpgradeInfo.getUpgradeStatus() ==
-                ClientEngine.ClientUpgradeStatus.ANOTHER_UPGRADE_REQUEST_REQUIRED);
+        assertTrue("Another request should be required", clientUpgradeInfo.getUpgradeStatus()
+                == ClientEngine.ClientUpgradeStatus.ANOTHER_UPGRADE_REQUEST_REQUIRED);
 
         upgradeRequest = engine.createUpgradeRequest(null);
         assertNotNull("We must get UpgradeRequest instance", upgradeRequest);
 
         clientUpgradeInfo = engine.processResponse(getAuthenticateResponse(), null, null);
-        assertTrue(clientUpgradeInfo.getUpgradeStatus().toString(), clientUpgradeInfo.getUpgradeStatus() ==
-                ClientEngine.ClientUpgradeStatus.ANOTHER_UPGRADE_REQUEST_REQUIRED);
+        assertTrue(clientUpgradeInfo.getUpgradeStatus().toString(), clientUpgradeInfo.getUpgradeStatus()
+                == ClientEngine.ClientUpgradeStatus.ANOTHER_UPGRADE_REQUEST_REQUIRED);
 
         upgradeRequest = engine.createUpgradeRequest(null);
         assertNotNull("We must get UpgradeRequest instance", upgradeRequest);
@@ -276,15 +276,15 @@ public class TyrusClientEngineTest {
 
         ClientEngine.ClientUpgradeInfo clientUpgradeInfo =
                 engine.processResponse(getAuthenticateResponse(), null, null);
-        assertTrue(clientUpgradeInfo.getUpgradeStatus().toString(), clientUpgradeInfo.getUpgradeStatus() ==
-                ClientEngine.ClientUpgradeStatus.ANOTHER_UPGRADE_REQUEST_REQUIRED);
+        assertTrue(clientUpgradeInfo.getUpgradeStatus().toString(), clientUpgradeInfo.getUpgradeStatus()
+                == ClientEngine.ClientUpgradeStatus.ANOTHER_UPGRADE_REQUEST_REQUIRED);
 
         upgradeRequest = engine.createUpgradeRequest(null);
         assertNotNull("We must get UpgradeRequest instance", upgradeRequest);
 
         clientUpgradeInfo = engine.processResponse(getRedirectionsResponse(ENDPOINT_URI_WS), null, null);
-        assertTrue("Another request should be required", clientUpgradeInfo.getUpgradeStatus() ==
-                ClientEngine.ClientUpgradeStatus.ANOTHER_UPGRADE_REQUEST_REQUIRED);
+        assertTrue("Another request should be required", clientUpgradeInfo.getUpgradeStatus()
+                == ClientEngine.ClientUpgradeStatus.ANOTHER_UPGRADE_REQUEST_REQUIRED);
 
         upgradeRequest = engine.createUpgradeRequest(null);
         assertNotNull("We must get UpgradeRequest instance", upgradeRequest);
@@ -386,8 +386,8 @@ public class TyrusClientEngineTest {
         upgradeResponse = getRedirectionsResponse(ENDPOINT_URI_WSS);
         info = engine.processResponse(upgradeResponse, null, null);
         assertTrue(
-                "It must failed - wss://localhost/echo is the same uri as https://localhost/echo (both should be " +
-                        "transformed into wss://localhost:443/echo)",
+                "It must failed - wss://localhost/echo is the same uri as https://localhost/echo (both should be "
+                        + "transformed into wss://localhost:443/echo)",
                 info.getUpgradeStatus() == ClientEngine.ClientUpgradeStatus.UPGRADE_REQUEST_FAILED);
     }
 

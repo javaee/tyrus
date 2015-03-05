@@ -114,8 +114,8 @@ public class MaxMessageSizeTest extends TestContainer {
                 Endpoint1.closeReason = null;
                 Endpoint1.throwable = null;
                 return POSITIVE;
-            } else if (Endpoint1.closeReason != null &&
-                    Endpoint1.closeReason.getCloseCode().equals(CloseReason.CloseCodes.TOO_BIG)) {
+            } else if (Endpoint1.closeReason != null
+                    && Endpoint1.closeReason.getCloseCode().equals(CloseReason.CloseCodes.TOO_BIG)) {
                 return POSITIVE;
             }
 

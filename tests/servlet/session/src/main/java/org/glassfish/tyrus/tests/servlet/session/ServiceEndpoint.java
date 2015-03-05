@@ -59,12 +59,12 @@ public class ServiceEndpoint {
             final CloseServerEndpoint closeServerEndpoint =
                     SingletonConfigurator.getEndpoint(CloseServerEndpoint.class);
 
-            if (closeServerEndpoint.isAddMessageHandlerExceptionThrown() &&
-                    closeServerEndpoint.isRemoveMessageHandlerExceptionThrown() &&
-                    closeServerEndpoint.isGetBasicRemoteExceptionThrown() &&
-                    closeServerEndpoint.isGetAsyncRemoteExceptionThrown() &&
-                    closeServerEndpoint.isInCloseSendTextExceptionThrown() &&
-                    !closeServerEndpoint.isInCloseGetTimeoutExceptionThrown()) {
+            if (closeServerEndpoint.isAddMessageHandlerExceptionThrown()
+                    && closeServerEndpoint.isRemoveMessageHandlerExceptionThrown()
+                    && closeServerEndpoint.isGetBasicRemoteExceptionThrown()
+                    && closeServerEndpoint.isGetAsyncRemoteExceptionThrown()
+                    && closeServerEndpoint.isInCloseSendTextExceptionThrown()
+                    && !closeServerEndpoint.isInCloseGetTimeoutExceptionThrown()) {
                 return POSITIVE;
             } else {
                 return NEGATIVE;

@@ -73,9 +73,9 @@ public class SampleBasicAuthTest extends TestContainer {
 
     @Test
     public void testDisabledBasicAuth() throws InterruptedException, IOException, AuthenticationException {
-        AuthConfig authConfig = AuthConfig.Builder.create().
-                disableProvidedBasicAuth().
-                                                          build();
+        AuthConfig authConfig = AuthConfig.Builder.create()
+                                                  .disableProvidedBasicAuth()
+                                                  .build();
         Credentials credentials = new Credentials("ws_user", "password");
         try {
             testEcho(authConfig, credentials);

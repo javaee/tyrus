@@ -439,8 +439,8 @@ public final class ThreadPoolConfig {
         if (queueLimit != that.queueLimit) {
             return false;
         }
-        if (initialClassLoader != null ? !initialClassLoader.equals(that.initialClassLoader) :
-                that.initialClassLoader != null) {
+        if (initialClassLoader != null ? !initialClassLoader.equals(that.initialClassLoader)
+                : that.initialClassLoader != null) {
             return false;
         }
         if (poolName != null ? !poolName.equals(that.poolName) : that.poolName != null) {

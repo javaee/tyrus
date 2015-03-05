@@ -486,8 +486,8 @@ public class RetryAfterTest extends TestContainer {
             client.getProperties().put(ClientProperties.RECONNECT_HANDLER, new ClientManager.ReconnectHandler() {
                 @Override
                 public boolean onConnectFailure(Exception e) {
-                    if (e != null && e.getCause() instanceof RetryAfterException && ((RetryAfterException) e.getCause
-                            ()).getDelay() != null) {
+                    if (e != null && e.getCause() instanceof RetryAfterException
+                            && ((RetryAfterException) e.getCause()).getDelay() != null) {
                         System.out.println("RetryAfterException received.");
                         reconnectHandlerLatch.countDown();
                         return true;

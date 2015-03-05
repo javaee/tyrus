@@ -78,8 +78,8 @@ public class MaxSessionsAppTest extends TestContainer {
 
     private static final int NUMBER_OF_ENDPOINTS = 3;
     private static final int NUMBER_OF_CLIENTS_OVER_LIMIT = 3;
-    private static final int NUMBER_OF_CLIENT_SESSIONS = MaxSessionPerAppApplicationConfig.MAX_SESSIONS_PER_APP +
-            NUMBER_OF_CLIENTS_OVER_LIMIT;
+    private static final int NUMBER_OF_CLIENT_SESSIONS = MaxSessionPerAppApplicationConfig.MAX_SESSIONS_PER_APP
+            + NUMBER_OF_CLIENTS_OVER_LIMIT;
 
     public MaxSessionsAppTest() {
         setContextPath(CONTEXT_PATH);
@@ -134,8 +134,8 @@ public class MaxSessionsAppTest extends TestContainer {
                     System.out.println("Client-side close reason: " + closeReason);
                     if (closeReason.getCloseCode().getCode() == CloseReason.CloseCodes.NORMAL_CLOSURE.getCode()) {
                         closeNormalLatch.countDown();
-                    } else if (closeReason.getCloseCode().getCode() == CloseReason.CloseCodes.TRY_AGAIN_LATER.getCode
-                            ()) {
+                    } else if (closeReason.getCloseCode().getCode()
+                            == CloseReason.CloseCodes.TRY_AGAIN_LATER.getCode()) {
                         closeOverLimitLatch.countDown();
                     }
                 }
@@ -170,8 +170,8 @@ public class MaxSessionsAppTest extends TestContainer {
                     }
                 });
                 try {
-                    session.getBasicRemote().sendText("New session is available after close all of the opened " +
-                                                              "sessions.");
+                    session.getBasicRemote().sendText("New session is available after close all of the opened "
+                                                              + "sessions.");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

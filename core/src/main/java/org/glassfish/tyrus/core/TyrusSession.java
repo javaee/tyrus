@@ -137,14 +137,14 @@ public class TyrusSession implements Session, DistributedSession {
         this.isSecure = isSecure;
         this.requestURI = requestURI;
         this.queryString = queryString;
-        this.pathParameters = pathParameters == null ? Collections.<String, String>emptyMap() :
-                Collections.unmodifiableMap(new HashMap<String, String>(pathParameters));
+        this.pathParameters = pathParameters == null ? Collections.<String, String>emptyMap()
+                : Collections.unmodifiableMap(new HashMap<String, String>(pathParameters));
         this.basicRemote = new TyrusRemoteEndpoint.Basic(this, socket, endpointWrapper);
         this.asyncRemote = new TyrusRemoteEndpoint.Async(this, socket, endpointWrapper);
         this.handlerManager = MessageHandlerManager.fromDecoderInstances(endpointWrapper.getDecoders());
         this.userPrincipal = principal;
-        this.requestParameterMap = requestParameterMap == null ? Collections.<String, List<String>>emptyMap() :
-                Collections.unmodifiableMap(new HashMap<String, List<String>>(requestParameterMap));
+        this.requestParameterMap = requestParameterMap == null ? Collections.<String, List<String>>emptyMap()
+                : Collections.unmodifiableMap(new HashMap<String, List<String>>(requestParameterMap));
         this.connectionId = connectionId;
         this.remoteAddr = remoteAddr;
         this.debugContext = debugContext;
@@ -535,8 +535,8 @@ public class TyrusSession implements Session, DistributedSession {
     private void checkMessageSize(Object message, long maxMessageSize) {
         if (maxMessageSize != -1) {
             final long messageSize =
-                    (message instanceof String ? ((String) message).getBytes(Charset.defaultCharset()).length :
-                            ((ByteBuffer) message).remaining());
+                    (message instanceof String ? ((String) message).getBytes(Charset.defaultCharset()).length
+                            : ((ByteBuffer) message).remaining());
 
             if (messageSize > maxMessageSize) {
                 throw new MessageTooBigException(LocalizationMessages.MESSAGE_TOO_LONG(maxMessageSize, messageSize));
@@ -605,8 +605,8 @@ public class TyrusSession implements Session, DistributedSession {
         boolean handled = false;
 
         for (MessageHandler handler : getMessageHandlers()) {
-            if ((handler instanceof MessageHandler.Partial) &&
-                    MessageHandlerManager.getHandlerType(handler).isAssignableFrom(message.getClass())) {
+            if ((handler instanceof MessageHandler.Partial)
+                    && MessageHandlerManager.getHandlerType(handler).isAssignableFrom(message.getClass())) {
 
                 if (handler instanceof AsyncMessageHandler) {
                     checkMessageSize(message, ((AsyncMessageHandler) handler).getMaxMessageSize());

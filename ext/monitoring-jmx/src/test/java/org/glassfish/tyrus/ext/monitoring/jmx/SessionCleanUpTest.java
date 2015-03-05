@@ -114,9 +114,8 @@ public class SessionCleanUpTest extends TestContainer {
 
             Set<String> registeredMXBeanNames = getRegisteredMXBeanNames();
             String sessionMXBeanName =
-                    "org.glassfish.tyrus:type=/serializationTestApp,endpoints=endpoints,endpoint=/serverEndpoint," +
-                            "sessions=sessions,session=" +
-                            sessionMXBean.getSessionId();
+                    "org.glassfish.tyrus:type=/serializationTestApp,endpoints=endpoints,endpoint=/serverEndpoint,"
+                            + "sessions=sessions,session=" + sessionMXBean.getSessionId();
             String sessionMessageTypesNameBase =
                     sessionMXBeanName + ",message_statistics=message_statistics,message_type=";
             assertTrue(registeredMXBeanNames.contains(sessionMXBeanName));

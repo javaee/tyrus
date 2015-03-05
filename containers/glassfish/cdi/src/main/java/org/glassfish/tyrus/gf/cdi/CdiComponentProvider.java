@@ -97,9 +97,9 @@ public class CdiComponentProvider extends ComponentProvider {
 
         for (Annotation annotation : annotations) {
             String annotationClassName = annotation.annotationType().getCanonicalName();
-            if (annotationClassName.equals("javax.ejb.Singleton") ||
-                    annotationClassName.equals("javax.ejb.Stateful") ||
-                    annotationClassName.equals("javax.ejb.Stateless")) {
+            if (annotationClassName.equals("javax.ejb.Singleton")
+                    || annotationClassName.equals("javax.ejb.Stateful")
+                    || annotationClassName.equals("javax.ejb.Stateless")) {
                 return false;
             }
         }

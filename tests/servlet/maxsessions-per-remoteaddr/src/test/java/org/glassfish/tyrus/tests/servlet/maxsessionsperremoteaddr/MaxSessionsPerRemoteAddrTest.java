@@ -134,8 +134,8 @@ public class MaxSessionsPerRemoteAddrTest extends TestContainer {
                     System.out.println("Client-side close reason: " + closeReason);
                     if (closeReason.getCloseCode().getCode() == CloseReason.CloseCodes.NORMAL_CLOSURE.getCode()) {
                         closeNormalLatch.countDown();
-                    } else if (closeReason.getCloseCode().getCode() == CloseReason.CloseCodes.TRY_AGAIN_LATER.getCode
-                            ()) {
+                    } else if (closeReason.getCloseCode().getCode()
+                            == CloseReason.CloseCodes.TRY_AGAIN_LATER.getCode()) {
                         closeOverLimitLatch.countDown();
                     }
                 }
@@ -155,8 +155,8 @@ public class MaxSessionsPerRemoteAddrTest extends TestContainer {
             }
         }
 
-        Assert.assertTrue("Number of normal closures should be the same as the limit!", closeNormalLatch.await(1,
-                                                                                                               TimeUnit.SECONDS));
+        Assert.assertTrue("Number of normal closures should be the same as the limit!",
+                          closeNormalLatch.await(1, TimeUnit.SECONDS));
 
         final CountDownLatch messageReceivedLatch = new CountDownLatch(1);
         Session session = client.connectToServer(new Endpoint() {
@@ -169,8 +169,8 @@ public class MaxSessionsPerRemoteAddrTest extends TestContainer {
                     }
                 });
                 try {
-                    session.getBasicRemote().sendText("New session is available after close all of the opened " +
-                                                              "sessions.");
+                    session.getBasicRemote().sendText("New session is available after close all of the opened "
+                                                              + "sessions.");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

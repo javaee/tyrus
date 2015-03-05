@@ -187,10 +187,7 @@ class TaskQueueFilter extends Filter {
 
         @Override
         public String toString() {
-            return "WriteTask{" +
-                    "data=" + data +
-                    ", completionHandler=" + completionHandler +
-                    '}';
+            return "WriteTask{data=" + data + ", completionHandler=" + completionHandler + '}';
         }
     }
 }

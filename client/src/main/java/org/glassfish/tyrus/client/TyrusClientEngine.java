@@ -182,8 +182,9 @@ public class TyrusClientEngine implements ClientEngine {
                 ClientEndpointConfig config = (ClientEndpointConfig) endpointWrapper.getEndpointConfig();
                 this.timeoutHandler = timeoutHandler;
 
-                clientHandShake = Handshake.createClientHandshake(RequestContext.Builder.create().requestURI
-                        (connectToServerUriParam).secure("wss".equals(connectToServerUriParam.getScheme())).build());
+                clientHandShake = Handshake.createClientHandshake(
+                        RequestContext.Builder.create().requestURI(connectToServerUriParam)
+                                              .secure("wss".equals(connectToServerUriParam.getScheme())).build());
                 clientHandShake.setExtensions(config.getExtensions());
                 clientHandShake.setSubProtocols(config.getPreferredSubprotocols());
                 clientHandShake.prepareRequest();
@@ -216,24 +217,27 @@ public class TyrusClientEngine implements ClientEngine {
                 if (clientEngineState.getAuthenticator() != null) {
 
                     if (LOGGER.isLoggable(Level.CONFIG)) {
-                        debugContext.appendLogMessage(LOGGER, Level.CONFIG, DebugContext.Type.MESSAGE_OUT, "Using " +
-                                "authenticator: ", clientEngineState.getAuthenticator().getClass().getName());
+                        debugContext.appendLogMessage(LOGGER, Level.CONFIG, DebugContext.Type.MESSAGE_OUT, "Using "
+                                + "authenticator: ", clientEngineState.getAuthenticator().getClass().getName());
                     }
 
                     String authorizationHeader;
                     try {
                         final Credentials credentials = (Credentials) properties.get(ClientProperties.CREDENTIALS);
-                        debugContext.appendLogMessage(LOGGER, Level.CONFIG, DebugContext.Type.MESSAGE_OUT, "Using " +
-                                "credentials: ", credentials);
-                        authorizationHeader = clientEngineState.getAuthenticator().generateAuthorizationHeader
-                                (upgradeRequest.getRequestURI(), clientEngineState.getWwwAuthenticateHeader(),
-                                 credentials);
+                        debugContext.appendLogMessage(LOGGER, Level.CONFIG, DebugContext.Type.MESSAGE_OUT, "Using "
+                                + "credentials: ", credentials);
+                        authorizationHeader =
+                                clientEngineState.getAuthenticator()
+                                                 .generateAuthorizationHeader(
+                                                         upgradeRequest.getRequestURI(),
+                                                         clientEngineState.getWwwAuthenticateHeader(),
+                                                         credentials);
                     } catch (AuthenticationException e) {
                         listener.onError(e);
                         return null;
                     }
-                    upgradeRequest.getHeaders().put(UpgradeRequest.AUTHORIZATION, Collections.singletonList
-                            (authorizationHeader));
+                    upgradeRequest.getHeaders().put(UpgradeRequest.AUTHORIZATION,
+                                                    Collections.singletonList(authorizationHeader));
                 }
 
                 clientEngineState = TyrusClientEngineState.AUTH_UPGRADE_REQUEST_CREATED;
@@ -248,213 +252,230 @@ public class TyrusClientEngine implements ClientEngine {
     }
 
     @Override
-    public ClientUpgradeInfo processResponse(final UpgradeResponse upgradeResponse, final Writer writer, final
-    Connection.CloseListener closeListener) {
+    public ClientUpgradeInfo processResponse(final UpgradeResponse upgradeResponse,
+                                             final Writer writer, final Connection.CloseListener closeListener) {
 
         if (LOGGER.isLoggable(Level.FINE)) {
-            debugContext.appendLogMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_IN, "Received handshake " +
-                    "response: \n" + Utils.stringifyUpgradeResponse(upgradeResponse));
+            debugContext.appendLogMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_IN, "Received handshake "
+                    + "response: \n" + Utils.stringifyUpgradeResponse(upgradeResponse));
         } else {
             if (logUpgradeMessages) {
-                debugContext.appendStandardOutputMessage(DebugContext.Type.MESSAGE_IN, "Received handshake response: " +
-                        "\n" + Utils.stringifyUpgradeResponse(upgradeResponse));
+                debugContext.appendStandardOutputMessage(DebugContext.Type.MESSAGE_IN, "Received handshake response: "
+                        + "\n" + Utils.stringifyUpgradeResponse(upgradeResponse));
             }
         }
 
-        switch (clientEngineState) {
-            case AUTH_UPGRADE_REQUEST_CREATED:
-            case UPGRADE_REQUEST_CREATED:
-                if (upgradeResponse == null) {
-                    throw new IllegalArgumentException(LocalizationMessages.ARGUMENT_NOT_NULL("upgradeResponse"));
-                }
+        if (clientEngineState == TyrusClientEngineState.AUTH_UPGRADE_REQUEST_CREATED
+                || clientEngineState == TyrusClientEngineState.UPGRADE_REQUEST_CREATED) {
 
-                switch (upgradeResponse.getStatus()) {
-                    case 101:
-                        // the connection has been upgraded
-                        clientEngineState = TyrusClientEngineState.SUCCESS;
+            if (upgradeResponse == null) {
+                throw new IllegalArgumentException(LocalizationMessages.ARGUMENT_NOT_NULL("upgradeResponse"));
+            }
+
+            switch (upgradeResponse.getStatus()) {
+                case 101:
+                    return handleSwitchProtocol(upgradeResponse, writer, closeListener);
+                case 300:
+                case 301:
+                case 302:
+                case 303:
+                case 307:
+                case 308:
+                    return handleRedirect(upgradeResponse);
+                case 401:
+                    return handleAuth(upgradeResponse);
+                case 503:
+
+                    // get Retry-After header
+                    String retryAfterString = null;
+                    final List<String> retryAfterHeader = upgradeResponse.getHeaders()
+                                                                         .get(UpgradeResponse.RETRY_AFTER);
+                    if (retryAfterHeader != null) {
+                        retryAfterString = Utils.getHeaderFromList(retryAfterHeader);
+                    }
+
+                    Long delay;
+                    if (retryAfterString != null) {
                         try {
-                            return processUpgradeResponse(upgradeResponse, writer, closeListener);
-                        } catch (HandshakeException e) {
-                            clientEngineState = TyrusClientEngineState.FAILED;
-                            listener.onError(e);
-                            return UPGRADE_INFO_FAILED;
-                        } finally {
-                            redirectUriHistory.clear();
-                        }
-                    case 300:
-                    case 301:
-                    case 302:
-                    case 303:
-                    case 307:
-                    case 308:
-                        if (!redirectEnabled) {
-                            clientEngineState = TyrusClientEngineState.FAILED;
-                            listener.onError(new RedirectException(upgradeResponse.getStatus(), LocalizationMessages
-                                    .HANDSHAKE_HTTP_REDIRECTION_NOT_ENABLED(upgradeResponse.getStatus())));
-                            return UPGRADE_INFO_FAILED;
-                        }
-
-                        // get location header
-                        String locationString = null;
-                        final List<String> locationHeader = upgradeResponse.getHeaders().get(UpgradeResponse.LOCATION);
-                        if (locationHeader != null) {
-                            locationString = Utils.getHeaderFromList(locationHeader);
-                        }
-
-                        if (locationString == null || locationString.equals("")) {
-                            listener.onError(new RedirectException(upgradeResponse.getStatus(), LocalizationMessages
-                                    .HANDSHAKE_HTTP_REDIRECTION_NEW_LOCATION_MISSING()));
-                            clientEngineState = TyrusClientEngineState.FAILED;
-                            return UPGRADE_INFO_FAILED;
-                        }
-
-                        // location header could contain http scheme
-                        URI location;
-                        try {
-                            location = new URI(locationString);
-                            String scheme = location.getScheme();
-                            if ("http".equalsIgnoreCase(scheme)) {
-                                scheme = "ws";
-                            }
-                            if ("https".equalsIgnoreCase(scheme)) {
-                                scheme = "wss";
-                            }
-                            int port = Utils.getWsPort(location, scheme);
-                            location = new URI(scheme, location.getUserInfo(), location.getHost(), port, location
-                                    .getPath(), location.getQuery(), location.getFragment());
-
-                            if (!location.isAbsolute()) {
-                                // location is not absolute, we need to resolve it.
-                                URI baseUri = redirectLocation == null ? connectToServerUriParam : redirectLocation;
-                                location = baseUri.resolve(location.normalize());
-
-                                if (LOGGER.isLoggable(Level.FINEST)) {
-                                    LOGGER.finest("HTTP Redirect - Base URI for resolving target location: " + baseUri);
-                                    LOGGER.finest("HTTP Redirect - Location URI header: " + locationString);
-                                    LOGGER.finest("HTTP Redirect - Normalized and resolved Location URI header " +
-                                                          "against base URI: " + location);
-                                }
-                            }
-                        } catch (URISyntaxException e) {
-                            clientEngineState = TyrusClientEngineState.FAILED;
-                            listener.onError(new RedirectException(upgradeResponse.getStatus(), LocalizationMessages
-                                    .HANDSHAKE_HTTP_REDIRECTION_NEW_LOCATION_ERROR(locationString)));
-                            return UPGRADE_INFO_FAILED;
-                        }
-
-                        // infinite loop detection
-                        boolean alreadyRequested = !redirectUriHistory.add(location);
-                        if (alreadyRequested) {
-                            clientEngineState = TyrusClientEngineState.FAILED;
-                            listener.onError(new RedirectException(upgradeResponse.getStatus(), LocalizationMessages
-                                    .HANDSHAKE_HTTP_REDIRECTION_INFINITE_LOOP()));
-                            return UPGRADE_INFO_FAILED;
-                        }
-
-                        // maximal number of redirection
-                        if (redirectUriHistory.size() > redirectThreshold) {
-                            clientEngineState = TyrusClientEngineState.FAILED;
-                            listener.onError(new RedirectException(upgradeResponse.getStatus(), LocalizationMessages
-                                    .HANDSHAKE_HTTP_REDIRECTION_MAX_REDIRECTION(redirectThreshold)));
-                            return UPGRADE_INFO_FAILED;
-                        }
-
-                        clientEngineState = TyrusClientEngineState.REDIRECT_REQUIRED;
-                        redirectLocation = location;
-                        return UPGRADE_INFO_ANOTHER_REQUEST_REQUIRED;
-                    case 401:
-                        if (clientEngineState == TyrusClientEngineState.AUTH_UPGRADE_REQUEST_CREATED) {
-                            clientEngineState = TyrusClientEngineState.FAILED;
-                            listener.onError(new AuthenticationException(LocalizationMessages.AUTHENTICATION_FAILED()));
-                            return UPGRADE_INFO_FAILED;
-                        }
-
-                        AuthConfig authConfig = Utils.getProperty(properties, ClientProperties.AUTH_CONFIG,
-                                                                  AuthConfig.class,
-                                                                  AuthConfig.Builder.create().build());
-                        debugContext.appendLogMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_OUT, "Using " +
-                                "authentication config: ", authConfig);
-                        if (authConfig == null) {
-                            clientEngineState = TyrusClientEngineState.FAILED;
-                            listener.onError(new AuthenticationException(LocalizationMessages.AUTHENTICATION_FAILED()));
-                            return UPGRADE_INFO_FAILED;
-                        }
-
-                        String wwwAuthenticateHeader = null;
-                        final List<String> authHeader = upgradeResponse.getHeaders().get(UpgradeResponse
-                                                                                                 .WWW_AUTHENTICATE);
-                        if (authHeader != null) {
-                            wwwAuthenticateHeader = Utils.getHeaderFromList(authHeader);
-                        }
-
-                        if (wwwAuthenticateHeader == null || wwwAuthenticateHeader.equals("")) {
-                            clientEngineState = TyrusClientEngineState.FAILED;
-                            listener.onError(new AuthenticationException(LocalizationMessages.AUTHENTICATION_FAILED()));
-                            return UPGRADE_INFO_FAILED;
-                        }
-
-                        final String[] tokens = wwwAuthenticateHeader.trim().split("\\s+", 2);
-                        final String scheme = tokens[0];
-
-                        debugContext.appendLogMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_OUT, "Using " +
-                                "authentication scheme: ", scheme);
-                        final Authenticator authenticator = authConfig.getAuthenticators().get(scheme);
-                        if (authenticator == null) {
-                            clientEngineState = TyrusClientEngineState.FAILED;
-                            listener.onError(new AuthenticationException(LocalizationMessages.AUTHENTICATION_FAILED()));
-                            return UPGRADE_INFO_FAILED;
-                        }
-
-                        clientEngineState = TyrusClientEngineState.AUTH_REQUIRED;
-                        clientEngineState.setAuthenticator(authenticator);
-                        clientEngineState.setWwwAuthenticateHeader(wwwAuthenticateHeader);
-
-                        return UPGRADE_INFO_ANOTHER_REQUEST_REQUIRED;
-                    case 503:
-
-                        // get Retry-After header
-                        String retryAfterString = null;
-                        final List<String> retryAfterHeader = upgradeResponse.getHeaders().get(UpgradeResponse
-                                                                                                       .RETRY_AFTER);
-                        if (retryAfterHeader != null) {
-                            retryAfterString = Utils.getHeaderFromList(retryAfterHeader);
-                        }
-
-                        Long delay;
-                        if (retryAfterString != null) {
+                            // parse http date
+                            Date date = Utils.parseHttpDate(retryAfterString);
+                            delay = (date.getTime() - System.currentTimeMillis()) / 1000;
+                        } catch (ParseException e) {
                             try {
-                                // parse http date
-                                Date date = Utils.parseHttpDate(retryAfterString);
-                                delay = (date.getTime() - System.currentTimeMillis()) / 1000;
-                            } catch (ParseException e) {
-                                try {
-                                    // it could be interval in seconds
-                                    delay = Long.parseLong(retryAfterString);
-                                } catch (NumberFormatException iae) {
-                                    delay = null;
-                                }
+                                // it could be interval in seconds
+                                delay = Long.parseLong(retryAfterString);
+                            } catch (NumberFormatException iae) {
+                                delay = null;
                             }
-                        } else {
-                            delay = null;
                         }
+                    } else {
+                        delay = null;
+                    }
 
-                        listener.onError(new RetryAfterException(
-                                LocalizationMessages.HANDSHAKE_HTTP_RETRY_AFTER_MESSAGE(), delay));
-                        return UPGRADE_INFO_FAILED;
-                    default:
-                        clientEngineState = TyrusClientEngineState.FAILED;
-                        HandshakeException e = new HandshakeException(
-                                upgradeResponse.getStatus(),
-                                LocalizationMessages.INVALID_RESPONSE_CODE(101, upgradeResponse.getStatus()));
-                        listener.onError(e);
-                        redirectUriHistory.clear();
-                        return UPGRADE_INFO_FAILED;
-                }
-            case FAILED:
-            default:
-                redirectUriHistory.clear();
-                throw new IllegalStateException();
+                    listener.onError(new RetryAfterException(
+                            LocalizationMessages.HANDSHAKE_HTTP_RETRY_AFTER_MESSAGE(), delay));
+                    return UPGRADE_INFO_FAILED;
+                default:
+                    clientEngineState = TyrusClientEngineState.FAILED;
+                    HandshakeException e = new HandshakeException(
+                            upgradeResponse.getStatus(),
+                            LocalizationMessages.INVALID_RESPONSE_CODE(101, upgradeResponse.getStatus()));
+                    listener.onError(e);
+                    redirectUriHistory.clear();
+                    return UPGRADE_INFO_FAILED;
+            }
+
         }
+
+        redirectUriHistory.clear();
+        throw new IllegalStateException();
+    }
+
+    private ClientUpgradeInfo handleSwitchProtocol(UpgradeResponse upgradeResponse, Writer writer,
+                                                   Connection.CloseListener closeListener) {
+        // the connection has been upgraded
+        clientEngineState = TyrusClientEngineState.SUCCESS;
+
+        try {
+            return processUpgradeResponse(upgradeResponse, writer, closeListener);
+        } catch (HandshakeException e) {
+            clientEngineState = TyrusClientEngineState.FAILED;
+            listener.onError(e);
+            return UPGRADE_INFO_FAILED;
+        } finally {
+            redirectUriHistory.clear();
+        }
+    }
+
+    private ClientUpgradeInfo handleAuth(UpgradeResponse upgradeResponse) {
+        if (clientEngineState == TyrusClientEngineState.AUTH_UPGRADE_REQUEST_CREATED) {
+            clientEngineState = TyrusClientEngineState.FAILED;
+            listener.onError(new AuthenticationException(LocalizationMessages.AUTHENTICATION_FAILED()));
+            return UPGRADE_INFO_FAILED;
+        }
+
+        AuthConfig authConfig = Utils.getProperty(properties, ClientProperties.AUTH_CONFIG,
+                                                  AuthConfig.class,
+                                                  AuthConfig.Builder.create().build());
+        debugContext.appendLogMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_OUT, "Using "
+                + "authentication config: ", authConfig);
+        if (authConfig == null) {
+            clientEngineState = TyrusClientEngineState.FAILED;
+            listener.onError(new AuthenticationException(LocalizationMessages.AUTHENTICATION_FAILED()));
+            return UPGRADE_INFO_FAILED;
+        }
+
+        String wwwAuthenticateHeader = null;
+        final List<String> authHeader = upgradeResponse.getHeaders().get(UpgradeResponse
+                                                                                 .WWW_AUTHENTICATE);
+        if (authHeader != null) {
+            wwwAuthenticateHeader = Utils.getHeaderFromList(authHeader);
+        }
+
+        if (wwwAuthenticateHeader == null || wwwAuthenticateHeader.equals("")) {
+            clientEngineState = TyrusClientEngineState.FAILED;
+            listener.onError(new AuthenticationException(LocalizationMessages.AUTHENTICATION_FAILED()));
+            return UPGRADE_INFO_FAILED;
+        }
+
+        final String[] tokens = wwwAuthenticateHeader.trim().split("\\s+", 2);
+        final String scheme = tokens[0];
+
+        debugContext.appendLogMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_OUT, "Using "
+                + "authentication scheme: ", scheme);
+        final Authenticator authenticator = authConfig.getAuthenticators().get(scheme);
+        if (authenticator == null) {
+            clientEngineState = TyrusClientEngineState.FAILED;
+            listener.onError(new AuthenticationException(LocalizationMessages.AUTHENTICATION_FAILED()));
+            return UPGRADE_INFO_FAILED;
+        }
+
+        clientEngineState = TyrusClientEngineState.AUTH_REQUIRED;
+        clientEngineState.setAuthenticator(authenticator);
+        clientEngineState.setWwwAuthenticateHeader(wwwAuthenticateHeader);
+
+        return UPGRADE_INFO_ANOTHER_REQUEST_REQUIRED;
+    }
+
+    private ClientUpgradeInfo handleRedirect(UpgradeResponse upgradeResponse) {
+        if (!redirectEnabled) {
+            clientEngineState = TyrusClientEngineState.FAILED;
+            listener.onError(new RedirectException(upgradeResponse.getStatus(), LocalizationMessages
+                    .HANDSHAKE_HTTP_REDIRECTION_NOT_ENABLED(upgradeResponse.getStatus())));
+            return UPGRADE_INFO_FAILED;
+        }
+
+        // get location header
+        String locationString = null;
+        final List<String> locationHeader = upgradeResponse.getHeaders().get(UpgradeResponse.LOCATION);
+        if (locationHeader != null) {
+            locationString = Utils.getHeaderFromList(locationHeader);
+        }
+
+        if (locationString == null || locationString.equals("")) {
+            listener.onError(new RedirectException(upgradeResponse.getStatus(), LocalizationMessages
+                    .HANDSHAKE_HTTP_REDIRECTION_NEW_LOCATION_MISSING()));
+            clientEngineState = TyrusClientEngineState.FAILED;
+            return UPGRADE_INFO_FAILED;
+        }
+
+        // location header could contain http scheme
+        URI location;
+        try {
+            location = new URI(locationString);
+            String scheme = location.getScheme();
+            if ("http".equalsIgnoreCase(scheme)) {
+                scheme = "ws";
+            }
+            if ("https".equalsIgnoreCase(scheme)) {
+                scheme = "wss";
+            }
+            int port = Utils.getWsPort(location, scheme);
+            location = new URI(scheme, location.getUserInfo(), location.getHost(), port, location
+                    .getPath(), location.getQuery(), location.getFragment());
+
+            if (!location.isAbsolute()) {
+                // location is not absolute, we need to resolve it.
+                URI baseUri = redirectLocation == null ? connectToServerUriParam : redirectLocation;
+                location = baseUri.resolve(location.normalize());
+
+                if (LOGGER.isLoggable(Level.FINEST)) {
+                    LOGGER.finest("HTTP Redirect - Base URI for resolving target location: " + baseUri);
+                    LOGGER.finest("HTTP Redirect - Location URI header: " + locationString);
+                    LOGGER.finest("HTTP Redirect - Normalized and resolved Location URI header "
+                                          + "against base URI: " + location);
+                }
+            }
+        } catch (URISyntaxException e) {
+            clientEngineState = TyrusClientEngineState.FAILED;
+            listener.onError(new RedirectException(
+                    upgradeResponse.getStatus(),
+                    LocalizationMessages.HANDSHAKE_HTTP_REDIRECTION_NEW_LOCATION_ERROR(locationString)));
+            return UPGRADE_INFO_FAILED;
+        }
+
+        // infinite loop detection
+        boolean alreadyRequested = !redirectUriHistory.add(location);
+        if (alreadyRequested) {
+            clientEngineState = TyrusClientEngineState.FAILED;
+            listener.onError(new RedirectException(
+                    upgradeResponse.getStatus(),
+                    LocalizationMessages.HANDSHAKE_HTTP_REDIRECTION_INFINITE_LOOP()));
+            return UPGRADE_INFO_FAILED;
+        }
+
+        // maximal number of redirection
+        if (redirectUriHistory.size() > redirectThreshold) {
+            clientEngineState = TyrusClientEngineState.FAILED;
+            listener.onError(new RedirectException(
+                    upgradeResponse.getStatus(),
+                    LocalizationMessages.HANDSHAKE_HTTP_REDIRECTION_MAX_REDIRECTION(redirectThreshold)));
+            return UPGRADE_INFO_FAILED;
+        }
+
+        clientEngineState = TyrusClientEngineState.REDIRECT_REQUIRED;
+        redirectLocation = location;
+        return UPGRADE_INFO_ANOTHER_REQUEST_REQUIRED;
     }
 
     @Override
@@ -471,12 +492,12 @@ public class TyrusClientEngine implements ClientEngine {
 
     private void logUpgradeRequest(UpgradeRequest upgradeRequest) {
         if (LOGGER.isLoggable(Level.FINE)) {
-            debugContext.appendLogMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_OUT, "Sending handshake " +
-                    "request:\n" + Utils.stringifyUpgradeRequest(upgradeRequest));
+            debugContext.appendLogMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_OUT, "Sending handshake "
+                    + "request:\n" + Utils.stringifyUpgradeRequest(upgradeRequest));
         } else {
             if (logUpgradeMessages) {
-                debugContext.appendStandardOutputMessage(DebugContext.Type.MESSAGE_OUT, "Sending handshake " +
-                        "request:\n" + Utils.stringifyUpgradeRequest(upgradeRequest));
+                debugContext.appendStandardOutputMessage(DebugContext.Type.MESSAGE_OUT, "Sending handshake "
+                        + "request:\n" + Utils.stringifyUpgradeRequest(upgradeRequest));
             }
         }
     }
@@ -533,8 +554,8 @@ public class TyrusClientEngine implements ClientEngine {
                         }
 
                         extensions.add(installedExtension);
-                        debugContext.appendLogMessage(LOGGER, Level.FINE, DebugContext.Type.OTHER, "Installed " +
-                                "extension: ", installedExtension.getName());
+                        debugContext.appendLogMessage(LOGGER, Level.FINE, DebugContext.Type.OTHER, "Installed "
+                                + "extension: ", installedExtension.getName());
                     }
                 }
             }
@@ -716,8 +737,8 @@ public class TyrusClientEngine implements ClientEngine {
                                         LOGGER.log(
                                                 Level.FINE,
                                                 String.format(
-                                                        "Extension '%s' threw an exception during processIncoming " +
-                                                                "method invocation: \"%s\".",
+                                                        "Extension '%s' threw an exception during processIncoming "
+                                                                + "method invocation: \"%s\".",
                                                         extension.getName(), t.getMessage()), t);
                                     }
                                 }

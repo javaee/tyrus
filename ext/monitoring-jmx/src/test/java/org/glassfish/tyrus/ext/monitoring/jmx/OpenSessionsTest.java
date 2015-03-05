@@ -125,8 +125,8 @@ public class OpenSessionsTest extends TestContainer {
             assertEquals(3, applicationBean.getMaximalOpenSessionsCount());
 
             String fullEndpointMXBeanName =
-                    "org.glassfish.tyrus:type=/jmxSessionTestApp,endpoints=endpoints," +
-                            "endpoint=/jmxSessionStatisticsEndpoint";
+                    "org.glassfish.tyrus:type=/jmxSessionTestApp,endpoints=endpoints,"
+                            + "endpoint=/jmxSessionStatisticsEndpoint";
             EndpointMXBean endpointBean =
                     JMX.newMXBeanProxy(mBeanServer, new ObjectName(fullEndpointMXBeanName), EndpointMXBean.class);
             assertEquals(2, endpointBean.getOpenSessionsCount());

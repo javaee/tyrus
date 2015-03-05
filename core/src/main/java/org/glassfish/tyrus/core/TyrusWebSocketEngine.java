@@ -247,8 +247,8 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         this.tracingType = tracingType;
         this.tracingThreshold = tracingThreshold;
 
-        this.sessionListener = maxSessionsPerApp == null && maxSessionsPerRemoteAddr == null ?
-                NO_OP_SESSION_LISTENER : new TyrusEndpointWrapper.SessionListener() {
+        this.sessionListener = maxSessionsPerApp == null && maxSessionsPerRemoteAddr == null
+                ? NO_OP_SESSION_LISTENER : new TyrusEndpointWrapper.SessionListener() {
             // Implementation of {@link org.glassfish.tyrus.core.TyrusEndpointWrapper.SessionListener} counting
             // sessions.
 
@@ -376,8 +376,8 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
 
                 if (LOGGER.isLoggable(Level.FINE)) {
                     debugContext.appendLogMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_OUT,
-                                                  "Sending handshake response:\n" +
-                                                          Utils.stringifyUpgradeResponse(response));
+                                                  "Sending handshake response:\n"
+                                                          + Utils.stringifyUpgradeResponse(response));
                 }
 
                 response.getHeaders().putAll(debugContext.getTracingHeaders());
@@ -405,8 +405,8 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
                 logExtensionsAndSubprotocol(protocolHandler, debugContext);
             }
 
-            if (clusterContext != null &&
-                    request.getHeaders().get(UpgradeRequest.CLUSTER_CONNECTION_ID_HEADER) == null) {
+            if (clusterContext != null
+                    && request.getHeaders().get(UpgradeRequest.CLUSTER_CONNECTION_ID_HEADER) == null) {
                 // TODO: we might need to introduce some property to check whether we should put this header into the
                 // response.
                 String connectionId = clusterContext.createConnectionId();
@@ -419,8 +419,8 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
 
             if (LOGGER.isLoggable(Level.FINE)) {
                 debugContext.appendLogMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_OUT,
-                                              "Sending handshake response:\n" +
-                                                      Utils.stringifyUpgradeResponse(response) + "\n");
+                                              "Sending handshake response:\n"
+                                                      + Utils.stringifyUpgradeResponse(response) + "\n");
             }
 
             response.getHeaders().putAll(debugContext.getTracingHeaders());
@@ -468,9 +468,8 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         }
 
         DebugContext debugContext;
-        if (tracingType == DebugContext.TracingType.ALL
-                || tracingType == DebugContext.TracingType.ON_DEMAND &&
-                upgradeRequest.getHeader(UpgradeRequest.ENABLE_TRACING_HEADER) != null) {
+        if (tracingType == DebugContext.TracingType.ALL || tracingType == DebugContext.TracingType.ON_DEMAND
+                && upgradeRequest.getHeader(UpgradeRequest.ENABLE_TRACING_HEADER) != null) {
             debugContext = new DebugContext(threshold);
         } else {
             debugContext = new DebugContext();
@@ -527,8 +526,8 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
                         if (newSize > incomingBufferSize) {
                             throw new IllegalArgumentException(LocalizationMessages.BUFFER_OVERFLOW());
                         } else {
-                            final int roundedSize = (newSize % BUFFER_STEP_SIZE) > 0 ?
-                                    ((newSize / BUFFER_STEP_SIZE) + 1) * BUFFER_STEP_SIZE : newSize;
+                            final int roundedSize = (newSize % BUFFER_STEP_SIZE) > 0
+                                    ? ((newSize / BUFFER_STEP_SIZE) + 1) * BUFFER_STEP_SIZE : newSize;
                             final ByteBuffer result =
                                     ByteBuffer.allocate(roundedSize > incomingBufferSize ? newSize : roundedSize);
                             result.flip();
@@ -620,10 +619,11 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         EndpointConfig config = endpoint.getEndpointConfig();
 
         TyrusEndpointWrapper endpointWrapper =
-                new TyrusEndpointWrapper(endpoint, config, componentProviderService, webSocketContainer,
-                                         contextPath, config instanceof ServerEndpointConfig ?
-                        ((ServerEndpointConfig) config).getConfigurator() : null, sessionListener, clusterContext,
-                                         endpointEventListenerWrapper, parallelBroadcastEnabled);
+                new TyrusEndpointWrapper(
+                        endpoint, config, componentProviderService, webSocketContainer, contextPath,
+                        config instanceof ServerEndpointConfig ? ((ServerEndpointConfig) config).getConfigurator()
+                                : null, sessionListener, clusterContext, endpointEventListenerWrapper,
+                        parallelBroadcastEnabled);
 
         if (collector.isEmpty()) {
             register(endpointWrapper);
@@ -671,10 +671,10 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
                                endpointEventListenerWrapper);
             final EndpointConfig config = endpoint.getEndpointConfig();
 
-            endpointWrapper = new TyrusEndpointWrapper(endpoint, config, componentProviderService, webSocketContainer,
-                                                       contextPath, config instanceof ServerEndpointConfig ?
-                    ((ServerEndpointConfig) config).getConfigurator() : null, sessionListener, clusterContext,
-                                                       endpointEventListenerWrapper, parallelBroadcastEnabled);
+            endpointWrapper = new TyrusEndpointWrapper(
+                    endpoint, config, componentProviderService, webSocketContainer, contextPath,
+                    config instanceof ServerEndpointConfig ? ((ServerEndpointConfig) config).getConfigurator() : null,
+                    sessionListener, clusterContext, endpointEventListenerWrapper, parallelBroadcastEnabled);
 
             if (!collector.isEmpty()) {
                 throw collector.composeComprehensiveException();
@@ -888,19 +888,19 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         public TyrusWebSocketEngine build() {
             if (maxSessionsPerApp != null && maxSessionsPerApp <= 0) {
                 LOGGER.log(Level.CONFIG,
-                           "Invalid configuration value " + MAX_SESSIONS_PER_APP + " (" + maxSessionsPerApp +
-                                   "), expected value greater than 0.");
+                           "Invalid configuration value " + MAX_SESSIONS_PER_APP + " (" + maxSessionsPerApp
+                                   + "), expected value greater than 0.");
                 maxSessionsPerApp = null;
             }
 
             if (maxSessionsPerRemoteAddr != null && maxSessionsPerRemoteAddr <= 0) {
-                LOGGER.log(Level.CONFIG, "Invalid configuration value " + MAX_SESSIONS_PER_REMOTE_ADDR + " (" +
-                        maxSessionsPerRemoteAddr + "), expected value greater than 0.");
+                LOGGER.log(Level.CONFIG, "Invalid configuration value " + MAX_SESSIONS_PER_REMOTE_ADDR + " ("
+                        + maxSessionsPerRemoteAddr + "), expected value greater than 0.");
                 maxSessionsPerRemoteAddr = null;
             }
 
-            if (maxSessionsPerApp != null && maxSessionsPerRemoteAddr != null &&
-                    maxSessionsPerApp < maxSessionsPerRemoteAddr) {
+            if (maxSessionsPerApp != null && maxSessionsPerRemoteAddr != null
+                    && maxSessionsPerApp < maxSessionsPerRemoteAddr) {
                 LOGGER.log(Level.FINE,
                            String.format("Invalid configuration - value %s (%d) cannot be greater then %s (%d).",
                                          MAX_SESSIONS_PER_REMOTE_ADDR, maxSessionsPerRemoteAddr, MAX_SESSIONS_PER_APP,

@@ -263,8 +263,8 @@ public class ErrorTest extends TestContainer {
 
                 final boolean await = OnMessageExceptionEndpoint.ON_ERROR_LATCH.await(3, TimeUnit.SECONDS);
 
-                if (await && OnMessageExceptionEndpoint.throwable != null &&
-                        OnMessageExceptionEndpoint.session != null) {
+                if (await && OnMessageExceptionEndpoint.throwable != null
+                        && OnMessageExceptionEndpoint.session != null) {
                     return POSITIVE;
                 }
             }
@@ -309,8 +309,8 @@ public class ErrorTest extends TestContainer {
 
     public static class OnOpenExceptionEndpointServerApplicationConfig extends TyrusServerConfiguration {
         public OnOpenExceptionEndpointServerApplicationConfig() {
-            super(Collections.<Class<?>>emptySet(), Collections.singleton(ServerEndpointConfig.Builder.create
-                    (OnOpenExceptionEndpoint.class, "/openprogrammatic").build()));
+            super(Collections.<Class<?>>emptySet(), Collections.singleton(
+                    ServerEndpointConfig.Builder.create(OnOpenExceptionEndpoint.class, "/openprogrammatic").build()));
         }
     }
 
@@ -369,8 +369,9 @@ public class ErrorTest extends TestContainer {
 
     public static class OnMessageExceptionEndpointServerApplicationConfig extends TyrusServerConfiguration {
         public OnMessageExceptionEndpointServerApplicationConfig() {
-            super(Collections.<Class<?>>emptySet(), Collections.singleton(ServerEndpointConfig.Builder.create
-                    (OnMessageExceptionEndpoint.class, "/openonmessageexception").build()));
+            super(Collections.<Class<?>>emptySet(), Collections.singleton(
+                    ServerEndpointConfig.Builder.create(OnMessageExceptionEndpoint.class, "/openonmessageexception")
+                                                .build()));
         }
     }
 

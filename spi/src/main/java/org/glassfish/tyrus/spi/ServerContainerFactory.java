@@ -77,8 +77,9 @@ public abstract class ServerContainerFactory {
         if (factory == null) {
             try {
                 ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-                Class factoryClass = (classLoader == null) ? Class.forName(CONTAINTER_CLASS) : classLoader.loadClass
-                        (CONTAINTER_CLASS);
+                Class factoryClass = (classLoader == null)
+                        ? Class.forName(CONTAINTER_CLASS)
+                        : classLoader.loadClass(CONTAINTER_CLASS);
                 factory = (ServerContainerFactory) factoryClass.newInstance();
             } catch (ClassNotFoundException ce) {
                 throw new RuntimeException(ce);

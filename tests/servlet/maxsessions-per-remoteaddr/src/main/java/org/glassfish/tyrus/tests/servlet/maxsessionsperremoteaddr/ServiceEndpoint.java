@@ -63,8 +63,8 @@ public class ServiceEndpoint {
 
         if (message.startsWith("/echo")) {
             try {
-                if (MaxSessionPerRemoteAddrApplicationConfig.openLatch.await(1, TimeUnit.SECONDS) &&
-                        MaxSessionPerRemoteAddrApplicationConfig.closeLatch.await(1, TimeUnit.SECONDS)) {
+                if (MaxSessionPerRemoteAddrApplicationConfig.openLatch.await(1, TimeUnit.SECONDS)
+                        && MaxSessionPerRemoteAddrApplicationConfig.closeLatch.await(1, TimeUnit.SECONDS)) {
                     if (!EchoEndpoint.forbiddenClose.get()) {
                         return POSITIVE;
                     }

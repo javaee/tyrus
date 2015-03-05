@@ -254,8 +254,7 @@ public class GrizzlyServerContainer extends ServerContainerFactory {
 
         @Override
         public void service(Request request, Response response) throws Exception {
-            if (request.getMethod().equals(Method.GET) &&
-                    request.getRequestURI().endsWith("application.wsadl")) {
+            if (request.getMethod().equals(Method.GET) && request.getRequestURI().endsWith("application.wsadl")) {
 
                 getWsadlJaxbContext().createMarshaller().marshal(engine.getWsadlApplication(), response.getWriter());
                 response.setStatus(200);

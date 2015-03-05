@@ -134,16 +134,16 @@ public class ServerSessionConnectToServerTest extends TestContainer {
                                 System.out.println("### Server endpoint received: " + message);
 
                                 if (message
-                                        .equals("Yo Dawg, I heard you like clients, so we put client into server so " +
-                                                        "you can connectToServer while you connectToServer.")
+                                        .equals("Yo Dawg, I heard you like clients, so we put client into server so "
+                                                        + "you can connectToServer while you connectToServer.")
                                         && (serverWebSocketContainer.equals(session.getContainer()))) {
                                     messageLatch.countDown();
                                 }
                             }
                         });
                         session.getBasicRemote().sendText(
-                                "Yo Dawg, I heard you like clients, so we put client into server so you can " +
-                                        "connectToServer while you connectToServer.");
+                                "Yo Dawg, I heard you like clients, so we put client into server so you can "
+                                        + "connectToServer while you connectToServer.");
                         System.out.println("### Message from client running inside server endpoint sent.");
                     } catch (IOException e) {
                         e.printStackTrace();

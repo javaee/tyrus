@@ -117,8 +117,8 @@ class UriParser {
                 sb.append(c);
 
                 // test IPv6 or regular expressions in the template params
-            } else if ((delimiters != null && delimiters.indexOf(c) >= 0) &&
-                    (!isIp || squareBracketsCount == 0) && (curlyBracketsCount == 0)) {
+            } else if ((delimiters != null && delimiters.indexOf(c) >= 0)
+                    && (!isIp || squareBracketsCount == 0) && (curlyBracketsCount == 0)) {
                 return sb.length() == 0 ? null : sb.toString();
             } else {
                 sb.append(c);
@@ -135,8 +135,8 @@ class UriParser {
     }
 
     /**
-     * Parses the input string URI. After calling this method The result components can be retrieved by calling appropriate
-     * getter methods like {@link #getHost()}, {@link #getPort()}, etc.
+     * Parses the input string URI. After calling this method The result components can be retrieved by calling
+     * appropriate getter methods like {@link #getHost()}, {@link #getPort()}, etc.
      */
     public void parse() {
         this.parserExecuted = true;
@@ -370,7 +370,8 @@ class UriParser {
     }
 
     /**
-     * Returns whether the input string URI is opaque. The {@link #parse() method} must be called before executing this method.
+     * Returns whether the input string URI is opaque. The {@link #parse() method} must be called before executing this
+     * method.
      *
      * @return True if the uri is opaque.
      */

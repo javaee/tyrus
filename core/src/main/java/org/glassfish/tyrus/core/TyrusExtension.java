@@ -264,15 +264,15 @@ public class TyrusExtension implements Extension, Serializable {
                                 break;
                             case ';':
                                 next = ParserState.PARAM_NAME;
-                                params.add(new TyrusParameter(paramName.toString().trim(), paramValue.toString().trim
-                                        ()));
+                                params.add(new TyrusParameter(paramName.toString().trim(),
+                                                              paramValue.toString().trim()));
                                 paramName = new StringBuilder();
                                 paramValue = new StringBuilder();
                                 break;
                             case ',':
                                 next = ParserState.NAME;
-                                params.add(new TyrusParameter(paramName.toString().trim(), paramValue.toString().trim
-                                        ()));
+                                params.add(new TyrusParameter(paramName.toString().trim(),
+                                                              paramValue.toString().trim()));
                                 paramName = new StringBuilder();
                                 paramValue = new StringBuilder();
                                 if (name.length() > 0) {
@@ -383,8 +383,8 @@ public class TyrusExtension implements Extension, Serializable {
             if ((name.length() > 0) && (next != ParserState.ERROR)) {
                 if (paramName.length() > 0) {
                     final String paramValueString = paramValue.toString();
-                    params.add(new TyrusParameter(paramName.toString().trim(), paramValueString.equals("") ? null :
-                            paramValueString));
+                    params.add(new TyrusParameter(paramName.toString().trim(),
+                                                  paramValueString.equals("") ? null : paramValueString));
                 }
                 extensions.add(new TyrusExtension(name.toString().trim(), params));
                 params.clear();

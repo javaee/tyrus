@@ -203,8 +203,8 @@ public class AnnotatedEndpoint extends Endpoint {
                         onError = m;
                         onErrorParameters = getParameterExtractors(m, unknownParams, collector);
                         validityChecker.checkOnErrorParams(m, unknownParams);
-                        if (unknownParams.size() == 1 &&
-                                Throwable.class == unknownParams.values().iterator().next()) {
+                        if (unknownParams.size() == 1
+                                && Throwable.class == unknownParams.values().iterator().next()) {
                             onErrorParameters[unknownParams.keySet().iterator().next()] = new ParamValue(0);
                         } else if (!unknownParams.isEmpty()) {
                             LOGGER.warning(LocalizationMessages.ENDPOINT_UNKNOWN_PARAMS(annotatedClass.getName(),
@@ -254,12 +254,12 @@ public class AnnotatedEndpoint extends Endpoint {
                             messageHandlerFactories.add(handlerFactory);
                             validityChecker.checkOnMessageParams(m, handlerFactory.create(null));
                         } else {
-                            collector.addException(new DeploymentException(LocalizationMessages.ENDPOINT_WRONG_PARAMS
-                                    (annotatedClass.getName(), m.getName())));
+                            collector.addException(new DeploymentException(
+                                    LocalizationMessages.ENDPOINT_WRONG_PARAMS(annotatedClass.getName(), m.getName())));
                         }
                     } else {
-                        collector.addException(new DeploymentException(LocalizationMessages.ENDPOINT_WRONG_PARAMS
-                                (annotatedClass.getName(), m.getName())));
+                        collector.addException(new DeploymentException(
+                                LocalizationMessages.ENDPOINT_WRONG_PARAMS(annotatedClass.getName(), m.getName())));
                     }
                 }
             }
@@ -279,8 +279,9 @@ public class AnnotatedEndpoint extends Endpoint {
             final ServerEndpoint wseAnnotation = annotatedClass.getAnnotation(ServerEndpoint.class);
 
             if (wseAnnotation == null) {
-                collector.addException(new DeploymentException(LocalizationMessages.ENDPOINT_ANNOTATION_NOT_FOUND
-                        (ServerEndpoint.class.getSimpleName(), annotatedClass.getName())));
+                collector.addException(new DeploymentException(
+                        LocalizationMessages.ENDPOINT_ANNOTATION_NOT_FOUND(ServerEndpoint.class.getSimpleName(),
+                                                                           annotatedClass.getName())));
                 return null;
             }
 
@@ -328,8 +329,9 @@ public class AnnotatedEndpoint extends Endpoint {
             final ClientEndpoint wscAnnotation = annotatedClass.getAnnotation(ClientEndpoint.class);
 
             if (wscAnnotation == null) {
-                collector.addException(new DeploymentException(LocalizationMessages.ENDPOINT_ANNOTATION_NOT_FOUND
-                        (ClientEndpoint.class.getSimpleName(), annotatedClass.getName())));
+                collector.addException(new DeploymentException(
+                        LocalizationMessages.ENDPOINT_ANNOTATION_NOT_FOUND(ClientEndpoint.class.getSimpleName(),
+                                                                           annotatedClass.getName())));
                 return null;
             }
 
@@ -346,8 +348,9 @@ public class AnnotatedEndpoint extends Endpoint {
             ClientEndpointConfig.Configurator configurator =
                     ReflectionHelper.getInstance(wscAnnotation.configurator(), collector);
 
-            return ClientEndpointConfig.Builder.create().encoders(encoderClasses).decoders(decoderClasses).
-                    preferredSubprotocols(Arrays.asList(subProtocols)).configurator(configurator).build();
+            return ClientEndpointConfig.Builder.create().encoders(encoderClasses).decoders(decoderClasses)
+                                               .preferredSubprotocols(Arrays.asList(subProtocols))
+                                               .configurator(configurator).build();
         }
     }
 
@@ -408,10 +411,10 @@ public class AnnotatedEndpoint extends Endpoint {
             final Class<?> type = method.getParameterTypes()[i];
             final String pathParamName = getPathParamName(method.getParameterAnnotations()[i]);
             if (pathParamName != null) {
-                if (!(PrimitivesToWrappers.isPrimitiveWrapper(type) ||
-                        type.isPrimitive() || type.equals(String.class))) {
-                    collector.addException(new DeploymentException(LocalizationMessages.ENDPOINT_WRONG_PATH_PARAM
-                            (method.getName(), type.getName())));
+                if (!(PrimitivesToWrappers.isPrimitiveWrapper(type) || type.isPrimitive()
+                        || type.equals(String.class))) {
+                    collector.addException(new DeploymentException(
+                            LocalizationMessages.ENDPOINT_WRONG_PATH_PARAM(method.getName(), type.getName())));
                 }
 
                 result[i] = new ParameterExtractor() {
@@ -488,8 +491,9 @@ public class AnnotatedEndpoint extends Endpoint {
         Object[] paramValues = new Object[extractors.length];
 
         try {
-            final Object endpoint = annotatedInstance != null ? annotatedInstance :
-                    componentProvider.getInstance(annotatedClass, session, collector);
+            final Object endpoint = annotatedInstance != null
+                    ? annotatedInstance
+                    : componentProvider.getInstance(annotatedClass, session, collector);
 
             // TYRUS-325: Server do not close session properly if non-instantiable endpoint class is provided
             if (callOnError && endpoint == null) {
@@ -593,8 +597,9 @@ public class AnnotatedEndpoint extends Endpoint {
         MessageHandlerFactory(Method method, ParameterExtractor[] extractors, Class<?> type, long maxMessageSize) {
             this.method = method;
             this.extractors = extractors;
-            this.type = (PrimitivesToWrappers.getPrimitiveWrapper(type) == null) ? type :
-                    PrimitivesToWrappers.getPrimitiveWrapper(type);
+            this.type = (PrimitivesToWrappers.getPrimitiveWrapper(type) == null)
+                    ? type
+                    : PrimitivesToWrappers.getPrimitiveWrapper(type);
             this.maxMessageSize = maxMessageSize;
         }
 

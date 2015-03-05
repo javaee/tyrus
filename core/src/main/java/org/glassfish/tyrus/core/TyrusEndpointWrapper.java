@@ -225,10 +225,10 @@ public class TyrusEndpointWrapper {
         // server-side only
         if (configuration instanceof ServerEndpointConfig) {
             this.serverEndpointPath = ((ServerEndpointConfig) configuration).getPath();
-            this.endpointPath =
-                    (contextPath.endsWith("/") ? contextPath.substring(0, contextPath.length() - 1) : contextPath)
-                            + "/" +
-                            (serverEndpointPath.startsWith("/") ? serverEndpointPath.substring(1) : serverEndpointPath);
+            this.endpointPath = (contextPath.endsWith("/")
+                    ? contextPath.substring(0, contextPath.length() - 1)
+                    : contextPath) + "/"
+                    + (serverEndpointPath.startsWith("/") ? serverEndpointPath.substring(1) : serverEndpointPath);
         } else {
             this.serverEndpointPath = null;
             this.endpointPath = null;
@@ -690,9 +690,9 @@ public class TyrusEndpointWrapper {
             webSocketToSession.put(socket, session);
 
             // max open session per endpoint exceeded?
-            boolean maxSessionPerEndpointExceeded = configuration instanceof TyrusServerEndpointConfig &&
-                    ((TyrusServerEndpointConfig) configuration).getMaxSessions() > 0 &&
-                    webSocketToSession.size() > ((TyrusServerEndpointConfig) configuration).getMaxSessions();
+            boolean maxSessionPerEndpointExceeded = configuration instanceof TyrusServerEndpointConfig
+                    && ((TyrusServerEndpointConfig) configuration).getMaxSessions() > 0
+                    && webSocketToSession.size() > ((TyrusServerEndpointConfig) configuration).getMaxSessions();
 
             SessionListener.OnOpenResult onOpenResult = sessionListener.onOpen(session);
 
@@ -734,8 +734,8 @@ public class TyrusEndpointWrapper {
 
         ErrorCollector collector = new ErrorCollector();
 
-        final Object toCall = programmaticEndpoint ? endpoint :
-                componentProvider.getInstance(endpointClass, session, collector);
+        final Object toCall = programmaticEndpoint ? endpoint
+                : componentProvider.getInstance(endpointClass, session, collector);
 
         // TYRUS-325: Server do not close session properly if non-instantiable endpoint class is provided
         // programmatic non-instantiable endpoint has toCall null
@@ -822,8 +822,8 @@ public class TyrusEndpointWrapper {
         } catch (Throwable t) {
             if (!processThrowable(t, session)) {
                 ErrorCollector collector = new ErrorCollector();
-                final Object toCall = programmaticEndpoint ? endpoint :
-                        componentProvider.getInstance(endpointClass, session, collector);
+                final Object toCall = programmaticEndpoint ? endpoint
+                        : componentProvider.getInstance(endpointClass, session, collector);
                 if (toCall != null) {
                     if (programmaticEndpoint) {
                         ((Endpoint) toCall).onError(session, t);
@@ -877,8 +877,8 @@ public class TyrusEndpointWrapper {
         } catch (Throwable t) {
             if (!processThrowable(t, session)) {
                 ErrorCollector collector = new ErrorCollector();
-                final Object toCall = programmaticEndpoint ? endpoint :
-                        componentProvider.getInstance(endpointClass, session, collector);
+                final Object toCall = programmaticEndpoint ? endpoint
+                        : componentProvider.getInstance(endpointClass, session, collector);
                 if (toCall != null) {
                     if (programmaticEndpoint) {
                         ((Endpoint) toCall).onError(session, t);
@@ -980,8 +980,8 @@ public class TyrusEndpointWrapper {
         } catch (Throwable t) {
             if (!processThrowable(t, session)) {
                 ErrorCollector collector = new ErrorCollector();
-                final Object toCall = programmaticEndpoint ? endpoint :
-                        componentProvider.getInstance(endpointClass, session, collector);
+                final Object toCall = programmaticEndpoint ? endpoint
+                        : componentProvider.getInstance(endpointClass, session, collector);
                 if (toCall != null) {
                     if (programmaticEndpoint) {
                         ((Endpoint) toCall).onError(session, t);
@@ -1083,8 +1083,8 @@ public class TyrusEndpointWrapper {
         } catch (Throwable t) {
             if (!processThrowable(t, session)) {
                 ErrorCollector collector = new ErrorCollector();
-                final Object toCall = programmaticEndpoint ? endpoint :
-                        componentProvider.getInstance(endpointClass, session, collector);
+                final Object toCall = programmaticEndpoint ? endpoint
+                        : componentProvider.getInstance(endpointClass, session, collector);
                 if (toCall != null) {
                     if (programmaticEndpoint) {
                         ((Endpoint) toCall).onError(session, t);
@@ -1167,8 +1167,8 @@ public class TyrusEndpointWrapper {
             } catch (Throwable t) {
                 if (!processThrowable(t, session)) {
                     ErrorCollector collector = new ErrorCollector();
-                    final Object toCall = programmaticEndpoint ? endpoint :
-                            componentProvider.getInstance(endpointClass, session, collector);
+                    final Object toCall = programmaticEndpoint ? endpoint
+                            : componentProvider.getInstance(endpointClass, session, collector);
                     if (toCall != null) {
                         if (programmaticEndpoint) {
                             ((Endpoint) toCall).onError(session, t);
@@ -1239,8 +1239,8 @@ public class TyrusEndpointWrapper {
 
         ErrorCollector collector = new ErrorCollector();
 
-        final Object toCall = programmaticEndpoint ? endpoint :
-                componentProvider.getInstance(endpointClass, session, collector);
+        final Object toCall = programmaticEndpoint ? endpoint
+                : componentProvider.getInstance(endpointClass, session, collector);
 
         try {
             if (!collector.isEmpty()) {
@@ -1276,8 +1276,8 @@ public class TyrusEndpointWrapper {
                 clusterContext.removeSession(session.getId(), getEndpointPath());
 
                 // close code is not 1006 = the close was initiated from the user code
-                if (!(CloseReason.CloseCodes.CLOSED_ABNORMALLY.equals(closeReason.getCloseCode()) ||
-                        CloseReason.CloseCodes.GOING_AWAY.equals(closeReason.getCloseCode()))) {
+                if (!(CloseReason.CloseCodes.CLOSED_ABNORMALLY.equals(closeReason.getCloseCode())
+                        || CloseReason.CloseCodes.GOING_AWAY.equals(closeReason.getCloseCode()))) {
                     clusterContext.destroyDistributedUserProperties(session.getConnectionId());
                 }
             }
@@ -1576,9 +1576,9 @@ public class TyrusEndpointWrapper {
      */
     final boolean upgrade(UpgradeRequest request) throws HandshakeException {
         final String upgradeHeader = request.getHeader(UpgradeRequest.UPGRADE);
-        if (request.getHeaders().get(UpgradeRequest.UPGRADE) != null &&
+        if (request.getHeaders().get(UpgradeRequest.UPGRADE) != null
                 // RFC 6455, paragraph 4.2.1.3
-                UpgradeRequest.WEBSOCKET.equalsIgnoreCase(upgradeHeader)) {
+                && UpgradeRequest.WEBSOCKET.equalsIgnoreCase(upgradeHeader)) {
 
             if (!(configuration instanceof ServerEndpointConfig)) {
                 return false;

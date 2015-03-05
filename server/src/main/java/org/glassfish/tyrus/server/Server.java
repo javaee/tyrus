@@ -159,8 +159,8 @@ public class Server {
     public static void main(String[] args) {
         if (args.length < 4) {
             System.out.println(
-                    "Please provide: (<hostname>, <port>, <websockets root path>, <;-sep fully qualfied classnames of" +
-                            " your bean>) in the command line");
+                    "Please provide: (<hostname>, <port>, <websockets root path>, <;-sep fully qualfied classnames of"
+                            + " your bean>) in the command line");
             System.out.println("e.g. localhost 8021 /websockets/myapp myapp.Bean1;myapp.Bean2");
             System.exit(1);
         }

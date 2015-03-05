@@ -309,8 +309,9 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     public Session connectToServer(Class annotatedEndpointClass, URI path) throws DeploymentException, IOException {
         if (annotatedEndpointClass.getAnnotation(ClientEndpoint.class) == null) {
             throw new DeploymentException(
-                    String.format("Class argument in connectToServer(Class, URI) is to be annotated endpoint class." +
-                                          "Class %s does not have @ClientEndpoint", annotatedEndpointClass.getName()));
+                    String.format(
+                            "Class argument in connectToServer(Class, URI) is to be annotated endpoint class. Class "
+                                    + "%s does not have @ClientEndpoint", annotatedEndpointClass.getName()));
         }
         try {
             return connectToServer(annotatedEndpointClass, null, path.toString(), true).get();
@@ -398,8 +399,9 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     public Future<Session> asyncConnectToServer(Class<?> annotatedEndpointClass, URI path) throws DeploymentException {
         if (annotatedEndpointClass.getAnnotation(ClientEndpoint.class) == null) {
             throw new DeploymentException(
-                    String.format("Class argument in connectToServer(Class, URI) is to be annotated endpoint class." +
-                                          "Class %s does not have @ClientEndpoint", annotatedEndpointClass.getName()));
+                    String.format(
+                            "Class argument in connectToServer(Class, URI) is to be annotated endpoint class. Class "
+                                    + "%s does not have @ClientEndpoint", annotatedEndpointClass.getName()));
         }
         return connectToServer(annotatedEndpointClass, null, path.toString(), false);
     }
@@ -517,9 +519,10 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                 // incoming buffer size - max frame size possible to receive.
                 Integer tyrusIncomingBufferSize =
                         Utils.getProperty(copiedProperties, ClientProperties.INCOMING_BUFFER_SIZE, Integer.class);
-                Integer wlsIncomingBufferSize = configuration == null ? null :
-                        Utils.getProperty(configuration.getUserProperties(), ClientContainer.WLS_INCOMING_BUFFER_SIZE,
-                                          Integer.class);
+                Integer wlsIncomingBufferSize = configuration == null
+                        ? null
+                        : Utils.getProperty(configuration.getUserProperties(), ClientContainer.WLS_INCOMING_BUFFER_SIZE,
+                                            Integer.class);
                 final int incomingBufferSize;
                 if (tyrusIncomingBufferSize == null && wlsIncomingBufferSize == null) {
                     incomingBufferSize = TyrusClientEngine.DEFAULT_INCOMING_BUFFER_SIZE;
@@ -537,8 +540,9 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                         if (Endpoint.class.isAssignableFrom((Class<?>) o)) {
                             //noinspection unchecked
                             endpoint = ReflectionHelper.getInstance(((Class<Endpoint>) o), collector);
-                            config = configuration == null ? ClientEndpointConfig.Builder.create().build() :
-                                    configuration;
+                            config = configuration == null
+                                    ? ClientEndpointConfig.Builder.create().build()
+                                    : configuration;
                         } else if ((((Class<?>) o).getAnnotation(ClientEndpoint.class) != null)) {
                             endpoint = AnnotatedEndpoint
                                     .fromClass((Class) o, componentProvider, false, incomingBufferSize, collector,
@@ -576,9 +580,8 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                 final Runnable connector = new Runnable() {
 
                     private final ReconnectHandler reconnectHandler =
-                            retryAfterEnabled ?
-                                    new RetryAfterReconnectHandler(userReconnectHandler) :
-                                    userReconnectHandler;
+                            retryAfterEnabled ? new RetryAfterReconnectHandler(userReconnectHandler)
+                                    : userReconnectHandler;
 
                     @Override
                     public void run() {
@@ -623,27 +626,24 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                                 TyrusEndpointWrapper clientEndpoint =
                                         new TyrusEndpointWrapper(
                                                 endpoint, config, componentProvider,
-                                                webSocketContainer == null ? ClientManager.this :
-                                                        webSocketContainer, url, null,
+                                                webSocketContainer == null ? ClientManager.this
+                                                        : webSocketContainer, url, null,
                                                 new TyrusEndpointWrapper.SessionListener() {
 
                                                     @Override
                                                     public void onClose(TyrusSession session,
                                                                         CloseReason closeReason) {
-                                                        if (reconnectHandler != null &&
-                                                                reconnectHandler
-                                                                        .onDisconnect(closeReason)) {
+                                                        if (reconnectHandler != null
+                                                                && reconnectHandler.onDisconnect(closeReason)) {
                                                             long delay = reconnectHandler.getDelay();
                                                             if (delay <= 0) {
                                                                 run();
                                                             } else {
                                                                 getScheduledExecutorService()
-                                                                        .schedule(that, delay,
-                                                                                  TimeUnit.SECONDS);
+                                                                        .schedule(that, delay, TimeUnit.SECONDS);
                                                             }
                                                         } else {
-                                                            clientActivityListener
-                                                                    .onConnectionTerminated();
+                                                            clientActivityListener.onConnectionTerminated();
                                                         }
                                                     }
                                                 }, null, null, null
@@ -944,8 +944,8 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                 if (t != null && t instanceof RetryAfterException) {
                     RetryAfterException retryAfterException = (RetryAfterException) t;
                     if (retryAfterException.getDelay() != null) {
-                        if (retryCounter.getAndIncrement() < RETRY_AFTER_THRESHOLD &&
-                                retryAfterException.getDelay() <= RETRY_AFTER_MAX_DELAY) {
+                        if (retryCounter.getAndIncrement() < RETRY_AFTER_THRESHOLD
+                                && retryAfterException.getDelay() <= RETRY_AFTER_MAX_DELAY) {
 
                             delay = retryAfterException.getDelay() < 0 ? 0 : retryAfterException.getDelay();
                             return true;

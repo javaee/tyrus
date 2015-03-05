@@ -180,8 +180,8 @@ class GrizzlyServerFilter extends BaseFilter {
             final HttpHeader header = message.getHttpHeader();
 
             // If websocket is null - it means either non-websocket Connection
-            if (!UpgradeRequest.WEBSOCKET.equalsIgnoreCase(header.getUpgrade()) &&
-                    message.getHttpHeader().isRequest()) {
+            if (!UpgradeRequest.WEBSOCKET.equalsIgnoreCase(header.getUpgrade())
+                    && message.getHttpHeader().isRequest()) {
                 // if it's not a websocket connection - pass the processing to the next filter
                 return ctx.getInvokeAction();
             }

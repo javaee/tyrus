@@ -143,11 +143,20 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
                     available = 16384;
                 }
 
-                int toRead = (buf == null ?
-                        (available > incomingBufferSize ? incomingBufferSize : available) :
-                        buf.remaining() + available > incomingBufferSize ? incomingBufferSize - buf.remaining() :
-                                buf.remaining() + available
-                );
+                int toRead;
+                if (buf == null) {
+                    if (available > incomingBufferSize) {
+                        toRead = incomingBufferSize;
+                    } else {
+                        toRead = available;
+                    }
+                } else {
+                    if (buf.remaining() + available > incomingBufferSize) {
+                        toRead = incomingBufferSize - buf.remaining();
+                    } else {
+                        toRead = buf.remaining() + available;
+                    }
+                }
 
                 if (toRead == 0) {
                     throw new IOException(String.format("Tyrus input buffer exceeded. Current buffer size is %s bytes.",

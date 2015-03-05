@@ -94,8 +94,8 @@ public class StrictUtf8 extends Charset {
     }
 
     private static char highSurrogate(int codePoint) {
-        return (char) ((codePoint >>> 10) + (Character.MIN_HIGH_SURROGATE -
-                (Character.MIN_SUPPLEMENTARY_CODE_POINT >>> 10)));
+        return (char) ((codePoint >>> 10) + (Character.MIN_HIGH_SURROGATE
+                - (Character.MIN_SUPPLEMENTARY_CODE_POINT >>> 10)));
     }
 
     private static char lowSurrogate(int codePoint) {
@@ -135,8 +135,7 @@ public class StrictUtf8 extends Charset {
         //  [E0]     [A0..BF] [80..BF]
         //  [E1..EF] [80..BF] [80..BF]
         private static boolean isMalformed3(int b1, int b2, int b3) {
-            return (b1 == (byte) 0xe0 && (b2 & 0xe0) == 0x80) ||
-                    (b2 & 0xc0) != 0x80 || (b3 & 0xc0) != 0x80;
+            return (b1 == (byte) 0xe0 && (b2 & 0xe0) == 0x80) || (b2 & 0xc0) != 0x80 || (b3 & 0xc0) != 0x80;
         }
 
         // only used when there is only one byte left in src buffer
@@ -151,8 +150,7 @@ public class StrictUtf8 extends Charset {
         //  only check 80-be range here, the [0xf0,0x80...] and [0xf4,0x90-...]
         //  will be checked by Character.isSupplementaryCodePoint(uc)
         private static boolean isMalformed4(int b2, int b3, int b4) {
-            return (b2 & 0xc0) != 0x80 || (b3 & 0xc0) != 0x80 ||
-                    (b4 & 0xc0) != 0x80;
+            return (b2 & 0xc0) != 0x80 || (b3 & 0xc0) != 0x80 || (b4 & 0xc0) != 0x80;
         }
 
         // only used when there is less than 4 bytes left in src buffer
@@ -172,15 +170,13 @@ public class StrictUtf8 extends Charset {
                 case 3:
                     int b1 = src.get();
                     int b2 = src.get();    // no need to lookup b3
-                    return CoderResult.malformedForLength(((b1 == (byte) 0xe0 && (b2 & 0xe0) == 0x80) ||
-                            isNotContinuation(b2)) ? 1 : 2);
+                    return CoderResult.malformedForLength(((b1 == (byte) 0xe0 && (b2 & 0xe0) == 0x80)
+                            || isNotContinuation(b2)) ? 1 : 2);
                 case 4:  // we don't care the speed here
                     b1 = src.get() & 0xff;
                     b2 = src.get() & 0xff;
-                    if (b1 > 0xf4 ||
-                            (b1 == 0xf0 && (b2 < 0x90 || b2 > 0xbf)) ||
-                            (b1 == 0xf4 && (b2 & 0xf0) != 0x80) ||
-                            isNotContinuation(b2)) {
+                    if (b1 > 0xf4 || (b1 == 0xf0 && (b2 < 0x90 || b2 > 0xbf)) || (b1 == 0xf4 && (b2 & 0xf0) != 0x80)
+                            || isNotContinuation(b2)) {
                         return CoderResult.malformedForLength(1);
                     }
                     if (isNotContinuation(src.get())) {
@@ -278,11 +274,8 @@ public class StrictUtf8 extends Charset {
                     if (isMalformed3(b1, b2, b3)) {
                         return malformed(src, sp, dst, dp, 3);
                     }
-                    char c = (char) ((b1 << 12) ^
-                            (b2 << 6) ^
-                            (b3 ^ (((byte) 0xE0 << 12) ^
-                                    ((byte) 0x80 << 6) ^
-                                    ((byte) 0x80))));
+                    char c = (char) ((b1 << 12) ^ (b2 << 6) ^ (b3 ^ (((byte) 0xE0 << 12) ^ ((byte) 0x80 << 6)
+                            ^ ((byte) 0x80))));
                     if (isSurrogate(c)) {
                         return malformedForLength(src, sp, dst, dp, 3);
                     }
@@ -303,17 +296,11 @@ public class StrictUtf8 extends Charset {
                     int b2 = sa[sp + 1];
                     int b3 = sa[sp + 2];
                     int b4 = sa[sp + 3];
-                    int uc = ((b1 << 18) ^
-                            (b2 << 12) ^
-                            (b3 << 6) ^
-                            (b4 ^
-                                    (((byte) 0xF0 << 18) ^
-                                            ((byte) 0x80 << 12) ^
-                                            ((byte) 0x80 << 6) ^
-                                            ((byte) 0x80))));
-                    if (isMalformed4(b2, b3, b4) ||
+                    int uc = ((b1 << 18) ^ (b2 << 12) ^ (b3 << 6) ^ (b4
+                            ^ (((byte) 0xF0 << 18) ^ ((byte) 0x80 << 12) ^ ((byte) 0x80 << 6) ^ ((byte) 0x80))));
+                    if (isMalformed4(b2, b3, b4)
                             // shortest form check
-                            !Character.isSupplementaryCodePoint(uc)) {
+                            || !Character.isSupplementaryCodePoint(uc)) {
                         return malformed(src, sp, dst, dp, 4);
                     }
                     da[dp++] = highSurrogate(uc);
@@ -363,11 +350,8 @@ public class StrictUtf8 extends Charset {
                     if (isMalformed3(b1, b2, b3)) {
                         return malformed(src, mark, 3);
                     }
-                    char c = (char) ((b1 << 12) ^
-                            (b2 << 6) ^
-                            (b3 ^ (((byte) 0xE0 << 12) ^
-                                    ((byte) 0x80 << 6) ^
-                                    ((byte) 0x80))));
+                    char c = (char) ((b1 << 12) ^ (b2 << 6) ^ (b3 ^ (((byte) 0xE0 << 12) ^ ((byte) 0x80 << 6)
+                            ^ ((byte) 0x80))));
                     if (isSurrogate(c)) {
                         return malformedForLength(src, mark, 3);
                     }
@@ -388,16 +372,11 @@ public class StrictUtf8 extends Charset {
                     int b2 = src.get();
                     int b3 = src.get();
                     int b4 = src.get();
-                    int uc = ((b1 << 18) ^
-                            (b2 << 12) ^
-                            (b3 << 6) ^
-                            (b4 ^ (((byte) 0xF0 << 18) ^
-                                    ((byte) 0x80 << 12) ^
-                                    ((byte) 0x80 << 6) ^
-                                    ((byte) 0x80))));
-                    if (isMalformed4(b2, b3, b4) ||
+                    int uc = ((b1 << 18) ^ (b2 << 12) ^ (b3 << 6) ^ (b4 ^ (((byte) 0xF0 << 18) ^ ((byte) 0x80 << 12)
+                            ^ ((byte) 0x80 << 6) ^ ((byte) 0x80))));
+                    if (isMalformed4(b2, b3, b4)
                             // shortest form check
-                            !Character.isSupplementaryCodePoint(uc)) {
+                            || !Character.isSupplementaryCodePoint(uc)) {
                         return malformed(src, mark, 4);
                     }
                     dst.put(highSurrogate(uc));
@@ -479,11 +458,8 @@ public class StrictUtf8 extends Charset {
                             bb = getByteBuffer(bb, sa, sp);
                             sp += malformedN(bb, 3).length();
                         } else {
-                            char c = (char) ((b1 << 12) ^
-                                    (b2 << 6) ^
-                                    (b3 ^ (((byte) 0xE0 << 12) ^
-                                            ((byte) 0x80 << 6) ^
-                                            ((byte) 0x80))));
+                            char c = (char) ((b1 << 12) ^ (b2 << 6) ^ (b3 ^ (((byte) 0xE0 << 12) ^ ((byte) 0x80 << 6)
+                                    ^ ((byte) 0x80))));
                             if (isSurrogate(c)) {
                                 if (malformedInputAction() != CodingErrorAction.REPLACE) {
                                     return -1;
@@ -511,16 +487,11 @@ public class StrictUtf8 extends Charset {
                         int b2 = sa[sp++];
                         int b3 = sa[sp++];
                         int b4 = sa[sp++];
-                        int uc = ((b1 << 18) ^
-                                (b2 << 12) ^
-                                (b3 << 6) ^
-                                (b4 ^ (((byte) 0xF0 << 18) ^
-                                        ((byte) 0x80 << 12) ^
-                                        ((byte) 0x80 << 6) ^
-                                        ((byte) 0x80))));
-                        if (isMalformed4(b2, b3, b4) ||
+                        int uc = ((b1 << 18) ^ (b2 << 12) ^ (b3 << 6) ^ (b4 ^ (((byte) 0xF0 << 18) ^ ((byte) 0x80 << 12)
+                                ^ ((byte) 0x80 << 6) ^ ((byte) 0x80))));
+                        if (isMalformed4(b2, b3, b4)
                                 // shortest form check
-                                !Character.isSupplementaryCodePoint(uc)) {
+                                || !Character.isSupplementaryCodePoint(uc)) {
                             if (malformedInputAction() != CodingErrorAction.REPLACE) {
                                 return -1;
                             }

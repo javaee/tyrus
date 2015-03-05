@@ -103,8 +103,7 @@ public class ReflectionHelper {
             return "null";
         }
         StringBuilder sb = new StringBuilder();
-        sb.append(o.getClass().getName()).
-                append('@').append(Integer.toHexString(o.hashCode()));
+        sb.append(o.getClass().getName()).append('@').append(Integer.toHexString(o.hashCode()));
         return sb.toString();
     }
 

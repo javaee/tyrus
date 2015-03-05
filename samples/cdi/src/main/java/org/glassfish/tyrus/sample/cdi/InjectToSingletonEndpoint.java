@@ -65,8 +65,8 @@ public class InjectToSingletonEndpoint {
     @OnMessage
     public String doThat(String message) {
         bean.incrementCounter();
-        return postConstructCalled ? String.format("%s%s%s", message, TEXT, bean.getCounter()) : "PostConstruct not " +
-                "called.";
+        return postConstructCalled ? String.format("%s%s%s", message, TEXT, bean.getCounter()) : "PostConstruct not "
+                + "called.";
     }
 
     @PostConstruct

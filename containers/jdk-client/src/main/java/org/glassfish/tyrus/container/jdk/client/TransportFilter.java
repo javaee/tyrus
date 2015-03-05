@@ -421,14 +421,14 @@ class TransportFilter extends Filter {
                  */
                 if (threadSafeQueue) {
                     if (!taskQueue.offer(task)) {
-                        throw new RejectedExecutionException("A limit of Tyrus client thread pool queue has been " +
-                                                                     "reached.", e);
+                        throw new RejectedExecutionException("A limit of Tyrus client thread pool queue has been "
+                                                                     + "reached.", e);
                     }
                 } else {
                     synchronized (taskQueue) {
                         if (!taskQueue.offer(task)) {
-                            throw new RejectedExecutionException("A limit of Tyrus client thread pool queue has been " +
-                                                                         "reached.", e);
+                            throw new RejectedExecutionException("A limit of Tyrus client thread pool queue has been "
+                                                                         + "reached.", e);
                         }
                     }
                 }

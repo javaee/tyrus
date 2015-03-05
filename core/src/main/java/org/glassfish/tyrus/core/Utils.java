@@ -341,8 +341,8 @@ public class Utils {
                 throw new IllegalArgumentException(LocalizationMessages.BUFFER_OVERFLOW());
             } else {
                 final int roundedSize =
-                        (newSize % BUFFER_STEP_SIZE) > 0 ? ((newSize / BUFFER_STEP_SIZE) + 1) * BUFFER_STEP_SIZE :
-                                newSize;
+                        (newSize % BUFFER_STEP_SIZE) > 0 ? ((newSize / BUFFER_STEP_SIZE) + 1) * BUFFER_STEP_SIZE
+                                : newSize;
                 final ByteBuffer result = ByteBuffer.allocate(roundedSize > incomingBufferSize ? newSize : roundedSize);
                 result.put(buffer);
                 result.put(buffer1);

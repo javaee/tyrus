@@ -503,9 +503,9 @@ public class GrizzlyClientSocket {
         if (proxyHeaders == null) {
             if (wlsProxyUsername != null && wlsProxyPassword != null) {
                 proxyHeaders = new HashMap<String, String>();
-                proxyHeaders.put("Proxy-Authorization", "Basic " +
-                        Base64Utils.encodeToString(
-                                (wlsProxyUsername + ":" + wlsProxyPassword).getBytes(Charset.forName("UTF-8")), false));
+                proxyHeaders.put("Proxy-Authorization", "Basic "
+                        + Base64Utils.encodeToString(
+                        (wlsProxyUsername + ":" + wlsProxyPassword).getBytes(Charset.forName("UTF-8")), false));
             }
         } else {
             boolean proxyAuthPresent = false;
@@ -517,9 +517,9 @@ public class GrizzlyClientSocket {
 
             // if (proxyAuthPresent == true) then do nothing, proxy authorization header is already added.
             if (!proxyAuthPresent && wlsProxyUsername != null && wlsProxyPassword != null) {
-                proxyHeaders.put("Proxy-Authorization", "Basic " +
-                        Base64Utils.encodeToString(
-                                (wlsProxyUsername + ":" + wlsProxyPassword).getBytes(Charset.forName("UTF-8")), false));
+                proxyHeaders.put("Proxy-Authorization", "Basic "
+                        + Base64Utils.encodeToString(
+                        (wlsProxyUsername + ":" + wlsProxyPassword).getBytes(Charset.forName("UTF-8")), false));
             }
         }
         return proxyHeaders;
@@ -605,8 +605,8 @@ public class GrizzlyClientSocket {
                     break;
                 case SOCKS:
                     LOGGER.log(Level.INFO, String.format(
-                            "Socks proxy is not supported, please file new issue at https://java" +
-                                    ".net/jira/browse/TYRUS. Proxy '%s' will be ignored.", p));
+                            "Socks proxy is not supported, please file new issue at https://java"
+                                    + ".net/jira/browse/TYRUS. Proxy '%s' will be ignored.", p));
                     break;
                 default:
                     break;
@@ -662,11 +662,11 @@ public class GrizzlyClientSocket {
 
                             // apply a custom host name verifier if present
                             HostnameVerifier customHostnameVerifier = clientSSLEngineConfigurator.hostnameVerifier;
-                            if (customHostnameVerifier != null &&
-                                    !customHostnameVerifier.verify(uri.getHost(), sslEngine.getSession())) {
+                            if (customHostnameVerifier != null
+                                    && !customHostnameVerifier.verify(uri.getHost(), sslEngine.getSession())) {
                                 sslHandshakeFuture.setFailure(new SSLException(
-                                        "Server host name verification using " + customHostnameVerifier.getClass() +
-                                                " has failed"));
+                                        "Server host name verification using " + customHostnameVerifier.getClass()
+                                                + " has failed"));
                                 connection.terminateSilently();
                             } else {
                                 sslHandshakeFuture.setResult(null);
@@ -912,12 +912,12 @@ public class GrizzlyClientSocket {
                                            .invoke(sslParameters, "HTTPS");
                         sslEngine.setSSLParameters(sslParameters);
                     } catch (Exception exc) {
-                        LOGGER.log(Level.CONFIG, "An error has occurred during SSL configuration, host name " +
-                                "verification might not be configured properly", exc);
+                        LOGGER.log(Level.CONFIG, "An error has occurred during SSL configuration, host name "
+                                + "verification might not be configured properly.", exc);
                     }
                 } catch (Exception e) {
-                    LOGGER.log(Level.CONFIG, "An error has occurred during SSL configuration, host name verification " +
-                            "might not be configured properly", e);
+                    LOGGER.log(Level.CONFIG, "An error has occurred during SSL configuration, host name verification "
+                            + "might not be configured properly.", e);
                 }
             }
 

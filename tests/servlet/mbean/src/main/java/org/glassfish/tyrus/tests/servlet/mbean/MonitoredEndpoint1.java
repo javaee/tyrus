@@ -84,8 +84,8 @@ public class MonitoredEndpoint1 {
             proxy = JMX.newMXBeanProxy(mBeanServer, new ObjectName(fullMxBeanName), ApplicationMXBean.class);
             List<EndpointClassNamePathPair> registeredEndpoints = proxy.getEndpoints();
             for (EndpointClassNamePathPair registeredEndpoint : registeredEndpoints) {
-                if (registeredEndpoint.getEndpointPath().equals(endpoint.getEndpointPath()) &&
-                        registeredEndpoint.getEndpointClassName().equals(endpoint.getEndpointClassName())) {
+                if (registeredEndpoint.getEndpointPath().equals(endpoint.getEndpointPath())
+                        && registeredEndpoint.getEndpointClassName().equals(endpoint.getEndpointClassName())) {
                     return true;
                 }
             }

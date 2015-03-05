@@ -93,23 +93,23 @@ public abstract class ServletTestBase extends TestContainer {
         try {
             final ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
-                @Override
-                public void onOpen(Session session, EndpointConfig EndpointConfig) {
-                    try {
-                        session.addMessageHandler(new MessageHandler.Whole<String>() {
-                            @Override
-                            public void onMessage(String message) {
-                                assertEquals(message, "Do or do not, there is no try.");
-                                messageLatch.countDown();
-                            }
-                        });
+                                       @Override
+                                       public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                                           try {
+                                               session.addMessageHandler(new MessageHandler.Whole<String>() {
+                                                   @Override
+                                                   public void onMessage(String message) {
+                                                       assertEquals(message, "Do or do not, there is no try.");
+                                                       messageLatch.countDown();
+                                                   }
+                                               });
 
-                        session.getBasicRemote().sendText("Do or do not, there is no try.");
-                    } catch (IOException e) {
-                        // do nothing
-                    }
-                }
-            }, ClientEndpointConfig.Builder.create().build(),
+                                               session.getBasicRemote().sendText("Do or do not, there is no try.");
+                                           } catch (IOException e) {
+                                               // do nothing
+                                           }
+                                       }
+                                   }, ClientEndpointConfig.Builder.create().build(),
                                    getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value(),
                                           getScheme()));
 
@@ -129,25 +129,25 @@ public abstract class ServletTestBase extends TestContainer {
         try {
             final ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
-                @Override
-                public void onOpen(Session session, EndpointConfig EndpointConfig) {
-                    try {
-                        session.addMessageHandler(new MessageHandler.Whole<String>() {
-                            @Override
-                            public void onMessage(String message) {
-                                assertEquals(message, "Do or do not, there is no try.");
-                                messageLatch.countDown();
-                            }
-                        });
+                                       @Override
+                                       public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                                           try {
+                                               session.addMessageHandler(new MessageHandler.Whole<String>() {
+                                                   @Override
+                                                   public void onMessage(String message) {
+                                                       assertEquals(message, "Do or do not, there is no try.");
+                                                       messageLatch.countDown();
+                                                   }
+                                               });
 
-                        for (int i = 0; i < 100; i++) {
-                            session.getBasicRemote().sendText("Do or do not, there is no try.");
-                        }
-                    } catch (IOException e) {
-                        // do nothing
-                    }
-                }
-            }, ClientEndpointConfig.Builder.create().build(),
+                                               for (int i = 0; i < 100; i++) {
+                                                   session.getBasicRemote().sendText("Do or do not, there is no try.");
+                                               }
+                                           } catch (IOException e) {
+                                               // do nothing
+                                           }
+                                       }
+                                   }, ClientEndpointConfig.Builder.create().build(),
                                    getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value(),
                                           getScheme()));
 
@@ -168,23 +168,23 @@ public abstract class ServletTestBase extends TestContainer {
             for (int i = 0; i < 10; i++) {
                 final ClientManager client = createClient();
                 client.connectToServer(new Endpoint() {
-                    @Override
-                    public void onOpen(Session session, EndpointConfig EndpointConfig) {
-                        try {
-                            session.addMessageHandler(new MessageHandler.Whole<String>() {
-                                @Override
-                                public void onMessage(String message) {
-                                    assertEquals(message, "Do or do not, there is no try.");
-                                    messageLatch.countDown();
-                                }
-                            });
+                                           @Override
+                                           public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                                               try {
+                                                   session.addMessageHandler(new MessageHandler.Whole<String>() {
+                                                       @Override
+                                                       public void onMessage(String message) {
+                                                           assertEquals(message, "Do or do not, there is no try.");
+                                                           messageLatch.countDown();
+                                                       }
+                                                   });
 
-                            session.getBasicRemote().sendText("Do or do not, there is no try.");
-                        } catch (IOException e) {
-                            // do nothing
-                        }
-                    }
-                }, ClientEndpointConfig.Builder.create().build(),
+                                                   session.getBasicRemote().sendText("Do or do not, there is no try.");
+                                               } catch (IOException e) {
+                                                   // do nothing
+                                               }
+                                           }
+                                       }, ClientEndpointConfig.Builder.create().build(),
                                        getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value(),
                                               getScheme()));
 
@@ -240,16 +240,19 @@ public abstract class ServletTestBase extends TestContainer {
      * 10x10x10 bytes.
      */
     private static final String LONG_MESSAGE =
-            "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
-                    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
-                    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
-                    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
-                    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
-                    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
-                    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
-                    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
-                    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" +
-                    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
+            "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+                    + "12345678901234567890123456789012345678901234567890123456789012345678901234567890"
+                    + "12345678901234567890123456789012345678901234567890123456789012345678901234567890"
+                    + "12345678901234567890123456789012345678901234567890123456789012345678901234567890"
+                    + "12345678901234567890123456789012345678901234567890123456789012345678901234567890"
+                    + "12345678901234567890123456789012345678901234567890123456789012345678901234567890"
+                    + "12345678901234567890123456789012345678901234567890123456789012345678901234567890"
+                    + "12345678901234567890123456789012345678901234567890123456789012345678901234567890"
+                    + "12345678901234567890123456789012345678901234567890123456789012345678901234567890"
+                    + "12345678901234567890123456789012345678901234567890123456789012345678901234567890"
+                    + "12345678901234567890123456789012345678901234567890123456789012345678901234567890"
+                    + "12345678901234567890123456789012345678901234567890123456789012345678901234567890"
+                    + "123456789012345678901234567890";
 
     @Test
     public void testPlainEchoLong() throws DeploymentException, InterruptedException, IOException {
@@ -260,23 +263,23 @@ public abstract class ServletTestBase extends TestContainer {
         try {
             final ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
-                @Override
-                public void onOpen(Session session, EndpointConfig EndpointConfig) {
-                    try {
-                        session.addMessageHandler(new MessageHandler.Whole<String>() {
-                            @Override
-                            public void onMessage(String message) {
-                                assertEquals(message, LONG_MESSAGE);
-                                messageLatch.countDown();
-                            }
-                        });
+                                       @Override
+                                       public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                                           try {
+                                               session.addMessageHandler(new MessageHandler.Whole<String>() {
+                                                   @Override
+                                                   public void onMessage(String message) {
+                                                       assertEquals(message, LONG_MESSAGE);
+                                                       messageLatch.countDown();
+                                                   }
+                                               });
 
-                        session.getBasicRemote().sendText(LONG_MESSAGE);
-                    } catch (IOException e) {
-                        // do nothing
-                    }
-                }
-            }, ClientEndpointConfig.Builder.create().build(),
+                                               session.getBasicRemote().sendText(LONG_MESSAGE);
+                                           } catch (IOException e) {
+                                               // do nothing
+                                           }
+                                       }
+                                   }, ClientEndpointConfig.Builder.create().build(),
                                    getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value(),
                                           getScheme()));
 
@@ -296,25 +299,25 @@ public abstract class ServletTestBase extends TestContainer {
         try {
             final ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
-                @Override
-                public void onOpen(Session session, EndpointConfig EndpointConfig) {
-                    try {
-                        session.addMessageHandler(new MessageHandler.Whole<String>() {
-                            @Override
-                            public void onMessage(String message) {
-                                assertEquals(message, LONG_MESSAGE);
-                                messageLatch.countDown();
-                            }
-                        });
+                                       @Override
+                                       public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                                           try {
+                                               session.addMessageHandler(new MessageHandler.Whole<String>() {
+                                                   @Override
+                                                   public void onMessage(String message) {
+                                                       assertEquals(message, LONG_MESSAGE);
+                                                       messageLatch.countDown();
+                                                   }
+                                               });
 
-                        for (int i = 0; i < 10; i++) {
-                            session.getBasicRemote().sendText(LONG_MESSAGE);
-                        }
-                    } catch (IOException e) {
-                        // do nothing
-                    }
-                }
-            }, ClientEndpointConfig.Builder.create().build(),
+                                               for (int i = 0; i < 10; i++) {
+                                                   session.getBasicRemote().sendText(LONG_MESSAGE);
+                                               }
+                                           } catch (IOException e) {
+                                               // do nothing
+                                           }
+                                       }
+                                   }, ClientEndpointConfig.Builder.create().build(),
                                    getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value(),
                                           getScheme()));
 
@@ -335,23 +338,23 @@ public abstract class ServletTestBase extends TestContainer {
             for (int i = 0; i < 10; i++) {
                 final ClientManager client = createClient();
                 client.connectToServer(new Endpoint() {
-                    @Override
-                    public void onOpen(Session session, EndpointConfig EndpointConfig) {
-                        try {
-                            session.addMessageHandler(new MessageHandler.Whole<String>() {
-                                @Override
-                                public void onMessage(String message) {
-                                    assertEquals(message, LONG_MESSAGE);
-                                    messageLatch.countDown();
-                                }
-                            });
+                                           @Override
+                                           public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                                               try {
+                                                   session.addMessageHandler(new MessageHandler.Whole<String>() {
+                                                       @Override
+                                                       public void onMessage(String message) {
+                                                           assertEquals(message, LONG_MESSAGE);
+                                                           messageLatch.countDown();
+                                                       }
+                                                   });
 
-                            session.getBasicRemote().sendText(LONG_MESSAGE);
-                        } catch (IOException e) {
-                            // do nothing
-                        }
-                    }
-                }, ClientEndpointConfig.Builder.create().build(),
+                                                   session.getBasicRemote().sendText(LONG_MESSAGE);
+                                               } catch (IOException e) {
+                                                   // do nothing
+                                               }
+                                           }
+                                       }, ClientEndpointConfig.Builder.create().build(),
                                        getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value(),
                                               getScheme()));
 

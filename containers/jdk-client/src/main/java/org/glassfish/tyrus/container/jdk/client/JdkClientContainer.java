@@ -233,10 +233,8 @@ public class JdkClientContainer implements ClientContainer {
                                           (org.glassfish.tyrus.container.jdk.client.SslEngineConfigurator)
                                                   sslEngineConfiguratorObject);
             } else {
-                LOGGER.log(Level.WARNING,
-                           "Invalid '" + ClientProperties.SSL_ENGINE_CONFIGURATOR + "' property value: " +
-                                   sslEngineConfiguratorObject +
-                                   ". Using system defaults.");
+                LOGGER.log(Level.WARNING, "Invalid '" + ClientProperties.SSL_ENGINE_CONFIGURATOR + "' property value: "
+                        + sslEngineConfiguratorObject + ". Using system defaults.");
             }
         }
 
@@ -432,8 +430,8 @@ public class JdkClientContainer implements ClientContainer {
                     break;
                 case SOCKS:
                     LOGGER.log(Level.INFO, String.format(
-                            "Socks proxy is not supported, please file new issue at https://java" +
-                                    ".net/jira/browse/TYRUS. Proxy '%s' will be ignored.",
+                            "Socks proxy is not supported, please file new issue at https://java"
+                                    + ".net/jira/browse/TYRUS. Proxy '%s' will be ignored.",
                             p));
                     break;
                 default:

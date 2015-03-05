@@ -102,9 +102,9 @@ public class MaxSessionsTest extends TestContainer {
                 }
             }, new HashSet<ServerEndpointConfig>() {
                 {
-                    add(TyrusServerEndpointConfig.Builder.create(LimitedSessionsEndpoint.class, PROGRAMMATIC).
-                            maxSessions(SESSION_LIMIT).
-                                                                 build());
+                    add(TyrusServerEndpointConfig.Builder.create(LimitedSessionsEndpoint.class, PROGRAMMATIC)
+                                                         .maxSessions(SESSION_LIMIT)
+                                                         .build());
                 }
             });
         }
@@ -118,8 +118,8 @@ public class MaxSessionsTest extends TestContainer {
 
             if (message.equals(ANNOTATED)) {
                 try {
-                    if (AnnotatedLimitedSessionsEndpoint.openLatch.await(2, TimeUnit.SECONDS) &&
-                            AnnotatedLimitedSessionsEndpoint.closeLatch.await(2, TimeUnit.SECONDS)) {
+                    if (AnnotatedLimitedSessionsEndpoint.openLatch.await(2, TimeUnit.SECONDS)
+                            && AnnotatedLimitedSessionsEndpoint.closeLatch.await(2, TimeUnit.SECONDS)) {
                         if (!AnnotatedLimitedSessionsEndpoint.forbiddenClose.get()) {
                             return POSITIVE;
                         }
@@ -266,8 +266,8 @@ public class MaxSessionsTest extends TestContainer {
                         System.out.println(String.format("Client session closed with reason: '%s'", closeReason));
                         if (closeReason.getCloseCode().getCode() == CloseReason.CloseCodes.TRY_AGAIN_LATER.getCode()) {
                             limitCloseLatch.countDown();
-                        } else if (closeReason.getCloseCode().getCode() ==
-                                CloseReason.CloseCodes.NORMAL_CLOSURE.getCode()) {
+                        } else if (closeReason.getCloseCode().getCode()
+                                == CloseReason.CloseCodes.NORMAL_CLOSURE.getCode()) {
                             normalCloseLatch.countDown();
                         }
                     }

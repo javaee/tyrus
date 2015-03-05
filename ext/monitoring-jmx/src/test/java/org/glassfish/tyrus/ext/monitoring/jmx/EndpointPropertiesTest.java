@@ -100,17 +100,17 @@ public class EndpointPropertiesTest extends TestContainer {
             server = startServer(ApplicationConfig.class);
             MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
 
-            String fullAnnotatedEndpointBeanName = "org.glassfish.tyrus:type=/jmxSessionTestApp,endpoints=endpoints," +
-                    "endpoint=/annotatedEndpoint";
-            EndpointMXBean annotatedEndpointBean = JMX.newMXBeanProxy(mBeanServer, new ObjectName
-                    (fullAnnotatedEndpointBeanName), EndpointMXBean.class);
+            String fullAnnotatedEndpointBeanName = "org.glassfish.tyrus:type=/jmxSessionTestApp,endpoints=endpoints,"
+                    + "endpoint=/annotatedEndpoint";
+            EndpointMXBean annotatedEndpointBean = JMX.newMXBeanProxy(
+                    mBeanServer, new ObjectName(fullAnnotatedEndpointBeanName), EndpointMXBean.class);
             assertEquals(AnnotatedServerEndpoint.class.getName(), annotatedEndpointBean.getEndpointClassName());
             assertEquals("/annotatedEndpoint", annotatedEndpointBean.getEndpointPath());
 
-            String fullProgrammaticEndpointBeanName = "org.glassfish.tyrus:type=/jmxSessionTestApp," +
-                    "endpoints=endpoints,endpoint=/programmaticEndpoint";
-            EndpointMXBean programmaticEndpointBean = JMX.newMXBeanProxy(mBeanServer, new ObjectName
-                    (fullProgrammaticEndpointBeanName), EndpointMXBean.class);
+            String fullProgrammaticEndpointBeanName = "org.glassfish.tyrus:type=/jmxSessionTestApp,"
+                    + "endpoints=endpoints,endpoint=/programmaticEndpoint";
+            EndpointMXBean programmaticEndpointBean = JMX.newMXBeanProxy(
+                    mBeanServer, new ObjectName(fullProgrammaticEndpointBeanName), EndpointMXBean.class);
             assertEquals(ApplicationConfig.ProgrammaticServerEndpoint.class.getName(), programmaticEndpointBean
                     .getEndpointClassName());
             assertEquals("/programmaticEndpoint", programmaticEndpointBean.getEndpointPath());

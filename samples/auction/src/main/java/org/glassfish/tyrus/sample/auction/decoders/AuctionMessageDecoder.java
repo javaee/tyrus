@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -59,10 +59,10 @@ public class AuctionMessageDecoder implements Decoder.Text<AuctionMessage> {
 
     @Override
     public boolean willDecode(String s) {
-        return s.startsWith(AuctionMessage.BID_REQUEST) ||
-                s.startsWith(AuctionMessage.AUCTION_LIST_REQUEST) ||
-                s.startsWith(AuctionMessage.LOGIN_REQUEST) ||
-                s.startsWith(AuctionMessage.LOGOUT_REQUEST);
+        return s.startsWith(AuctionMessage.BID_REQUEST)
+                || s.startsWith(AuctionMessage.AUCTION_LIST_REQUEST)
+                || s.startsWith(AuctionMessage.LOGIN_REQUEST)
+                || s.startsWith(AuctionMessage.LOGOUT_REQUEST);
     }
 
     @Override
