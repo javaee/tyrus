@@ -1337,17 +1337,8 @@ public class TyrusEndpointWrapper {
 
                     // we need to let protocol handler execute extensions if there are any
                     if (protocolHandler.hasExtensions()) {
-                        byte[] tempFrame;
-
                         final Frame dataFrame = new TextFrame(message, false, true);
-                        final ByteBuffer byteBuffer = webSocket.getProtocolHandler().frame(dataFrame);
-                        tempFrame = new byte[byteBuffer.remaining()];
-                        byteBuffer.get(tempFrame);
-
-                        final Future<Frame> frameFuture = webSocket.sendRawFrame(ByteBuffer.wrap(tempFrame));
-                        webSocket.getMessageEventListener()
-                                 .onFrameSent(TyrusFrame.FrameType.TEXT, dataFrame.getPayloadLength());
-                        return frameFuture;
+                        return sendBroadcast(webSocket, dataFrame, TyrusFrame.FrameType.TEXT);
                     } else {
                         final Future<Frame> frameFuture = webSocket.sendRawFrame(ByteBuffer.wrap(frame));
                         webSocket.getMessageEventListener().onFrameSent(TyrusFrame.FrameType.TEXT, payloadLength);
@@ -1356,20 +1347,7 @@ public class TyrusEndpointWrapper {
                 }
             };
 
-            if (parallelBroadcastEnabled) {
-                return executeInParallel(broadcastCallable);
-            }
-
-            Map<Session, Future<?>> futures = new HashMap<Session, Future<?>>();
-
-            for (Map.Entry<TyrusWebSocket, TyrusSession> e : webSocketToSession.entrySet()) {
-                if (e.getValue().isOpen()) {
-                    Future<?> future = broadcastCallable.call(e.getKey(), e.getValue());
-                    futures.put(e.getValue(), future);
-                }
-            }
-
-            return futures;
+            return broadcast(broadcastCallable);
         }
     }
 
@@ -1413,17 +1391,8 @@ public class TyrusEndpointWrapper {
 
                     // we need to let protocol handler execute extensions if there are any
                     if (protocolHandler.hasExtensions()) {
-                        byte[] tempFrame;
-
                         final Frame dataFrame = new BinaryFrame(byteArrayMessage, false, true);
-                        final ByteBuffer byteBuffer = webSocket.getProtocolHandler().frame(dataFrame);
-                        tempFrame = new byte[byteBuffer.remaining()];
-                        byteBuffer.get(tempFrame);
-
-                        final Future<Frame> frameFuture = webSocket.sendRawFrame(ByteBuffer.wrap(tempFrame));
-                        webSocket.getMessageEventListener()
-                                 .onFrameSent(TyrusFrame.FrameType.BINARY, dataFrame.getPayloadLength());
-                        return frameFuture;
+                        return sendBroadcast(webSocket, dataFrame, TyrusFrame.FrameType.BINARY);
                     } else {
                         final Future<Frame> frameFuture = webSocket.sendRawFrame(ByteBuffer.wrap(frame));
                         webSocket.getMessageEventListener().onFrameSent(TyrusFrame.FrameType.BINARY, payloadLength);
@@ -1432,21 +1401,56 @@ public class TyrusEndpointWrapper {
                 }
             };
 
-            if (parallelBroadcastEnabled) {
-                return executeInParallel(broadcastCallable);
-            }
-
-            Map<Session, Future<?>> futures = new HashMap<Session, Future<?>>();
-
-            for (Map.Entry<TyrusWebSocket, TyrusSession> e : webSocketToSession.entrySet()) {
-                if (e.getValue().isOpen()) {
-                    Future<?> future = broadcastCallable.call(e.getKey(), e.getValue());
-                    futures.put(e.getValue(), future);
-                }
-            }
-
-            return futures;
+            return broadcast(broadcastCallable);
         }
+    }
+
+    /**
+     * Perform broadcast.
+     *
+     * @param broadcastCallable callable which serializes a frame to byte[] and passes it to
+     *                          {@link org.glassfish.tyrus.core.TyrusWebSocket}. The {@link
+     *                          org.glassfish.tyrus.core.TyrusEndpointWrapper.SessionCallable} also handles extensions,
+     *                          if any.
+     * @return map of send futures.
+     * @see #broadcast(java.nio.ByteBuffer)
+     * @see #broadcast(java.lang.String)
+     */
+    private Map<Session, Future<?>> broadcast(SessionCallable broadcastCallable) {
+        if (parallelBroadcastEnabled) {
+            return executeInParallel(broadcastCallable);
+        }
+
+        Map<Session, Future<?>> futures = new HashMap<Session, Future<?>>();
+
+        for (Map.Entry<TyrusWebSocket, TyrusSession> e : webSocketToSession.entrySet()) {
+            if (e.getValue().isOpen()) {
+                Future<?> future = broadcastCallable.call(e.getKey(), e.getValue());
+                futures.put(e.getValue(), future);
+            }
+        }
+
+        return futures;
+    }
+
+    /**
+     * Serialize dataframe and send it to {@link org.glassfish.tyrus.core.TyrusWebSocket}.
+     *
+     * @param webSocket {@link org.glassfish.tyrus.core.TyrusWebSocket} instance used for sending the frame.
+     * @param dataFrame frame to be sent.
+     * @param frameType type of the frame (monitoring).
+     * @return future representing outcome of the send operation.
+     */
+    private Future<?> sendBroadcast(TyrusWebSocket webSocket, Frame dataFrame, TyrusFrame.FrameType frameType) {
+        byte[] tempFrame;
+        final ByteBuffer byteBuffer = webSocket.getProtocolHandler().frame(dataFrame);
+        tempFrame = new byte[byteBuffer.remaining()];
+        byteBuffer.get(tempFrame);
+
+        final Future<Frame> frameFuture = webSocket.sendRawFrame(ByteBuffer.wrap(tempFrame));
+        webSocket.getMessageEventListener()
+                 .onFrameSent(frameType, dataFrame.getPayloadLength());
+        return frameFuture;
     }
 
     /**
