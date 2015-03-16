@@ -129,7 +129,7 @@ public class EchoEndpointAnnotated {
                     to server. This happens on next line. The client endpoint functionality is contained in the <code>
                     javax.websocket.Endpoint</code> lazy instantiation. In the <code>onOpen</code> method new MessageHandler
                     is registered (the received message is just printed on the console and the latch is counted down). After
-                    the registration the message is sent to tje servere (line 25).
+                    the registration the message is sent to the server (line 25).
                     <example xml:id="websocket-client-endpoint">
                         <title>Client Endpoint</title>
                         <programlisting language="java" linenumbering="numbered">public class DocClient {
@@ -233,10 +233,10 @@ public class EchoEndpointAnnotated {
             </para>
             <para>
                 Let's use the very same example like for &ja4w; and deploy the <code>EchoEndpointAnnotated</code> on the
-                standalone Tyrus server on the hostname "localhost", port 8025 and path "/websocket", so the endpoint
+                standalone Tyrus server on the hostname "localhost", port 8025 and path "/websockets", so the endpoint
                 will be available at address "ws://localhost:8025/websockets/echo".
 <programlisting language="java" linenumbering="unnumbered">public void runServer() {
-    Server server = new Server("localhost", 8025, "/websocket", null, EchoEndpoint.class);
+    Server server = new Server("localhost", 8025, "/websockets", null, EchoEndpoint.class);
 
     try {
         server.start();
