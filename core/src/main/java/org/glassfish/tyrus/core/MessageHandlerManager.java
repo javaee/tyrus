@@ -70,24 +70,23 @@ import org.glassfish.tyrus.core.l10n.LocalizationMessages;
  * @see MessageHandler
  * @see javax.websocket.OnMessage
  */
-class MessageHandlerManager {
+public class MessageHandlerManager {
 
     private static final List<Class<?>> WHOLE_TEXT_HANDLER_TYPES = Arrays.<Class<?>>asList(String.class, Reader.class);
     private static final Class<?> PARTIAL_TEXT_HANDLER_TYPE = String.class;
-    private static final List<Class<?>> WHOLE_BINARY_HANDLER_TYPES = Arrays.<Class<?>>asList(ByteBuffer.class,
-                                                                                             InputStream.class,
-                                                                                             byte[].class);
-    private static final List<Class<?>> PARTIAL_BINARY_HANDLER_TYPES = Arrays.<Class<?>>asList(ByteBuffer.class,
-                                                                                               byte[].class);
+    private static final List<Class<?>> WHOLE_BINARY_HANDLER_TYPES = Arrays.<Class<?>>asList(
+            ByteBuffer.class, InputStream.class, byte[].class);
+    private static final List<Class<?>> PARTIAL_BINARY_HANDLER_TYPES = Arrays.<Class<?>>asList(
+            ByteBuffer.class, byte[].class);
     private static final Class<?> PONG_HANDLER_TYPE = PongMessage.class;
 
-    private boolean textHandlerPresent = false;
-    private boolean textWholeHandlerPresent = false;
-    private boolean binaryHandlerPresent = false;
-    private boolean binaryWholeHandlerPresent = false;
-    private boolean pongHandlerPresent = false;
-    private boolean readerHandlerPresent = false;
-    private boolean inputStreamHandlerPresent = false;
+    private boolean textHandlerPresent;
+    private boolean textWholeHandlerPresent;
+    private boolean binaryHandlerPresent;
+    private boolean binaryWholeHandlerPresent;
+    private boolean pongHandlerPresent;
+    private boolean readerHandlerPresent;
+    private boolean inputStreamHandlerPresent;
     private final Map<Class<?>, MessageHandler> registeredHandlers = new HashMap<Class<?>, MessageHandler>();
     private final List<Class<? extends Decoder>> decoders;
 
@@ -96,7 +95,7 @@ class MessageHandlerManager {
     /**
      * Construct manager with no decoders.
      */
-    MessageHandlerManager() {
+    public MessageHandlerManager() {
         this(Collections.<Class<? extends Decoder>>emptyList());
     }
 
@@ -125,6 +124,15 @@ class MessageHandlerManager {
         }
 
         return new MessageHandlerManager(decoderList);
+    }
+
+    /**
+     * Construct manager.
+     *
+     * @param decoderClasses registered {@link Decoder}s.
+     */
+    public static MessageHandlerManager fromDecoderClasses(List<Class<? extends Decoder>> decoderClasses) {
+        return new MessageHandlerManager(decoderClasses);
     }
 
     /**
