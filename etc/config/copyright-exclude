@@ -38,3 +38,4 @@ README.md
 /core/etc
 /ext/monitoring-jmx/src/main/java/org/glassfish/tyrus/ext/monitoring/jmx/LongAdder.java
 /ext/monitoring-jmx/src/main/java/org/glassfish/tyrus/ext/monitoring/jmx/Striped64.java
+/containers/jdk-client/src/test/resources/
