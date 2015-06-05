@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -38,7 +38,6 @@
  * holder.
  */
 
-var wsUri = getRootUri() + "/sample-auction/auction";
 var output;
 var debug = false;
 var websocket;
@@ -46,9 +45,31 @@ var separator = ":";
 var id = 0;
 var name = "";
 
+var endpointPath = "/auction";
+var wsUri = getRootUri() + endpointPath;
+
+/**
+ * Get application root uri with ws/wss protocol.
+ *
+ * @returns {string}
+ */
 function getRootUri() {
-    return "ws://" + (document.location.hostname == "" ? "localhost" : document.location.hostname) + ":" +
+    var uri = "ws://" + (document.location.hostname == "" ? "localhost" : document.location.hostname) + ":" +
         (document.location.port == "" ? "8080" : document.location.port);
+
+    var pathname = window.location.pathname;
+
+    if (endsWith(pathname, "/select.html")) {
+        uri = uri + pathname.substring(0, pathname.length - 12);
+    } else if (endsWith(pathname, "/")) {
+        uri = uri + pathname.substring(0, pathname.length - 1);
+    }
+
+    return uri;
+}
+
+function endsWith(str, suffix) {
+    return str.indexOf(suffix, str.length - suffix.length) !== -1;
 }
 
 function init() {

@@ -38,7 +38,6 @@
  * holder.
  */
 
-var wsUri = getRootUri() + "/sample-chat/chat";
 var output;
 var username = "";
 var debug = false;
@@ -46,9 +45,31 @@ var chatTranscriptElt;
 var messageTextElt;
 var websocket;
 
+var endpointPath = "/chat";
+var wsUri = getRootUri() + endpointPath;
+
+/**
+ * Get application root uri with ws/wss protocol.
+ *
+ * @returns {string}
+ */
 function getRootUri() {
-    return "ws://" + (document.location.hostname == "" ? "localhost" : document.location.hostname) + ":" +
+    var uri = "ws://" + (document.location.hostname == "" ? "localhost" : document.location.hostname) + ":" +
         (document.location.port == "" ? "8080" : document.location.port);
+
+    var pathname = window.location.pathname;
+
+    if (endsWith(pathname, "/index.html")) {
+        uri = uri + pathname.substring(0, pathname.length - 11);
+    } else if (endsWith(pathname, "/")) {
+        uri = uri + pathname.substring(0, pathname.length - 1);
+    }
+
+    return uri;
+}
+
+function endsWith(str, suffix) {
+    return str.indexOf(suffix, str.length - suffix.length) !== -1;
 }
 
 function init() {
