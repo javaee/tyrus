@@ -49,6 +49,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -82,6 +83,7 @@ class ClientFilter extends Filter {
     private final Map<String, String> proxyHeaders;
     private final UpgradeRequest upgradeRequest;
     private final Callable<Void> jdkConnector;
+    private final AtomicBoolean connectionClosed = new AtomicBoolean(false);
 
     private volatile boolean proxy;
     private volatile Connection wsConnection;
@@ -182,7 +184,7 @@ class ClientFilter extends Filter {
                 return false;
             }
 
-            JdkWriter writer = new JdkWriter(downstreamFilter);
+            JdkWriter writer = new JdkWriter(downstreamFilter, connectionClosed);
 
             ClientEngine.ClientUpgradeInfo clientUpgradeInfo = clientEngine.processResponse(
                     tyrusUpgradeResponse,
@@ -242,7 +244,7 @@ class ClientFilter extends Filter {
     void processError(Throwable t) {
         // connectCompletionHandler != null means that we are still in "connecting state".
         if (connectCompletionHandler != null) {
-            downstreamFilter.close();
+            closeConnection();
             connectCompletionHandler.failed(t);
             return;
         }
@@ -252,7 +254,7 @@ class ClientFilter extends Filter {
             wsConnection.close(CloseReasons.CLOSED_ABNORMALLY.getCloseReason());
         }
 
-        downstreamFilter.close();
+        closeConnection();
     }
 
     @Override
@@ -268,20 +270,26 @@ class ClientFilter extends Filter {
     }
 
     private void closeConnection() {
-        downstreamFilter.close();
+        if (connectionClosed.compareAndSet(false, true)) {
+            downstreamFilter.close();
+        }
     }
 
     private static class JdkWriter extends Writer {
 
         private final Filter downstreamFilter;
+        private final AtomicBoolean connectionClosed;
 
-        JdkWriter(Filter downstreamFilter) {
+        JdkWriter(Filter downstreamFilter, AtomicBoolean connectionClosed) {
             this.downstreamFilter = downstreamFilter;
+            this.connectionClosed = connectionClosed;
         }
 
         @Override
         public void close() throws IOException {
-            downstreamFilter.close();
+            if (connectionClosed.compareAndSet(false, true)) {
+                downstreamFilter.close();
+            }
         }
 
         @Override

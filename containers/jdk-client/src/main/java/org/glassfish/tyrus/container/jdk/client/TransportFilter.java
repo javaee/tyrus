@@ -149,7 +149,7 @@ class TransportFilter extends Filter {
     }
 
     @Override
-    void close() {
+    synchronized void close() {
         if (!socketChannel.isOpen()) {
             return;
         }
