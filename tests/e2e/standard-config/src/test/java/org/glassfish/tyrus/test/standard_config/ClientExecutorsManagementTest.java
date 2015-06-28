@@ -122,8 +122,8 @@ public class ClientExecutorsManagementTest extends TestContainer {
             session1.close();
             session2.close();
 
-            assertTrue(executorService2.isShutdown());
-            assertTrue(scheduledExecutorService2.isShutdown());
+            assertTrue(executorService2.awaitTermination(5, TimeUnit.SECONDS));
+            assertTrue(scheduledExecutorService2.awaitTermination(5, TimeUnit.SECONDS));
 
             // closing session1 should not close executorService1 and scheduledExecutorService1 as it is still used
             // by session3
@@ -132,8 +132,8 @@ public class ClientExecutorsManagementTest extends TestContainer {
 
             session3.close();
 
-            assertTrue(executorService1.isShutdown());
-            assertTrue(scheduledExecutorService1.isShutdown());
+            assertTrue(executorService1.awaitTermination(5, TimeUnit.SECONDS));
+            assertTrue(scheduledExecutorService1.awaitTermination(5, TimeUnit.SECONDS));
         } catch (Exception e) {
             e.printStackTrace();
             fail();
@@ -202,8 +202,8 @@ public class ClientExecutorsManagementTest extends TestContainer {
             // closing the only successfully established connection should cause the executors to be released
             session.close();
 
-            assertTrue(executorService.isShutdown());
-            assertTrue(scheduledExecutorService.isShutdown());
+            assertTrue(executorService.awaitTermination(5, TimeUnit.SECONDS));
+            assertTrue(scheduledExecutorService.awaitTermination(5, TimeUnit.SECONDS));
         } catch (Exception e) {
             e.printStackTrace();
             fail();
@@ -238,8 +238,8 @@ public class ClientExecutorsManagementTest extends TestContainer {
 
             session2.close();
 
-            assertTrue(executorService.isShutdown());
-            assertTrue(scheduledExecutorService.isShutdown());
+            assertTrue(executorService.awaitTermination(5, TimeUnit.SECONDS));
+            assertTrue(scheduledExecutorService.awaitTermination(5, TimeUnit.SECONDS));
         } catch (Exception e) {
             e.printStackTrace();
             fail();
@@ -304,10 +304,10 @@ public class ClientExecutorsManagementTest extends TestContainer {
 
             session.get().close();
 
-            assertTrue(executorService.isShutdown());
-            assertTrue(scheduledExecutorService.isShutdown());
-            assertTrue(executorService2.isShutdown());
-            assertTrue(scheduledExecutorService2.isShutdown());
+            assertTrue(executorService.awaitTermination(5, TimeUnit.SECONDS));
+            assertTrue(scheduledExecutorService.awaitTermination(5, TimeUnit.SECONDS));
+            assertTrue(executorService2.awaitTermination(5, TimeUnit.SECONDS));
+            assertTrue(scheduledExecutorService2.awaitTermination(5, TimeUnit.SECONDS));
         } catch (Exception e) {
             e.printStackTrace();
             fail();
