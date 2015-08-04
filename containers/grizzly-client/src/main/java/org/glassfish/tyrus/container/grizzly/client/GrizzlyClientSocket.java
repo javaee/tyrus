@@ -672,6 +672,12 @@ public class GrizzlyClientSocket {
                                 sslHandshakeFuture.setResult(null);
                             }
                         }
+
+                        @Override
+                        public void onFailure(Connection connection, Throwable t) {
+                            sslHandshakeFuture.setFailure(t);
+                            connection.terminateSilently();
+                        }
                     });
                 }
 
