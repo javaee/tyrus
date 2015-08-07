@@ -302,7 +302,7 @@ public class GrizzlyClientSocket {
 
         try {
             if (sharedTransport) {
-                privateTransport = getOrCreateSharedTransport(workerThreadPoolConfig, selectorThreadPoolConfig);
+                transport = getOrCreateSharedTransport(workerThreadPoolConfig, selectorThreadPoolConfig);
             }
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Transport failed to start.", e);
