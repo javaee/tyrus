@@ -583,7 +583,7 @@ public class GrizzlyClientSocket {
         // compute direct address in case no proxy is found
         int port = Utils.getWsPort(uri);
         if (LOGGER.isLoggable(Level.FINE)) {
-            LOGGER.log(Level.FINE, String.format(String.format("Not using proxy for URI '%s'.", uri)));
+            LOGGER.log(Level.FINE, String.format("Not using proxy for URI '%s'.", uri));
         }
         return new InetSocketAddress(uri.getHost(), port);
     }
