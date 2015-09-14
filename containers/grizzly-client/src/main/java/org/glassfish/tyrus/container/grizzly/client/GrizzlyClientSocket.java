@@ -905,28 +905,9 @@ public class GrizzlyClientSocket {
             SSLEngine sslEngine = super.createSSLEngine(this.peerHost, peerPort);
 
             if (hostVerificationEnabled && hostnameVerifier == null) {
-                try {
-                    // JDK 6
-                    Class<?> aClass = Class.forName("com.sun.net.ssl.internal.ssl.SSLEngineImpl");
-
-                    aClass.getMethod("trySetHostnameVerification", String.class).invoke(sslEngine, "HTTPS");
-
-                } catch (ClassNotFoundException e) {
-                    // not JDK 6 (hopefully 7+)
-
-                    SSLParameters sslParameters = sslEngine.getSSLParameters();
-                    try {
-                        SSLParameters.class.getMethod("setEndpointIdentificationAlgorithm", String.class)
-                                           .invoke(sslParameters, "HTTPS");
-                        sslEngine.setSSLParameters(sslParameters);
-                    } catch (Exception exc) {
-                        LOGGER.log(Level.CONFIG, "An error has occurred during SSL configuration, host name "
-                                + "verification might not be configured properly.", exc);
-                    }
-                } catch (Exception e) {
-                    LOGGER.log(Level.CONFIG, "An error has occurred during SSL configuration, host name verification "
-                            + "might not be configured properly.", e);
-                }
+                SSLParameters sslParameters = sslEngine.getSSLParameters();
+                sslParameters.setEndpointIdentificationAlgorithm("HTTPS");
+                sslEngine.setSSLParameters(sslParameters);
             }
 
             return sslEngine;

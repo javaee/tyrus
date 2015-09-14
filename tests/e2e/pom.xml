@@ -46,7 +46,7 @@
     <parent>
         <groupId>org.glassfish.tyrus.tests</groupId>
         <artifactId>tyrus-tests-project</artifactId>
-        <version>1.13-SNAPSHOT</version>
+        <version>2.0-SNAPSHOT</version>
     </parent>
 
     <packaging>pom</packaging>
@@ -58,26 +58,7 @@
         <module>application-config</module>
         <module>non-deployable</module>
         <module>standard-config</module>
+        <module>jdk8</module>
+        <module>jetty</module>
     </modules>
-
-    <profiles>
-        <profile>
-            <id>jdk8</id>
-            <activation>
-                <jdk>[1.8,2)</jdk>
-            </activation>
-            <modules>
-                <module>jdk8</module>
-            </modules>
-        </profile>
-        <profile>
-            <id>jdk7</id>
-            <activation>
-                <jdk>[1.7,2)</jdk>
-            </activation>
-            <modules>
-                <module>jetty</module>
-            </modules>
-        </profile>
-    </profiles>
 </project>
