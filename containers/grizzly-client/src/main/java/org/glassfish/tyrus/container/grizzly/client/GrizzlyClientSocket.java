@@ -897,10 +897,12 @@ public class GrizzlyClientSocket {
         }
 
         @Override
-        public SSLEngine createSSLEngine() {
+        public SSLEngine createSSLEngine(final String peerHost, final int peerPort) {
             /* the port is not part of host name verification, it is present in the constructor because of Kerberos
             (which is not supported by Tyrus) */
-            SSLEngine sslEngine = super.createSSLEngine(peerHost, -1);
+
+            // We use the peerHost provided by Tyrus, because Grizzly provides the peerHost only for JDK 7+
+            SSLEngine sslEngine = super.createSSLEngine(this.peerHost, peerPort);
 
             if (hostVerificationEnabled && hostnameVerifier == null) {
                 try {
