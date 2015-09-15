@@ -269,7 +269,7 @@ public final class Handshake {
         // http://java.net/jira/browse/TYRUS-55
         // Firefox workaround (it sends "Connections: keep-alive, upgrade").
         if (header.equalsIgnoreCase(UpgradeRequest.CONNECTION)) {
-            if (!value.toLowerCase().contains(validValue.toLowerCase())) {
+            if (value == null || !value.toLowerCase().contains(validValue.toLowerCase())) {
                 throw new HandshakeException(LocalizationMessages.INVALID_HEADER(header, value));
             }
         } else {
