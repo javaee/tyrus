@@ -410,10 +410,13 @@ public class JdkClientContainer implements ClientContainer {
         // ProxySelector
         final ProxySelector proxySelector = ProxySelector.getDefault();
 
-        // see WebSocket Protocol RFC, chapter 4.1.3: http://tools.ietf.org/html/rfc6455#section-4.1
-        addProxies(proxySelector, uri, "socket", proxies);
-        addProxies(proxySelector, uri, "https", proxies);
-        addProxies(proxySelector, uri, "http", proxies);
+        if (proxySelector != null) {
+            // see WebSocket Protocol RFC, chapter 4.1.3: http://tools.ietf.org/html/rfc6455#section-4.1
+            addProxies(proxySelector, uri, "socket", proxies);
+            addProxies(proxySelector, uri, "https", proxies);
+            addProxies(proxySelector, uri, "http", proxies);
+        }
+
         if (proxies.isEmpty()) {
             proxies.add(Proxy.NO_PROXY);
         }
