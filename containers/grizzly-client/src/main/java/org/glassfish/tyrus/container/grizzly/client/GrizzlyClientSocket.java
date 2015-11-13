@@ -791,23 +791,36 @@ public class GrizzlyClientSocket {
 
         private final Filter filter;
         private boolean enabled;
+        private volatile FilterChain filterChain;
 
         FilterWrapper(Filter filter) {
             this.filter = filter;
         }
 
         public void enable() {
+            if (!enabled && filterChain != null) {
+                filter.onAdded(filterChain);
+            }
+
             this.enabled = true;
         }
 
         @Override
         public void onAdded(FilterChain filterChain) {
-            filter.onAdded(filterChain);
+            this.filterChain = filterChain;
+
+            if (enabled) {
+                filter.onAdded(filterChain);
+            }
         }
 
         @Override
         public void onRemoved(FilterChain filterChain) {
             filter.onRemoved(filterChain);
+
+            if (enabled) {
+                filter.onRemoved(filterChain);
+            }
         }
 
         @Override
