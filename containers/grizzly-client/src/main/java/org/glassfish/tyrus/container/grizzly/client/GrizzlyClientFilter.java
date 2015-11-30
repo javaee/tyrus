@@ -297,8 +297,8 @@ class GrizzlyClientFilter extends BaseFilter {
                     ctx.write(getHttpContent(upgradeRequest));
                     UPGRADE_REQUEST.remove(grizzlyConnection);
                 } else {
-                    throw new IOException(String.format("Proxy error. %s: %s", httpStatus.getStatusCode(),
-                                                        new String(httpStatus.getReasonPhraseBytes(), "UTF-8")));
+                    engine.processError(new IOException(String.format("Proxy error. %s: %s", httpStatus.getStatusCode(),
+                            new String(httpStatus.getReasonPhraseBytes(), "UTF-8"))));
                 }
 
                 return ctx.getInvokeAction();

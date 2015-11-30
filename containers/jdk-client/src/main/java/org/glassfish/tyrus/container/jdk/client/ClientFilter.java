@@ -174,10 +174,11 @@ class ClientFilter extends Filter {
 
             if (proxy && !connectedToProxy) {
                 if (tyrusUpgradeResponse.getStatus() != 200) {
-                    LOGGER.log(Level.SEVERE, "Could not connect to proxy: " + tyrusUpgradeResponse.getStatus());
-                    closeConnection();
+                    processError(new IOException("Could not connect to a proxy. The proxy returned the following status code: "
+                            + tyrusUpgradeResponse.getStatus()));
                     return false;
                 }
+
                 connectedToProxy = true;
                 downstreamFilter.startSsl();
                 sendRequest(downstreamFilter, createHandshakeUpgradeRequest(upgradeRequest));
