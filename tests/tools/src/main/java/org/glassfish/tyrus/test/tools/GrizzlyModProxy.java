@@ -52,6 +52,7 @@ import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.Grizzly;
 import org.glassfish.grizzly.attributes.Attribute;
 import org.glassfish.grizzly.filterchain.BaseFilter;
+import org.glassfish.grizzly.filterchain.FilterChainBuilder;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.glassfish.grizzly.filterchain.NextAction;
 import org.glassfish.grizzly.http.HttpContent;
@@ -59,8 +60,10 @@ import org.glassfish.grizzly.http.HttpHeader;
 import org.glassfish.grizzly.http.HttpRequestPacket;
 import org.glassfish.grizzly.http.HttpResponsePacket;
 import org.glassfish.grizzly.http.Protocol;
+import org.glassfish.grizzly.http.server.AddOn;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.grizzly.http.server.HttpServerFilter;
+import org.glassfish.grizzly.http.server.NetworkListener;
 import org.glassfish.grizzly.memory.Buffers;
 
 /**
@@ -88,12 +91,15 @@ public class GrizzlyModProxy {
     public GrizzlyModProxy(String host, int port) {
         server = HttpServer.createSimpleServer("/", host, port);
         proxyFilter = new ProxyFilter();
-        server.getListener("grizzly").registerAddOn((networkListener, builder) -> {
-            int httpServerFilterIdx = builder.indexOfType(HttpServerFilter.class);
+        server.getListener("grizzly").registerAddOn(new AddOn() {
+            @Override
+            public void setup(NetworkListener networkListener, FilterChainBuilder builder) {
+                int httpServerFilterIdx = builder.indexOfType(HttpServerFilter.class);
 
-            if (httpServerFilterIdx >= 0) {
-                // Insert the WebSocketFilter right before HttpServerFilter
-                builder.add(httpServerFilterIdx, proxyFilter);
+                if (httpServerFilterIdx >= 0) {
+                    // Insert the WebSocketFilter right before HttpServerFilter
+                    builder.add(httpServerFilterIdx, proxyFilter);
+                }
             }
         });
     }
@@ -153,8 +159,13 @@ public class GrizzlyModProxy {
             Connection grizzlyConnection = ctx.getConnection();
             tunnelSockets.set(grizzlyConnection, tunnelSocket);
 
-            TunnelSocketReader tunnelSocketReader = new TunnelSocketReader(tunnelSocket, grizzlyConnection);
-            executorService.submit(tunnelSocketReader::read);
+            final TunnelSocketReader tunnelSocketReader = new TunnelSocketReader(tunnelSocket, grizzlyConnection);
+            executorService.submit(new Runnable() {
+                @Override
+                public void run() {
+                    tunnelSocketReader.read();
+                }
+            });
         } catch (IOException e) {
             writeHttpResponse(ctx, 400);
             return ctx.getStopAction();
