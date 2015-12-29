@@ -41,6 +41,7 @@
 package org.glassfish.tyrus.test.standard_config;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -76,10 +77,6 @@ public class ProxyTest extends TestContainer {
     private static final int PROXY_PORT = 8090;
     private static final String PROXY_URL = "http://" + PROXY_IP + ":" + PROXY_PORT;
 
-    public ProxyTest() {
-        setContextPath("/proxy-test");
-    }
-
     /**
      * A basic positive test.
      * <p/>
@@ -88,7 +85,6 @@ public class ProxyTest extends TestContainer {
     @Test
     public void testBasic() throws DeploymentException, IOException, InterruptedException {
         Server server = startServer(AnnotatedServerEndpoint.class);
-        server.start();
 
         GrizzlyModProxy proxy = new GrizzlyModProxy(PROXY_IP, PROXY_PORT);
         proxy.start();
@@ -104,15 +100,16 @@ public class ProxyTest extends TestContainer {
             assertTrue(latch.await(5, TimeUnit.SECONDS));
         } finally {
             proxy.stop();
-            server.stop();
+            stopServer(server);
         }
     }
 
     /**
      * Test a situation when the client receives a response to CONNECT with a status code other than 200.
+     * This can happen for instance if the server is down or does not exist.
      */
     @Test
-    public void testServerDown() throws DeploymentException, InterruptedException, IOException {
+    public void testNonExistentServer() throws DeploymentException, InterruptedException, IOException {
         GrizzlyModProxy proxy = new GrizzlyModProxy(PROXY_IP, PROXY_PORT);
         proxy.start();
 
@@ -122,8 +119,8 @@ public class ProxyTest extends TestContainer {
             properties.put(ClientProperties.PROXY_URI, PROXY_URL);
 
             try {
-                client.connectToServer(new AnnotatedClientEndpoint(new CountDownLatch(1)), getURI(AnnotatedServerEndpoint.class));
-
+                client.connectToServer(new AnnotatedClientEndpoint(new CountDownLatch(1)),
+                        URI.create("ws://nonExistentServer.com"));
                 fail();
             } catch (DeploymentException e) {
                 // At least check it is an IOException and that there is a [P|p]roxy problem
