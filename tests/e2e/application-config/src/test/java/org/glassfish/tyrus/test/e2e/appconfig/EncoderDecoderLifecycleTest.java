@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -50,6 +50,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.websocket.ClientEndpointConfig;
+import javax.websocket.CloseReason;
 import javax.websocket.ContainerProvider;
 import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
@@ -59,6 +60,7 @@ import javax.websocket.Encoder;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
+import javax.websocket.OnClose;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
@@ -98,8 +100,10 @@ public class EncoderDecoderLifecycleTest extends TestContainer {
     @ServerEndpoint(value = "/servicecodertest")
     public static class ServiceEndpoint {
 
+        public static volatile CountDownLatch closeLatch;
+
         @OnMessage
-        public String onMessage(String message) {
+        public String onMessage(String message) throws InterruptedException {
 
             int initialized = 0;
             int destroyed = 0;
@@ -132,6 +136,7 @@ public class EncoderDecoderLifecycleTest extends TestContainer {
                     return POSITIVE;
                 }
             } else if (message.equals("FirstClientClosed")) {
+                waitForCloseFrameArrival();
                 if (decCount == 1 && encCount == 1 && initialized == codersCount && destroyed == codersCount) {
                     return POSITIVE;
                 }
@@ -140,6 +145,7 @@ public class EncoderDecoderLifecycleTest extends TestContainer {
                     return POSITIVE;
                 }
             } else if (message.equals("SecondClientClosed")) {
+                waitForCloseFrameArrival();
                 if (decCount == 2 && encCount == 2 && initialized == codersCount && destroyed == codersCount) {
                     return POSITIVE;
                 }
@@ -151,6 +157,17 @@ public class EncoderDecoderLifecycleTest extends TestContainer {
             }
 
             return NEGATIVE;
+        }
+
+        private void waitForCloseFrameArrival() throws InterruptedException {
+            /* There is a race, since the Session#close just sends a close frame asynchronously and does not wait for
+               the connection to be really closed, so in some rare cases the call to the service endpoint can overtake
+               the closing handshake completion. */
+            closeLatch.await(1, TimeUnit.SECONDS);
+
+            if (closeLatch.getCount() > 0) {
+                System.out.println("!!! close frame still not received !!!");
+            }
         }
     }
 
@@ -264,6 +281,7 @@ public class EncoderDecoderLifecycleTest extends TestContainer {
         @OnOpen
         public void onOpen() {
             lastValue = MyDecoder.counter.get();
+            ServiceEndpoint.closeLatch = new CountDownLatch(1);
         }
 
         @OnMessage
@@ -284,6 +302,11 @@ public class EncoderDecoderLifecycleTest extends TestContainer {
         public void onError(Throwable t) {
             System.out.println("### MyEndpoint onError()");
             t.printStackTrace();
+        }
+
+        @OnClose
+        public void onClose() {
+            ServiceEndpoint.closeLatch.countDown();
         }
     }
 
@@ -313,7 +336,7 @@ public class EncoderDecoderLifecycleTest extends TestContainer {
         }
     }
 
-    static CountDownLatch messageLatch;
+    static volatile CountDownLatch messageLatch;
 
     // encoders/decoders per session
     @Test
@@ -376,6 +399,7 @@ public class EncoderDecoderLifecycleTest extends TestContainer {
             session.addMessageHandler(this);
 
             lastValue = MyDecoder.counter.get();
+            ServiceEndpoint.closeLatch = new CountDownLatch(1);
         }
 
         @Override
@@ -400,6 +424,11 @@ public class EncoderDecoderLifecycleTest extends TestContainer {
         public void onError(Session session, Throwable thr) {
             System.out.println("### MyEndpointProgrammatic onError()");
             thr.printStackTrace();
+        }
+
+        @Override
+        public void onClose(final Session session, final CloseReason closeReason) {
+            ServiceEndpoint.closeLatch.countDown();
         }
     }
 
