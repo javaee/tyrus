@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -51,6 +51,7 @@ import javax.websocket.EndpointConfig;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
@@ -472,6 +473,12 @@ public class OnCloseTest extends TestContainer {
     public static class OnCloseAllSupportedReasonsClientInitEndpoint {
 
         public static volatile CloseReason closeReason;
+        public static volatile CountDownLatch closeLatch;
+
+        @OnOpen
+        public void onOpen() {
+            closeLatch = new CountDownLatch(1);
+        }
 
         @OnMessage
         public String message(final Integer message, Session session) {
@@ -480,7 +487,9 @@ public class OnCloseTest extends TestContainer {
 
         @OnClose
         public void onClose(CloseReason closeReason, Session session) {
+            System.out.println("### Received closeReason: " + closeReason.getCloseCode().getCode());
             OnCloseAllSupportedReasonsClientInitEndpoint.closeReason = closeReason;
+            closeLatch.countDown();
         }
 
         @OnError
@@ -541,7 +550,7 @@ public class OnCloseTest extends TestContainer {
     public static class ServiceEndpoint {
 
         @OnMessage
-        public String message(String message, Session session) {
+        public String message(String message, Session session) throws InterruptedException {
             if (message.equals("OnCloseWithCustomReasonEndpoint")) {
                 if (OnCloseWithCustomReasonEndpoint.closeReason != null
                         && OnCloseWithCustomReasonEndpoint.closeReason.getCloseCode().getCode() == 4000
@@ -558,6 +567,15 @@ public class OnCloseTest extends TestContainer {
                 }
             } else { //testOnCloseClientInitiated, different test codes sent as a message
                 int i = Integer.parseInt(message);
+
+                /* There is a race, since the Session#close just sends a close frame asynchronously and does not wait for
+                   the connection to be really closed, so in some rare cases the call to the service endpoint can overtake
+                   the closing handshake completion. */
+                OnCloseAllSupportedReasonsClientInitEndpoint.closeLatch.await(1, TimeUnit.SECONDS);
+
+                if (OnCloseAllSupportedReasonsClientInitEndpoint.closeReason == null) {
+                    System.out.println("!!! close reason still not set !!!");
+                }
 
                 if (i == 1012 || i == 1013) {
                     if (OnCloseAllSupportedReasonsClientInitEndpoint.closeReason.getCloseCode().getCode() == 1000) {

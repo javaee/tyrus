@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -77,6 +77,7 @@ public class MaxMessageSizeTest extends TestContainer {
     public static class Endpoint1 {
 
         public static volatile CloseReason closeReason = null;
+        public static volatile CountDownLatch closeLatch = new CountDownLatch(1);
         public static volatile Throwable throwable = null;
 
 
@@ -92,6 +93,7 @@ public class MaxMessageSizeTest extends TestContainer {
         @OnClose
         public void onClose(CloseReason c) {
             closeReason = c;
+            closeLatch.countDown();
         }
 
         @OnError
@@ -107,16 +109,31 @@ public class MaxMessageSizeTest extends TestContainer {
     public static class ServiceEndpoint {
 
         @OnMessage
-        public String onMessage(String message) {
+        public String onMessage(String message) throws InterruptedException {
             if (message.equals("THROWABLE") && Endpoint1.throwable != null) {
                 return POSITIVE;
             } else if (message.equals("CLEANUP")) {
                 Endpoint1.closeReason = null;
                 Endpoint1.throwable = null;
+                Endpoint1.closeLatch = new CountDownLatch(1);
                 return POSITIVE;
-            } else if (Endpoint1.closeReason != null
-                    && Endpoint1.closeReason.getCloseCode().equals(CloseReason.CloseCodes.TOO_BIG)) {
-                return POSITIVE;
+            } else if (message.equals("POSITIVE_EXPECTED")) {
+                // if we expect a positive result, we allow waiting for the close reason for a while for stability reasons
+
+                /* There is a race, since the Session#close just sends a close frame asynchronously and does not wait for
+                   the connection to be really closed, so in some rare cases the call to the service endpoint can overtake
+                   the closing handshake completion. */
+                Endpoint1.closeLatch.await(1, TimeUnit.SECONDS);
+
+                if (Endpoint1.closeReason != null
+                        && Endpoint1.closeReason.getCloseCode().equals(CloseReason.CloseCodes.TOO_BIG)) {
+                    return POSITIVE;
+                }
+            } else if (message.equals("NEGATIVE_EXPECTED")){
+                if (Endpoint1.closeReason != null
+                        && Endpoint1.closeReason.getCloseCode().equals(CloseReason.CloseCodes.TOO_BIG)) {
+                    return POSITIVE;
+                }
             }
 
             return NEGATIVE;
@@ -310,7 +327,7 @@ public class MaxMessageSizeTest extends TestContainer {
             MyClientEndpoint.latch.await(1, TimeUnit.SECONDS);
             assertEquals(0, MyClientEndpoint.latch.getCount());
 
-            testViaServiceEndpoint(client, ServiceEndpoint.class, NEGATIVE, "TWO");
+            testViaServiceEndpoint(client, ServiceEndpoint.class, NEGATIVE, "NEGATIVE_EXPECTED");
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -336,7 +353,7 @@ public class MaxMessageSizeTest extends TestContainer {
             MyClientEndpoint.latch.await(1, TimeUnit.SECONDS);
             assertEquals(0, MyClientEndpoint.latch.getCount());
 
-            testViaServiceEndpoint(client, ServiceEndpoint.class, NEGATIVE, "TWO");
+            testViaServiceEndpoint(client, ServiceEndpoint.class, NEGATIVE, "NEGATIVE_EXPECTED");
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -362,7 +379,7 @@ public class MaxMessageSizeTest extends TestContainer {
             MyClientEndpoint.latch.await(1, TimeUnit.SECONDS);
             assertEquals(0, MyClientEndpoint.latch.getCount());
 
-            testViaServiceEndpoint(client, ServiceEndpoint.class, NEGATIVE, "TWO");
+            testViaServiceEndpoint(client, ServiceEndpoint.class, NEGATIVE, "NEGATIVE_EXPECTED");
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -389,7 +406,7 @@ public class MaxMessageSizeTest extends TestContainer {
             assertEquals(0, MyClientEndpoint.latch.getCount());
             assertNotNull(MyClientEndpoint.throwable);
 
-            testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "TWO");
+            testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "POSITIVE_EXPECTED");
             assertEquals("CloseReason on client is not: " + CloseReason.CloseCodes.TOO_BIG.getCode(),
                          CloseReason.CloseCodes.TOO_BIG.getCode(), MyClientEndpoint.reason.getCloseCode().getCode());
         } catch (Exception e) {
