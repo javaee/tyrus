@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -60,7 +60,7 @@ import javax.json.JsonObject;
 
 /**
  * Transactions endpoint.
- * <p/>
+ * <p>
  * One instance is created per user (page view), representing one trader. Each trader has resources, but offers are
  * global (shared), same as graph data.
  *
@@ -71,8 +71,8 @@ public class MarketEndpoint implements Market.MarketListener {
 
     private final Market market = Market.getInstance();
 
-    private volatile long lastId = 0;
-    private volatile Session session = null;
+    private volatile long lastId;
+    private volatile Session session;
     private volatile ScheduledFuture<?> scheduledFuture;
 
     // 30000 = 30.000 BTC

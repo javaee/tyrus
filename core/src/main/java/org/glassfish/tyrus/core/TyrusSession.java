@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -273,7 +273,7 @@ public class TyrusSession implements Session, DistributedSession {
 
     /**
      * Get set of remote sessions.
-     * <p/>
+     * <p>
      * Remote sessions are websocket sessions which are bound to another node in the cluster.
      *
      * @return set of remote sessions or empty set, when not running in cluster environment.
@@ -284,7 +284,7 @@ public class TyrusSession implements Session, DistributedSession {
 
     /**
      * Get set of all sessions opened to the same endpoint.
-     * <p/>
+     * <p>
      * Set returned from this method contains all "local" and {@link RemoteSession remote} sessions (if any).
      *
      * @return set of distributed sessions.
@@ -351,8 +351,8 @@ public class TyrusSession implements Session, DistributedSession {
      * messages. For further details of which message handlers handle which of the native websocket
      * message types please see {@link MessageHandler.Whole} and {@link MessageHandler.Partial}.
      * Adding more than one of any one type will result in a runtime exception.
-     * <p/>
-     * <p>See {@link javax.websocket.Endpoint} for a usage example.
+     * <p>
+     * See {@link javax.websocket.Endpoint} for a usage example.
      *
      * @param clazz   type of the message processed by message handler to be registered.
      * @param handler the MessageHandler to be added.
@@ -375,8 +375,8 @@ public class TyrusSession implements Session, DistributedSession {
      * messages. For further details of which message handlers handle which of the native websocket
      * message types please see {@link MessageHandler.Whole} and {@link MessageHandler.Partial}.
      * Adding more than one of any one type will result in a runtime exception.
-     * <p/>
-     * <p>See {@link javax.websocket.Endpoint} for a usage example.
+     * <p>
+     * See {@link javax.websocket.Endpoint} for a usage example.
      *
      * @param clazz   type of the message processed by message handler to be registered.
      * @param handler the MessageHandler to be added.
@@ -448,7 +448,7 @@ public class TyrusSession implements Session, DistributedSession {
 
     /**
      * Broadcasts text message to all connected clients.
-     * <p/>
+     * <p>
      * The broadcast can be executed in parallel, which can be enabled by setting
      * {@link org.glassfish.tyrus.core.TyrusWebSocketEngine#PARALLEL_BROADCAST_ENABLED}
      * to {@code true} in server properties.
@@ -462,7 +462,7 @@ public class TyrusSession implements Session, DistributedSession {
 
     /**
      * Broadcasts binary message to all connected clients, including remote sessions (if any).
-     * </p>
+     * <p>
      * The broadcast can be executed in parallel, which can be enabled by setting
      * {@link org.glassfish.tyrus.core.TyrusWebSocketEngine#PARALLEL_BROADCAST_ENABLED}
      * to {@code true} in server properties.

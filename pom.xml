@@ -2,7 +2,7 @@
 
     DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
 
-    Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
+    Copyright (c) 2011-2016 Oracle and/or its affiliates. All rights reserved.
 
     The contents of this file are subject to the terms of either the GNU
     General Public License Version 2 only ("GPL") or the Common Development
@@ -186,6 +186,8 @@
         <impljar.impl.version>${new_spec_version}-b${build_number}</impljar.impl.version>
 
         <netbeans.hint.license>gf-cddl-gpl</netbeans.hint.license>
+
+        <maven-javadoc-plugin.version>2.10.3</maven-javadoc-plugin.version>
     </properties>
 
     <modules>
@@ -260,7 +262,7 @@
                             <includeTestSourceDirectory>true</includeTestSourceDirectory>
                             <configLocation>etc/config/checkstyle-build.xml</configLocation>
                             <failOnViolation>true</failOnViolation>
-                            <excludes>**/guide/*</excludes>
+                            <excludes>**/guide/*,**/org/glassfish/tyrus/core/wsadl/model/**/*,**/LocalizationMessages.java</excludes>
                         </configuration>
                     </execution>
                 </executions>
@@ -376,7 +378,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>2.9.1</version>
+                    <version>${maven-javadoc-plugin.version}</version>
                     <configuration>
                         <doctitle>Tyrus ${project.version} API Documentation</doctitle>
                         <windowtitle>Tyrus ${project.version} API</windowtitle>
@@ -399,6 +401,9 @@
                         <links>
                             <link>https://tyrus.java.net/apidocs-javax.websocket/1.1</link>
                         </links>
+                        <excludePackageNames>
+                            *.core.l10n.*:*.internal.*:org.glassfish.tyrus.core.wsadl.model
+                        </excludePackageNames>
                     </configuration>
                     <executions>
                         <execution>

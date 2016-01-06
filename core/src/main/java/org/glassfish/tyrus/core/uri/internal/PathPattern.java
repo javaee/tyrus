@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2010-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2010-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -43,9 +43,9 @@ import java.util.Comparator;
 
 /**
  * A path pattern that is a regular expression generated from a URI path template.
- * <p/>
+ * <p>
  * The path pattern is normalized by removing a terminating "/" if present.
- * <p/>
+ * <p>
  * The path pattern is post-fixed with a right hand pattern that consists of either a matching group that matches zero
  * or more path segments, see {@link RightHandPath#capturingZeroOrMoreSegments}, or zero path segments, see {@link
  * RightHandPath#capturingZeroSegments}.

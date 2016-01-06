@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -49,7 +49,7 @@ import javax.websocket.SendHandler;
 
 /**
  * Cluster related context.
- * <p/>
+ * <p>
  * There is exactly one instance per cluster node and all communication is realized using this instance.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -58,7 +58,7 @@ public abstract class ClusterContext {
 
     /**
      * ClusterContext registration property.
-     * <p/>
+     * <p>
      * ClusterContext is registered to the Server container via properties passed to
      * {@link org.glassfish.tyrus.spi.ServerContainerFactory#createServerContainer(java.util.Map)}.
      */
@@ -227,7 +227,7 @@ public abstract class ClusterContext {
 
     /**
      * Register local session.
-     * <p/>
+     * <p>
      * Session id will be broadcasted to other nodes which will call {@link #getDistributedSessionProperties(String)}
      * and process its values. The map must be ready before this method is invoked.
      *
@@ -241,7 +241,7 @@ public abstract class ClusterContext {
 
     /**
      * Register session listener.
-     * <p/>
+     * <p>
      * Gets notification about session creation {@link org.glassfish.tyrus.core.cluster
      * .SessionListener#onSessionOpened(String)} and destruction {@link org.glassfish.tyrus.core.cluster
      * .SessionListener#onSessionClosed(String)}.
@@ -254,7 +254,7 @@ public abstract class ClusterContext {
 
     /**
      * Register broadcast listener.
-     * <p/>
+     * <p>
      * Gets notification about broadcasted messages. Used as an optimized variant of standard websocket broadcast
      * pattern. In this case, only one message is sent to all cluster nodes (instead {@code n} when {@code n} represent
      * number of clients connected to remote nodes).
@@ -267,7 +267,7 @@ public abstract class ClusterContext {
 
     /**
      * Get the map containing session properties to be shared among nodes.
-     * <p/>
+     * <p>
      * Changes must be propagated to remote instances.
      *
      * @param sessionId remote session id.
@@ -277,7 +277,7 @@ public abstract class ClusterContext {
 
     /**
      * Get the map containing session user properties to be shared among nodes.
-     * <p/>
+     * <p>
      * Changes must be propagated to remote instances.
      *
      * @param connectionId connection id. Connection id may be shared among subsequent TCP connection - represents
@@ -288,7 +288,7 @@ public abstract class ClusterContext {
 
     /**
      * Destroy map which holds distributed user properties.
-     * <p/>
+     * <p>
      * This method should be invoked only when session is properly closed.
      *
      * @param connectionId connection id. Connection id may be shared among subsequent TCP connection - represents
@@ -306,7 +306,7 @@ public abstract class ClusterContext {
 
     /**
      * Shutdown this ClusterContext.
-     * <p/>
+     * <p>
      * This will stop whole clustered node, any operation related to this cluster context will fail after this method
      * is invoked.
      */

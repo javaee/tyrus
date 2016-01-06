@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -153,7 +153,7 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
 
         /**
          * Wait for the future to be completed.
-         * <p/>
+         * <p>
          * {@link java.util.concurrent.Future#get()} will be invoked and exception processed (if thrown).
          *
          * @param future to be processed.
@@ -275,7 +275,7 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
 
         /**
          * Sends the message asynchronously.
-         * <p/>
+         * <p>
          * IMPORTANT NOTE: There is no need to start new thread here. All writer operations are by default
          * asynchronous,
          * the only difference between sync and async writer are that sync send should wait for future.get().
@@ -340,7 +340,7 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
 
         /**
          * Sends the message asynchronously.
-         * <p/>
+         * <p>
          * IMPORTANT NOTE: There is no need to start new thread here. All writer are by default asynchronous, only
          * difference between sync and async writer are that sync send should wait for future.get().
          *

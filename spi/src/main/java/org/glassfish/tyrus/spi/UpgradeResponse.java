@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -88,16 +88,18 @@ public abstract class UpgradeResponse implements HandshakeResponse {
 
     /**
      * Get HTTP reason phrase.
-     * <p/>
+     * <p>
      * TODO remove ?? we are using only for "Switching Protocols" and that is
      * TODO standard status code 101
+     *
+     * @param reason reason phrase to be set.
      */
     public abstract void setReasonPhrase(String reason);
 
     /**
      * Gets the value of the response header with the given name.
-     * <p/>
-     * <p>If a response header with the given name exists and contains
+     * <p>
+     * If a response header with the given name exists and contains
      * multiple values, the value that was added first will be returned.
      *
      * @param name header name.

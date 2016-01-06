@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -53,7 +53,7 @@ public abstract class UpgradeRequest implements HandshakeRequest {
 
     /**
      * Expected value in HTTP handshake "Upgrade" header.
-     * <p/>
+     * <p>
      * (Registered in RFC 6455).
      */
     public static final String WEBSOCKET = "websocket";
@@ -80,7 +80,7 @@ public abstract class UpgradeRequest implements HandshakeRequest {
 
     /**
      * WebSocket origin header name from previous versions.
-     * <p/>
+     * <p>
      * Keeping here only for backwards compatibility, not used anymore.
      */
     @SuppressWarnings("UnusedDeclaration")
@@ -98,7 +98,7 @@ public abstract class UpgradeRequest implements HandshakeRequest {
 
     /**
      * Server key hash used to compute "Sec-WebSocket-Accept" header value.
-     * <p/>
+     * <p>
      * Defined in RFC 6455.
      */
     public static final String SERVER_KEY_HASH = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
@@ -111,7 +111,7 @@ public abstract class UpgradeRequest implements HandshakeRequest {
     /**
      * If this header is present in the handshake request and the tracing type is configured to "ON_DEMAND", tracing
      * headers will be sent in the handshake response. The value of the header is no taken into account.
-     * <p/>
+     * <p>
      * Setting this header does not have any effect if the tracing type is configured to "ALL" or "OFF".
      */
     public static final String ENABLE_TRACING_HEADER = "X-Tyrus-Tracing-Accept";
@@ -119,7 +119,7 @@ public abstract class UpgradeRequest implements HandshakeRequest {
     /**
      * This header allows temporarily changing tracing threshold. If present in the handshake request, the tracing
      * threshold will be changed for the handshake the request is part of.
-     * <p/>
+     * <p>
      * The expected values are "SUMMARY" or "TRACE", of which "TRACE" will provide more fine-grained information.
      */
     public static final String TRACING_THRESHOLD = "X-Tyrus-Tracing-Threshold";

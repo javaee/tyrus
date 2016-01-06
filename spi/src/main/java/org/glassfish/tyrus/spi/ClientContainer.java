@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -54,11 +54,11 @@ public interface ClientContainer {
 
     /**
      * Property name for maximal incoming buffer size.
-     * <p/>
+     * <p>
      * Can be set in properties map (see {@link #openClientSocket(javax.websocket.ClientEndpointConfig, java.util.Map,
      * ClientEngine)}).
      *
-     * @deprecated please use {@link org.glassfish.tyrus.client.ClientProperties#INCOMING_BUFFER_SIZE}.
+     * @deprecated please use {@code org.glassfish.tyrus.client.ClientProperties#INCOMING_BUFFER_SIZE}.
      */
     String INCOMING_BUFFER_SIZE = "org.glassfish.tyrus.incomingBufferSize";
 
@@ -69,7 +69,7 @@ public interface ClientContainer {
 
     /**
      * Open client socket - connect to endpoint specified with {@code url} parameter.
-     * <p/>
+     * <p>
      * Called from ClientManager when {@link javax.websocket.WebSocketContainer#connectToServer(Class,
      * javax.websocket.ClientEndpointConfig, java.net.URI)} is invoked.
      *

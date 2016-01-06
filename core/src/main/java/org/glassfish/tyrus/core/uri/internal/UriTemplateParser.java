@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2010-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2010-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -134,7 +134,7 @@ public class UriTemplateParser {
 
     /**
      * Get the normalized template.
-     * <p/>
+     * <p>
      * A normalized template is a template without any explicit regular expressions.
      *
      * @return the normalized template.
@@ -172,7 +172,7 @@ public class UriTemplateParser {
 
     /**
      * Get the group indexes to capturing groups.
-     * <p/>
+     * <p>
      * Any nested capturing groups will be ignored and the the group index will refer to the top-level capturing groups
      * associated with the templates variables.
      *

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -65,7 +65,7 @@ import org.glassfish.grizzly.memory.Buffers;
 
 /**
  * Grizzly HTTP Server "hacked", so it behaves like a HTTP proxy.
- * <p/>
+ * <p>
  * It is only for tests.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
@@ -109,9 +109,14 @@ public class GrizzlyModProxy {
 
     /**
      * Method invoked when a first massage (Assumed to be HTTP) is received. Normally this would be HTTP CONNECT
-     * and this method processes it and opens a connection to the destination (the server that the client wants to access).
-     * <p/>
+     * and this method processes it and opens a connection to the destination (the server that the client wants to
+     * access).
+     * <p>
      * This method can be overridden to provide a test-specific handling of the CONNECT method.
+     *
+     * @param ctx     filter chain context.
+     * @param content http content.
+     * @return next action - controls whether next filter in chain will be executed or not.
      */
     protected NextAction handleConnect(FilterChainContext ctx, HttpContent content) {
         System.out.println("Handle CONNECT start . . .");

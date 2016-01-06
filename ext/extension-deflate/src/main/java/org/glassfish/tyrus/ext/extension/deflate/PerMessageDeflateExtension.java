@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -56,13 +56,11 @@ import org.glassfish.tyrus.core.frame.Frame;
 
 /**
  * Compression Extensions for WebSocket draft-ietf-hybi-permessage-compression-15
- * <p/>
+ * <p>
  * http://tools.ietf.org/html/draft-ietf-hybi-permessage-compression-15
- * <p/>
- * <p/>
  * <pre>TODO:
  * - parameters (window sizes, context takeovers).
- * - context (some utility methods to get the typed params - T getParam(Class<T>))
+ * - context (some utility methods to get the typed params - T getParam(Class&lt;T&gt;))
  * </pre>
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -279,8 +277,7 @@ public class PerMessageDeflateExtension implements ExtendedExtension {
 
         /**
          * Gets a new object from the pool.
-         * <p/>
-         * <p/>
+         * <p>
          * If no object is available in the pool, this method creates a new one.
          *
          * @return always non-null.

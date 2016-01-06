@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -67,24 +67,24 @@ import org.glassfish.tyrus.core.MessageHandlerManager;
 
 /**
  * Session builder removed the need for having client endpoint.
- * <p/>
+ * <p>
  * Client endpoint is replaced by references to onOpen, onError and onClose methods plus message handlers. Same rules
  * which do apply or limit message handlers are forced here as well. None of the methods is required, so {@link
  * Session}
  * can be opened even without it and used only for sending messages.
- * <p/>
+ * <p>
  * {@link javax.websocket.Encoder Encoders} and {@link javax.websocket.Decoder decoders} can be registered by creating
  * {@link javax.websocket.ClientEndpointConfig} and registering it to SessionBuilder via
  * {@link org.glassfish.tyrus.ext.client.java8.SessionBuilder#clientEndpointConfig} method call.
- * <p/>
+ * <p>
  * Code example:
  * <pre>Session session = new SessionBuilder()
  *      .uri(getURI(SessionBuilderEncDecTestEndpoint.class))
  *      .clientEndpointConfig(clientEndpointConfig)
- *      .messageHandler(AClass.class,aClass -> messageLatch.countDown())
- *      .onOpen((session1, endpointConfig) -> onOpenLatch.countDown())
- *      .onError((session1, throwable) -> onErrorLatch.countDown())
- *      .onClose((session1, closeReason) -> onCloseLatch.countDown())
+ *      .messageHandler(AClass.class,aClass -&gt; messageLatch.countDown())
+ *      .onOpen((session1, endpointConfig) -&gt; onOpenLatch.countDown())
+ *      .onError((session1, throwable) -&gt; onErrorLatch.countDown())
+ *      .onClose((session1, closeReason) -&gt; onCloseLatch.countDown())
  *      .connect();</pre>
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -118,7 +118,7 @@ public class SessionBuilder {
 
     /**
      * Create SessionBuilder with provided container provider class name.
-     * <p/>
+     * <p>
      * Generally, this is used only when you want to have fine-grained control about used container.
      *
      * @param containerProviderClassName container provider class name.
@@ -220,7 +220,7 @@ public class SessionBuilder {
 
     /**
      * Connect to the remote (server) endpoint.
-     * <p/>
+     * <p>
      * This method can be called multiple times, each invocation will result in new {@link Session} (new TCP connection
      * to the server).
      *
@@ -300,10 +300,10 @@ public class SessionBuilder {
 
     /**
      * Connect to the remote (server) endpoint asynchronously.
-     * <p/>
+     * <p>
      * Same statements as at {@link SessionBuilder#connect()} do apply here, only the returned value and possible
      * exceptions are returned as {@link java.util.concurrent.CompletableFuture}.
-     * <p/>
+     * <p>
      * {@link ForkJoinPool#commonPool()} is used for executing the connection phase.
      *
      * @return completable future returning {@link Session} when created.
@@ -344,10 +344,10 @@ public class SessionBuilder {
 
     /**
      * Connect to the remote (server) endpoint asynchronously.
-     * <p/>
+     * <p>
      * Same statements as at {@link SessionBuilder#connect()} do apply here, only the returned value and possible
      * exceptions are returned as {@link java.util.concurrent.CompletableFuture}.
-     * <p/>
+     * <p>
      * Provided {@link java.util.concurrent.ExecutorService} is used for executing the connection phase.
      *
      * @param executorService executor service used for executing the {@link #connect()} method.

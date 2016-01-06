@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -164,7 +164,7 @@ public abstract class TyrusServerContainer extends BaseContainer implements Serv
 
     /**
      * Undeploy all endpoints and stop underlying {@link org.glassfish.tyrus.spi.ServerContainer}.
-     * <p/>
+     * <p>
      * Release all created threadpools / executor services.
      */
     @Override
@@ -233,7 +233,7 @@ public abstract class TyrusServerContainer extends BaseContainer implements Serv
 
     /**
      * Non-blocking version of {@link javax.websocket.WebSocketContainer#connectToServer(Class, java.net.URI)}.
-     * <p/>
+     * <p>
      * Only simple checks are performed in the main thread; client container is created in different thread, same
      * applies to connecting etc.
      *
@@ -249,7 +249,7 @@ public abstract class TyrusServerContainer extends BaseContainer implements Serv
     /**
      * Non-blocking version of {@link javax.websocket.WebSocketContainer#connectToServer(Class,
      * javax.websocket.ClientEndpointConfig, java.net.URI)}.
-     * <p/>
+     * <p>
      * Only simple checks are performed in the main thread; client container is created in different thread, same
      * applies to connecting etc.
      *
@@ -269,7 +269,7 @@ public abstract class TyrusServerContainer extends BaseContainer implements Serv
     /**
      * Non-blocking version of {@link javax.websocket.WebSocketContainer#connectToServer(javax.websocket.Endpoint,
      * javax.websocket.ClientEndpointConfig, java.net.URI)}.
-     * <p/>
+     * <p>
      * Only simple checks are performed in the main thread; client container is created in different thread, same
      * applies to connecting etc.
      *
@@ -288,12 +288,11 @@ public abstract class TyrusServerContainer extends BaseContainer implements Serv
 
     /**
      * Non-blocking version of {@link javax.websocket.WebSocketContainer#connectToServer(Object, java.net.URI)}.
-     * <p/>
+     * <p>
      * Only simple checks are performed in the main thread; client container is created in different thread, same
      * applies to connecting etc.
      *
-     * @param obj  the annotated websocket client endpoint
-     *             instance.
+     * @param obj  the annotated websocket client endpoint instance.
      * @param path the complete path to the server endpoint.
      * @return the Session created if the connection is successful.
      * @throws DeploymentException if the annotated endpoint instance is not valid.

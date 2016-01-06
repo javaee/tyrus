@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -130,6 +130,7 @@ public class MessageHandlerManager {
      * Construct manager.
      *
      * @param decoderClasses registered {@link Decoder}s.
+     * @return constructed message handler manager.
      */
     public static MessageHandlerManager fromDecoderClasses(List<Class<? extends Decoder>> decoderClasses) {
         return new MessageHandlerManager(decoderClasses);
@@ -158,7 +159,8 @@ public class MessageHandlerManager {
      *
      * @param clazz   type handled by {@link MessageHandler}.
      * @param handler {@link MessageHandler} to be added.
-     * @throws IllegalStateException
+     * @param <T>     type of message to be handled.
+     * @throws IllegalStateException when the message handler cannot be added.
      */
     public <T> void addMessageHandler(Class<T> clazz, MessageHandler.Whole<T> handler) throws IllegalStateException {
         if (WHOLE_TEXT_HANDLER_TYPES.contains(clazz)) { // text
@@ -223,7 +225,8 @@ public class MessageHandlerManager {
      *
      * @param clazz   type handled by {@link MessageHandler}.
      * @param handler {@link MessageHandler} to be added.
-     * @throws IllegalStateException
+     * @param <T>     type of message to be handled.
+     * @throws IllegalStateException when the message handler cannot be added.
      */
     public <T> void addMessageHandler(Class<T> clazz, MessageHandler.Partial<T> handler) throws IllegalStateException {
         boolean viable = false;

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -89,7 +89,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
 
     /**
      * Property usable in {@link #getProperties()}.
-     * <p/>
+     * <p>
      * Value must be {@code int} and represents handshake timeout in milliseconds. Default value is 30000 (30 seconds).
      *
      * @deprecated please use {@link org.glassfish.tyrus.client.ClientProperties#HANDSHAKE_TIMEOUT}.
@@ -99,7 +99,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
 
     /**
      * Property usable in {@link #getProperties()}.
-     * <p/>
+     * <p>
      * Value must be {@link org.glassfish.tyrus.client.ClientManager.ReconnectHandler} instance.
      *
      * @deprecated please use {@link org.glassfish.tyrus.client.ClientProperties#RECONNECT_HANDLER}.
@@ -109,10 +109,9 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
 
     /**
      * Client-side user property to set proxy URI.
-     * <p/>
+     * <p>
      * Value is expected to be {@link String} and represent proxy URI. Protocol part is currently ignored
      * but must be present ({@link URI#URI(String)} is used for parsing).
-     * <p/>
      * <pre>
      *     client.getProperties().put(ClientManager.PROXY_URI, "http://my.proxy.com:80");
      *     client.connectToServer(...);
@@ -126,14 +125,14 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
 
     /**
      * Client-side user property to set additional proxy headers.
-     * <p/>
-     * Value is expected to be {@link Map}&lt{@link String}, {@link String}&gt and represent raw http headers
+     * <p>
+     * Value is expected to be {@link Map}&lt;{@link String}, {@link String}&gt; and represent raw http headers
      * to be added to initial request which is sent to proxy. Key corresponds to header name, value is header
      * value.
-     * <p/>
+     * <p>
      * Sample below demonstrates use of this feature to set preemptive basic proxy authentication:
      * <pre>
-     *     final HashMap<String, String> proxyHeaders = new HashMap<String, String>();
+     *     final HashMap&lt;String, String&gt; proxyHeaders = new HashMap&lt;String, String&gt;();
      *     proxyHeaders.put("Proxy-Authorization", "Basic " +
      *         Base64Utils.encodeToString("username:password".getBytes(Charset.forName("UTF-8")), false));
      *
@@ -152,10 +151,10 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
 
     /**
      * Property usable in {@link #getProperties()} as a key for SSL configuration.
-     * <p/>
+     * <p>
      * Value is expected to be either {@code org.glassfish.grizzly.ssl.SSLEngineConfigurator} when configuring Grizzly
      * client or {@link org.glassfish.tyrus.client.SslEngineConfigurator} when configuring JDK client.
-     * <p/>
+     * <p>
      * Example configuration for JDK client:
      * <pre>
      *      SslContextConfigurator sslContextConfigurator = new SslContextConfigurator();
@@ -178,7 +177,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
 
     /**
      * Default {@link org.glassfish.tyrus.spi.ServerContainerFactory} class name.
-     * <p/>
+     * <p>
      * Uses Grizzly as transport implementation.
      */
     private static final String CONTAINER_PROVIDER_CLASSNAME =
@@ -209,10 +208,11 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
 
     /**
      * Create new {@link ClientManager} instance.
-     * <p/>
+     * <p>
      * Uses {@link ClientManager#CONTAINER_PROVIDER_CLASSNAME} as container implementation, thus relevant module needs
      * to be on classpath. Setting different container is possible via {@link ClientManager#createClient(String)}.
      *
+     * @return created client manager.
      * @see ClientManager#createClient(String)
      */
     public static ClientManager createClient() {
@@ -221,10 +221,12 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
 
     /**
      * Create new ClientManager instance on top of provided {@link WebSocketContainer} instance.
-     * <p/>
+     * <p>
      * Uses {@link ClientManager#CONTAINER_PROVIDER_CLASSNAME} as container implementation, thus relevant module needs
      * to be on classpath. Setting different container is possible via {@link ClientManager#createClient(String)}.
      *
+     * @param webSocketContainer websocket container.
+     * @return created client manager.
      * @see ClientManager#createClient(String)
      */
     public static ClientManager createClient(WebSocketContainer webSocketContainer) {
@@ -234,6 +236,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     /**
      * Create new ClientManager instance.
      *
+     * @param containerProviderClassName classname of container provider. It will be loaded using context class loader.
      * @return new ClientManager instance.
      */
     public static ClientManager createClient(String containerProviderClassName) {
@@ -243,6 +246,8 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     /**
      * Create new ClientManager instance on top of provided {@link WebSocketContainer} instance.
      *
+     * @param containerProviderClassName classname of container provider. It will be loaded using context class loader.
+     * @param webSocketContainer websocket container.
      * @return new ClientManager instance.
      */
     public static ClientManager createClient(String containerProviderClassName, WebSocketContainer webSocketContainer) {
@@ -251,7 +256,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
 
     /**
      * Create new {@link ClientManager} instance.
-     * <p/>
+     * <p>
      * Uses {@link ClientManager#CONTAINER_PROVIDER_CLASSNAME} as container implementation, thus relevant module needs
      * to be on classpath. Setting different container is possible via {@link ClientManager#createClient(String)}}.
      *
@@ -387,7 +392,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
 
     /**
      * Non-blocking version of {@link WebSocketContainer#connectToServer(Class, java.net.URI)}.
-     * <p/>
+     * <p>
      * Only simple checks are performed in the main thread; client container is created in different thread, same
      * applies to connecting etc.
      *
@@ -409,7 +414,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     /**
      * Non-blocking version of {@link WebSocketContainer#connectToServer(Class, javax.websocket.ClientEndpointConfig,
      * java.net.URI)}.
-     * <p/>
+     * <p>
      * Only simple checks are performed in the main thread; client container is created in different thread, same
      * applies to connecting etc.
      *
@@ -428,7 +433,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     /**
      * Non-blocking version of {@link WebSocketContainer#connectToServer(javax.websocket.Endpoint,
      * javax.websocket.ClientEndpointConfig, java.net.URI)}.
-     * <p/>
+     * <p>
      * Only simple checks are performed in the main thread; client container is created in different thread, same
      * applies to connecting etc.
      *
@@ -447,7 +452,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
 
     /**
      * Non-blocking version of {@link WebSocketContainer#connectToServer(Object, java.net.URI)}.
-     * <p/>
+     * <p>
      * Only simple checks are performed in the main thread; client container is created in different thread, same
      * applies to connecting etc.
      *
@@ -817,7 +822,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
 
     /**
      * Container properties.
-     * <p/>
+     * <p>
      * Used to set container specific configuration as SSL truststore and keystore, HTTP Proxy configuration and
      * maximum
      * incoming buffer size. These properties cannot be shared among various containers due to constraints in WebSocket
@@ -869,7 +874,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
 
     /**
      * Reconnect handler.
-     * <p/>
+     * <p>
      * When implementing, be sure that you do have enough logic behind cancelling reconnect feature - even {@link
      * javax.websocket.Session#close()} call will be treated just like any other disconnect resulting in reconnect.
      */
@@ -890,7 +895,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
 
         /**
          * Called when there is a connection failure.
-         * <p/>
+         * <p>
          * Type of the failure is indicated by {@link Exception} parameter. Be cautious when implementing this method,
          * you might easily cause DDoS like behaviour.
          *
@@ -903,11 +908,11 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
 
         /**
          * Get reconnect delay.
-         * <p/>
+         * <p>
          * Called after {@link #onDisconnect(CloseReason)} or {@link #onConnectFailure(Exception)} when {@code true} is
          * returned. When positive value is returned, next connection attempt will be made after that number of
          * seconds.
-         * <p/>
+         * <p>
          * Default implementation returns {@value #RECONNECT_DELAY}.
          *
          * @return reconnect delay in seconds.
@@ -976,7 +981,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
 
         /**
          * A connection has been terminated -> the number of active clients decreases.
-         * <p/>
+         * <p>
          * This should be called either when the session is closed or an attempt to connect to the server fails.
          */
         void onConnectionTerminated();

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -61,7 +61,7 @@ import org.glassfish.tyrus.spi.Writer;
 
 /**
  * {@link HttpUpgradeHandler} and {@link ReadListener} implementation.
- * <p/>
+ * <p>
  * Reads data from {@link ServletInputStream} and passes it further to the Tyrus runtime.
  *
  * @author Jitendra Kotamraju
@@ -248,7 +248,7 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
 
     /**
      * Called when related {@link javax.servlet.http.HttpSession} is destroyed or invalidated.
-     * <p/>
+     * <p>
      * Implementation is required to call onClose() on server-side with corresponding close code (1008, see
      * WebSocket spec 7.2) - only when there is an authorized user for this session.
      */

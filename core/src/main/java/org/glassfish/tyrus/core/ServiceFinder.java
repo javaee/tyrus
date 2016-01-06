@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -72,8 +72,8 @@ import org.glassfish.tyrus.core.l10n.LocalizationMessages;
  * files placed into any of the usual extension directories.  Providers may
  * also be made available by adding them to the applet or application class
  * path or by some other platform-specific means.
- * <p/>
- * <p> In this lookup mechanism a service is represented by an interface or an
+ * <p>
+ * In this lookup mechanism a service is represented by an interface or an
  * abstract class.  (A concrete class may be used, but this is not
  * recommended.)  A provider of a given service contains one or more concrete
  * classes that extend this <i>service class</i> with data and code specific to
@@ -85,14 +85,14 @@ import org.glassfish.tyrus.core.l10n.LocalizationMessages;
  * interface could possibly unify them, so no such class has been defined.  The
  * only requirement enforced here is that provider classes must have a
  * zero-argument constructor so that they may be instantiated during lookup.
- * <p/>
- * <p>The default service provider registration/lookup mechanism based
+ * <p>
+ * The default service provider registration/lookup mechanism based
  * on <tt>META-INF/services</tt> files is described below.
  * For environments, where the basic mechanism is not suitable, clients
  * can enforce a different approach by setting their custom <tt>ServiceIteratorProvider</tt>
  * by calling <tt>setIteratorProvider</tt>. The call must be made prior to any lookup attempts.
- * </p>
- * <p> A service provider identifies itself by placing a provider-configuration
+ * <p>
+ * A service provider identifies itself by placing a provider-configuration
  * file in the resource directory <tt>META-INF/services</tt>.  The file's name
  * should consist of the fully-qualified name of the abstract service class.
  * The file should contain a list of fully-qualified concrete provider-class
@@ -100,39 +100,36 @@ import org.glassfish.tyrus.core.l10n.LocalizationMessages;
  * well as blank lines, are ignored.  The comment character is <tt>'#'</tt>
  * (<tt>0x23</tt>); on each line all characters following the first comment
  * character are ignored.  The file must be encoded in UTF-8.
- * <p/>
- * <p> If a particular concrete provider class is named in more than one
+ * <p>
+ * If a particular concrete provider class is named in more than one
  * configuration file, or is named in the same configuration file more than
  * once, then the duplicates will be ignored.  The configuration file naming a
  * particular provider need not be in the same jar file or other distribution
  * unit as the provider itself.  The provider must be accessible from the same
  * class loader that was initially queried to locate the configuration file;
  * note that this is not necessarily the class loader that found the file.
- * <p/>
- * <p> <b>Example:</b> Suppose we have a service class named
+ * <p>
+ * <b>Example:</b> Suppose we have a service class named
  * <tt>java.io.spi.CharCodec</tt>.  It has two abstract methods:
- * <p/>
  * <pre>
  *   public abstract CharEncoder getEncoder(String encodingName);
  *   public abstract CharDecoder getDecoder(String encodingName);
  * </pre>
- * <p/>
+ * <p>
  * Each method returns an appropriate object or <tt>null</tt> if it cannot
  * translate the given encoding.  Typical <tt>CharCodec</tt> providers will
  * support more than one encoding.
- * <p/>
- * <p> If <tt>sun.io.StandardCodec</tt> is a provider of the <tt>CharCodec</tt>
+ * <p>
+ * If <tt>sun.io.StandardCodec</tt> is a provider of the <tt>CharCodec</tt>
  * service then its jar file would contain the file
  * <tt>META-INF/services/java.io.spi.CharCodec</tt>.  This file would contain
  * the single line:
- * <p/>
  * <pre>
  *   sun.io.StandardCodec    # Standard codecs for the platform
  * </pre>
- * <p/>
+ * <p>
  * To locate an codec for a given encoding name, the internal I/O code would
  * do something like this:
- * <p/>
  * <pre>
  *   CharEncoder getEncoder(String encodingName) {
  *       for( CharCodec cc : ServiceFinder.find(CharCodec.class) ) {
@@ -143,7 +140,7 @@ import org.glassfish.tyrus.core.l10n.LocalizationMessages;
  *       return null;
  *   }
  * </pre>
- * <p/>
+ * <p>
  * The provider-lookup mechanism always executes in the security context of the
  * caller.  Trusted system code should typically invoke the methods in this
  * class from within a privileged security context.
@@ -202,18 +199,18 @@ public final class ServiceFinder<T> implements Iterable<T> {
     /**
      * Locates and incrementally instantiates the available providers of a
      * given service using the given class loader.
-     * <p/>
-     * <p> This method transforms the name of the given service class into a
+     * <p>
+     * This method transforms the name of the given service class into a
      * provider-configuration filename as described above and then uses the
      * <tt>getResources</tt> method of the given class loader to find all
      * available files with that name.  These files are then read and parsed to
      * produce a list of provider-class names.  The iterator that is returned
      * uses the given class loader to lookup and then instantiate each element
      * of the list.
-     * <p/>
-     * <p> Because it is possible for extensions to be installed into a running
+     * <p>
+     * Because it is possible for extensions to be installed into a running
      * Java virtual machine, this method may return different results each time
-     * it is invoked. <p>
+     * it is invoked.
      *
      * @param service The service's abstract service class
      * @param loader  The class loader to be used to load provider-configuration files
@@ -236,18 +233,18 @@ public final class ServiceFinder<T> implements Iterable<T> {
     /**
      * Locates and incrementally instantiates the available providers of a
      * given service using the given class loader.
-     * <p/>
-     * <p> This method transforms the name of the given service class into a
+     * <p>
+     * This method transforms the name of the given service class into a
      * provider-configuration filename as described above and then uses the
      * <tt>getResources</tt> method of the given class loader to find all
      * available files with that name.  These files are then read and parsed to
      * produce a list of provider-class names.  The iterator that is returned
      * uses the given class loader to lookup and then instantiate each element
      * of the list.
-     * <p/>
-     * <p> Because it is possible for extensions to be installed into a running
+     * <p>
+     * Because it is possible for extensions to be installed into a running
      * Java virtual machine, this method may return different results each time
-     * it is invoked. <p>
+     * it is invoked.
      *
      * @param service               The service's abstract service class
      * @param loader                The class loader to be used to load provider-configuration files
@@ -274,7 +271,6 @@ public final class ServiceFinder<T> implements Iterable<T> {
      * Locates and incrementally instantiates the available providers of a
      * given service using the context class loader.  This convenience method
      * is equivalent to
-     * <p/>
      * <pre>
      *   ClassLoader cl = Thread.currentThread().getContextClassLoader();
      *   return Service.providers(service, cl, false);
@@ -298,7 +294,6 @@ public final class ServiceFinder<T> implements Iterable<T> {
      * Locates and incrementally instantiates the available providers of a
      * given service using the context class loader.  This convenience method
      * is equivalent to
-     * <p/>
      * <pre>
      *   ClassLoader cl = Thread.currentThread().getContextClassLoader();
      *   boolean ingore = ...
@@ -339,10 +334,10 @@ public final class ServiceFinder<T> implements Iterable<T> {
     /**
      * Register the service iterator provider to iterate on provider instances
      * or classes.
-     * <p/>
+     * <p>
      * The default implementation registered, {@link DefaultServiceIteratorProvider},
      * looks up provider classes in META-INF/service files.
-     * <p/>
+     * <p>
      * This method must be called prior to any attempts to obtain provider
      * instances or classes.
      *
@@ -814,7 +809,7 @@ public final class ServiceFinder<T> implements Iterable<T> {
 
     /**
      * Supports iteration of provider instances or classes.
-     * <p/>
+     * <p>
      * The default implementation looks up provider classes from META-INF/services
      * files, see {@link DefaultServiceIteratorProvider}.
      * This implementation may be overridden by invoking
@@ -888,7 +883,7 @@ public final class ServiceFinder<T> implements Iterable<T> {
     /**
      * The default service iterator provider that looks up provider classes in
      * META-INF/services files.
-     * <p/>
+     * <p>
      * This class may utilized if a {@link ServiceIteratorProvider} needs to
      * reuse the default implementation.
      */

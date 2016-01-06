@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -56,7 +56,7 @@ import org.glassfish.tyrus.spi.UpgradeResponse;
  * A {@link java.util.logging.Logger} wrapper that gives logging records a common formatting and temporarily stores log
  * records and postpones their logging until they can be provided with a session ID. After a session ID has been
  * provided, messages are logged immediately.
- * <p/>
+ * <p>
  * Log records are provided with a session ID, so that log records from a single upgrade request can be easily linked
  * together in a log of a busy server or client.
  *
@@ -367,7 +367,7 @@ public class DebugContext {
         SUMMARY,
         /**
          * A more verbose tracing, an equivalent to {@link java.util.logging.Level#FINE} logging level.
-         * <p/>
+         * <p>
          * The default tracing threshold.
          */
         TRACE

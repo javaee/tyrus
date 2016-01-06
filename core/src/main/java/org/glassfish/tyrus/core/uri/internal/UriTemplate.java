@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2010-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2010-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -69,7 +69,6 @@ public class UriTemplate {
      * variables as the primary key, the number of matching groups
      * as a secondary key, and the number of explicit regular expression
      * declarations as the tertiary key.
-     * </p>
      */
     public static final Comparator<UriTemplate> COMPARATOR = new Comparator<UriTemplate>() {
 
@@ -133,7 +132,7 @@ public class UriTemplate {
      * A strategy interface for processing parameters, should be replaced with
      * a JDK 8 one day in the future.
      */
-    private static interface TemplateValueStrategy {
+    private interface TemplateValueStrategy {
         /**
          * Get a value for a given template variable.
          *
@@ -143,7 +142,7 @@ public class UriTemplate {
          * @throws java.lang.IllegalArgumentException in case no value has been found and the strategy
          *                                            does not support {@code null} values.
          */
-        public String valueFor(String templateVariable, String matchedGroup);
+        String valueFor(String templateVariable, String matchedGroup);
     }
 
     /**
@@ -208,12 +207,10 @@ public class UriTemplate {
      * Construct a new URI template.
      * <p>
      * The template will be parsed to extract template variables.
-     * </p>
      * <p>
      * A specific regular expression will be generated from the template
      * to match URIs according to the template and map template variables to
      * template values.
-     * </p>
      *
      * @param template the template.
      * @throws PatternSyntaxException   if the specified
@@ -228,13 +225,12 @@ public class UriTemplate {
 
     /**
      * Construct a new URI template.
-     * <p/>
+     * <p>
      * The template will be parsed to extract template variables.
-     * <p/>
+     * <p>
      * A specific regular expression will be generated from the template
      * to match URIs according to the template and map template variables to
      * template values.
-     * <p/>
      *
      * @param templateParser the parser to parse the template.
      * @throws PatternSyntaxException   if the specified
@@ -321,9 +317,9 @@ public class UriTemplate {
     }
 
     /**
-     * Normalize the URI by resolve the dot & dot-dot path segments as described in
+     * Normalize the URI by resolve the dot &amp; dot-dot path segments as described in
      * <a href="http://tools.ietf.org/html/rfc3986#section-5.2.4">RFC 3986</a>.
-     * <p/>
+     * <p>
      * This method provides a workaround for issues with {@link java.net.URI#normalize()} which
      * is not able to properly normalize absolute paths that start with a {@code ".."} segment,
      * e.g. {@code "/../a/b"} as required by RFC 3986 (according to RFC 3986 the path {@code "/../a/b"}
@@ -340,9 +336,9 @@ public class UriTemplate {
     }
 
     /**
-     * Normalize the URI by resolve the dot & dot-dot path segments as described in
+     * Normalize the URI by resolve the dot &amp; dot-dot path segments as described in
      * <a href="http://tools.ietf.org/html/rfc3986#section-5.2.4">RFC 3986</a>.
-     * <p/>
+     * <p>
      * This method provides a workaround for issues with {@link java.net.URI#normalize()} which
      * is not able to properly normalize absolute paths that start with a {@code ".."} segment,
      * e.g. {@code "/../a/b"} as required by RFC 3986 (according to RFC 3986 the path {@code "/../a/b"}
@@ -391,7 +387,7 @@ public class UriTemplate {
 
     /**
      * Relativize URI with respect to a base URI.
-     * <p/>
+     * <p>
      * After the relativization is done, dots in paths of both URIs are {@link #normalize(java.net.URI) resolved}.
      *
      * @param baseUri base URI to be used for relativization.
@@ -504,11 +500,10 @@ public class UriTemplate {
 
     /**
      * Match a URI against the template.
-     * <p/>
+     * <p>
      * If the URI matches against the pattern then the template variable to value
      * map will be filled with template variables as keys and template values as
      * values.
-     * <p/>
      *
      * @param uri                     the uri to match against the template.
      * @param templateVariableToValue the map where to put template variables (as keys)
@@ -529,10 +524,9 @@ public class UriTemplate {
 
     /**
      * Match a URI against the template.
-     * <p/>
+     * <p>
      * If the URI matches against the pattern the capturing group values (if any)
      * will be added to a list passed in as parameter.
-     * <p/>
      *
      * @param uri         the uri to match against the template.
      * @param groupValues the list to store the values of a pattern's
@@ -554,7 +548,7 @@ public class UriTemplate {
     /**
      * Create a URI by substituting any template variables
      * for corresponding template values.
-     * <p/>
+     * <p>
      * A URI template variable without a value will be substituted by the
      * empty string.
      *
@@ -575,7 +569,7 @@ public class UriTemplate {
     /**
      * Create a URI by substituting any template variables
      * for corresponding template values.
-     * <p/>
+     * <p>
      * A URI template variable without a value will be substituted by the
      * empty string.
      *
@@ -590,7 +584,7 @@ public class UriTemplate {
     /**
      * Create a URI by substituting any template variables
      * for corresponding template values.
-     * <p/>
+     * <p>
      * A URI template variable without a value will be substituted by the
      * empty string.
      *
@@ -747,7 +741,6 @@ public class UriTemplate {
      * <p>
      * A template values is an Object instance MUST support the toString()
      * method to convert the template value to a String instance.
-     * </p>
      *
      * @param scheme            the URI scheme component.
      * @param authority         the URI authority component.
@@ -791,7 +784,6 @@ public class UriTemplate {
      * <p>
      * A template value is an Object instance that MUST support the toString()
      * method to convert the template value to a String instance.
-     * </p>
      *
      * @param scheme            the URI scheme component.
      * @param authority         the URI authority info component.
@@ -829,7 +821,6 @@ public class UriTemplate {
      * The template values are an array of Object and each Object instance
      * MUST support the toString() method to convert the template value to
      * a String instance.
-     * </p>
      *
      * @param scheme            the URI scheme component.
      * @param authority         the URI authority component.
@@ -838,7 +829,7 @@ public class UriTemplate {
      * @param port              the URI port component.
      * @param path              the URI path component.
      * @param query             the URI query component.
-     * @param fragment          the URI fragment component.
+     * @param fragment ]         the URI fragment component.
      * @param values            the array of template values.
      * @param encode            if true encode a template value according to the correspond
      *                          component type of the associated template variable, otherwise
@@ -1030,8 +1021,7 @@ public class UriTemplate {
 
     /**
      * Resolves template variables in the given {@code template} from {@code _mapValues}. Resolves only these variables
-     * which are
-     * defined in the {@code _mapValues} leaving other variables unchanged.
+     * which are defined in the {@code _mapValues} leaving other variables unchanged.
      *
      * @param type       Type of the {@code template} (port, path, query, ...).
      * @param template   Input uri component to resolve.

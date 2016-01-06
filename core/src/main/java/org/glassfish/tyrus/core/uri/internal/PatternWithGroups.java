@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2010-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2010-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -149,7 +149,7 @@ public class PatternWithGroups {
 
     /**
      * Get the group indexes to capturing groups.
-     * <p/>
+     * <p>
      * Any nested capturing groups will be ignored and the the group index will refer to the top-level capturing groups
      * associated with the templates variables.
      *
@@ -293,7 +293,7 @@ public class PatternWithGroups {
 
     /**
      * Match against the pattern.
-     * <p/>
+     * <p>
      * If a matched then the capturing group values (if any) will be added to a list passed in as parameter.
      *
      * @param cs          the char sequence to match against the template.
@@ -341,7 +341,7 @@ public class PatternWithGroups {
 
     /**
      * Match against the pattern.
-     * <p/>
+     * <p>
      * If a matched then the capturing group values (if any) will be added to a list passed in as parameter.
      *
      * @param cs          the char sequence to match against the template.

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -66,7 +66,7 @@ import org.glassfish.tyrus.spi.UpgradeRequest;
 
 /**
  * Tyrus representation of web socket connection.
- * <p/>
+ * <p>
  * Instance of this class represents one bi-directional websocket connection.
  */
 public class TyrusWebSocket {
@@ -114,7 +114,7 @@ public class TyrusWebSocket {
 
     /**
      * This callback will be invoked when the remote endpoint sent a closing frame.
-     * <p/>
+     * <p>
      * The execution of this method is synchronized using {@link ProtocolHandler} instance; see TYRUS-385. Prevents
      * multiple invocations, especially from container/user code.
      *
@@ -146,6 +146,10 @@ public class TyrusWebSocket {
      * endpoints has been completed.
      *
      * @param upgradeRequest request associated with this socket.
+     * @param subProtocol    negotiated subprotocol.
+     * @param extensions     negotiated extensions.
+     * @param connectionId   connection id.
+     * @param debugContext   debug context.
      */
     public void onConnect(UpgradeRequest upgradeRequest, String subProtocol, List<Extension> extensions,
                           String connectionId, DebugContext debugContext) {
@@ -337,7 +341,7 @@ public class TyrusWebSocket {
 
     /**
      * Sends a <code>ping</code> frame with the specified payload (if any).
-     * <p/>
+     * <p>
      * It may seem odd to send a pong frame, however, RFC-6455 states:
      * "A Pong frame MAY be sent unsolicited.  This serves as a
      * unidirectional heartbeat.  A response to an unsolicited Pong frame is

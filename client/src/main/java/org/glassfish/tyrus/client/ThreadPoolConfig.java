@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -45,10 +45,10 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Client thread pool configuration, which might be used to customize client thread pool.
- * <p/>
+ * <p>
  * One can get a default <tt>ThreadPoolConfig</tt> using {@link ThreadPoolConfig#defaultConfig()}
  * and customize it according to the application specific requirements.
- * <p/>
+ * <p>
  * A <tt>ThreadPoolConfig</tt> object might be customized in a "Builder"-like fashion:
  * <pre>
  *      ThreadPoolConfig.defaultConfig()
@@ -164,7 +164,7 @@ public final class ThreadPoolConfig {
 
     /**
      * Return {@link java.util.concurrent.ThreadFactory} that will be used to create thread pool threads.
-     * <p/>
+     * <p>
      * If {@link java.util.concurrent.ThreadFactory} is set, then {@link #priority}, {@link #isDaemon},
      * {@link #poolName} settings will not be considered when creating new threads.
      *
@@ -259,7 +259,7 @@ public final class ThreadPoolConfig {
     /**
      * Set max thread pool size. The default is The default is {@code
      * Math.max(Runtime.getRuntime().availableProcessors(), 20)}.
-     * <p/>
+     * <p>
      * Cannot be smaller than 3.
      *
      * @param maxPoolSize the max thread pool size.
@@ -276,7 +276,7 @@ public final class ThreadPoolConfig {
 
     /**
      * Get the core thread pool size - the size of the thread pool will never bee smaller than this.
-     * <p/>
+     * <p>
      * The default is 1.
      *
      * @return the core thread pool size - the size of the thread pool will never bee smaller than this.
@@ -287,7 +287,7 @@ public final class ThreadPoolConfig {
 
     /**
      * Set the core thread pool size - the size of the thread pool will never bee smaller than this.
-     * <p/>
+     * <p>
      * The default is 1.
      *
      * @param corePoolSize the core thread pool size - the size of the thread pool will never bee smaller than this.
@@ -304,7 +304,7 @@ public final class ThreadPoolConfig {
 
     /**
      * Get the limit of the queue, where tasks are temporarily stored when all threads are busy.
-     * <p/>
+     * <p>
      * Value less than 0 means unlimited queue. The default is -1.
      *
      * @return the thread-pool queue limit. The queue limit
@@ -315,7 +315,7 @@ public final class ThreadPoolConfig {
 
     /**
      * Set the limit of the queue, where tasks are temporarily stored when all threads are busy.
-     * <p/>
+     * <p>
      * Value less than 0 means unlimited queue. The default is -1.
      *
      * @param queueLimit the thread pool queue limit. The <tt>queueLimit</tt> value less than 0 means unlimited queue.
@@ -332,10 +332,10 @@ public final class ThreadPoolConfig {
 
     /**
      * The max period of time a thread will wait for a new task to process.
-     * <p/>
+     * <p>
      * If the timeout expires and the thread is not a core one (see {@link #setCorePoolSize(int)},
      * {@link #setMaxPoolSize(int)}) - then the thread will be terminated and removed from the thread pool.
-     * <p/>
+     * <p>
      * The default is 10s.
      *
      * @param time max keep alive timeout. The value less than 0 means no timeout.
@@ -353,12 +353,13 @@ public final class ThreadPoolConfig {
 
     /**
      * Get the max period of time a thread will wait for a new task to process.
-     * <p/>
+     * <p>
      * If the timeout expires and the thread is not a core one (see {@link #setCorePoolSize(int)}, {@link
      * #setMaxPoolSize(int)}) - then the thread will be terminated and removed from the thread pool.
-     * <p/>
+     * <p>
      * The default is 10s.
      *
+     * @param timeUnit time unit to which the result will be converted.
      * @return the keep-alive timeout, the value less than 0 means no timeout.
      */
     public long getKeepAliveTime(TimeUnit timeUnit) {
@@ -371,8 +372,8 @@ public final class ThreadPoolConfig {
 
     /**
      * Get the class loader (if any) to be initially exposed by threads from this pool.
-     * <p/>
-     * If not specified, the class loader of the parent thread that initialized the pool will be used.
+     * <p>
+     * If not specified, the class loader of the parent thread that initialized the pool will be used.Authen
      *
      * @return the class loader (if any) to be initially exposed by threads from this pool.
      */
@@ -382,7 +383,7 @@ public final class ThreadPoolConfig {
 
     /**
      * Specifies the context class loader that will be used by threads in this pool.
-     * <p/>
+     * <p>
      * If not specified, the class loader of the parent thread that initialized the pool will be used.
      *
      * @param initialClassLoader the class loader to be exposed by threads of this pool.

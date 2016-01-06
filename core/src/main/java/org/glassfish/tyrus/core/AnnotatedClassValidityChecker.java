@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -82,7 +82,7 @@ class AnnotatedClassValidityChecker {
     /**
      * Checks whether the params of the method annotated with {@link javax.websocket.OnMessage} comply with the
      * specification.
-     * <p/>
+     * <p>
      * Voluntary parameters of type {@link javax.websocket.Session} and parameters annotated with {@link
      * javax.websocket.server.PathParam} are checked in advance in {@link AnnotatedEndpoint}.
      */
@@ -112,7 +112,7 @@ class AnnotatedClassValidityChecker {
 
     /**
      * Checks whether the params of method annotated with {@link javax.websocket.OnOpen} comply with the specification.
-     * <p/>
+     * <p>
      * Voluntary parameters of type {@link javax.websocket.Session} and parameters annotated with {@link
      * javax.websocket.server.PathParam} are checked in advance in {@link AnnotatedEndpoint}.
      *
