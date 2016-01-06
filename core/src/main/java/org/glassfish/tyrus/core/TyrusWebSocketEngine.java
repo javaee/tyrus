@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -89,9 +89,9 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
 
     /**
      * Maximum size of incoming buffer in bytes.
-     * <p/>
+     * <p>
      * The value must be {@link java.lang.Integer} or its primitive alternative.
-     * <p/>
+     * <p>
      * Default value is 4194315, which means that TyrusWebSocketEngine is by default
      * capable of processing messages up to 4 MB.
      */
@@ -99,52 +99,52 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
 
     /**
      * Maximum number of open sessions per server application.
-     * <p/>
+     * <p>
      * The value must be positive {@link java.lang.Integer} or its primitive alternative. Negative values
      * and zero are ignored.
-     * <p/>
+     * <p>
      * The number of open sessions per application is not limited by default.
      */
     public static final String MAX_SESSIONS_PER_APP = "org.glassfish.tyrus.maxSessionsPerApp";
 
     /**
      * Maximum number of open sessions per unique remote address.
-     * <p/>
+     * <p>
      * The value must be positive {@link java.lang.Integer} or its primitive alternative. Negative values
      * and zero are ignored.
-     * <p/>
+     * <p>
      * The number of open sessions per remote address is not limited by default.
      */
     public static final String MAX_SESSIONS_PER_REMOTE_ADDR = "org.glassfish.tyrus.maxSessionsPerRemoteAddr";
 
     /**
      * Property used for configuring the type of tracing supported by the server.
-     * <p/>
+     * <p>
      * The value is expected to be string value of {@link org.glassfish.tyrus.core.DebugContext.TracingType}.
-     * <p/>
+     * <p>
      * The default value is {@link org.glassfish.tyrus.core.DebugContext.TracingType#OFF}.
      */
     public static final String TRACING_TYPE = "org.glassfish.tyrus.server.tracingType";
 
     /**
      * Property used for configuring tracing threshold.
-     * <p/>
+     * <p>
      * The value is expected to be string value of {@link org.glassfish.tyrus.core.DebugContext.TracingThreshold}.
-     * <p/>
+     * <p>
      * The default value is {@link org.glassfish.tyrus.core.DebugContext.TracingThreshold#SUMMARY}.
      */
     public static final String TRACING_THRESHOLD = "org.glassfish.tyrus.server.tracingThreshold";
 
     /**
      * Wsadl support.
-     * <p/>
+     * <p>
      * Wsadl is experimental feature which exposes endpoint configuration in form of XML file,
      * similarly as Wadl for REST services. Currently generated Wsadl contains only set of
      * endpoints and their endpoint paths. Wsadl is exposed on URI ending by "application.wsadl".
-     * <p/>
+     * <p>
      * The value must be string, {@code "true"} means that the feature is enable, {@code "false"} that the feature
      * is disabled.
-     * <p/>
+     * <p>
      * Default value is "false";
      */
     @Beta
@@ -152,15 +152,15 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
 
     /**
      * Parallel broadcast support.
-     * <p/>
+     * <p>
      * {@link org.glassfish.tyrus.core.TyrusSession#broadcast(String)} and {@link org.glassfish.tyrus.core
      * .TyrusSession#broadcast(java.nio.ByteBuffer)} operations are by default executed in parallel. The parallel
      * execution of broadcast can be disabled by setting this server property to {@code false}.
-     * <p/>
+     * <p>
      * Expected value is {@code true} or {@code false} and the default value is {@code false}.
      *
-     * @see org.glassfish.tyrus.core.TyrusSession#broadcast(String).
-     * @see org.glassfish.tyrus.core.TyrusSession#broadcast(java.nio.ByteBuffer).
+     * @see org.glassfish.tyrus.core.TyrusSession#broadcast(String)
+     * @see org.glassfish.tyrus.core.TyrusSession#broadcast(java.nio.ByteBuffer)
      */
     public static final String PARALLEL_BROADCAST_ENABLED = "org.glassfish.tyrus.server.parallelBroadcastEnabled";
 
@@ -194,7 +194,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
      * Create {@link org.glassfish.tyrus.core.TyrusWebSocketEngine.TyrusWebSocketEngineBuilder}
      * instance based on passed {@link WebSocketContainer}.
      *
-     * @param webSocketContainer {@link WebSocketContainer} instance. Cannot be {@link null}.
+     * @param webSocketContainer {@link WebSocketContainer} instance. Cannot be {@code null}.
      * @return new builder.
      */
     public static TyrusWebSocketEngineBuilder builder(WebSocketContainer webSocketContainer) {
@@ -922,12 +922,12 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
 
         /**
          * Set {@link org.glassfish.tyrus.core.monitoring.ApplicationEventListener}.
-         * <p/>
+         * <p>
          * Listener can be used for monitoring various events and properties, such as deployed endpoints, ongoing
          * sessions etc...
          *
          * @param applicationEventListener listener instance used for building {@link org.glassfish.tyrus.core
-         *                                 .TyrusWebSocketEngine}. Can be {@link null}.
+         *                                 .TyrusWebSocketEngine}. Can be {@code null}.
          * @return updated builder.
          */
         public TyrusWebSocketEngineBuilder applicationEventListener(ApplicationEventListener applicationEventListener) {
@@ -949,7 +949,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
 
         /**
          * Set {@link org.glassfish.tyrus.core.cluster.ClusterContext}.
-         * <p/>
+         * <p>
          * ClusterContext provides clustering functionality.
          *
          * @param clusterContext cluster context instance. {@code null} indicates standalone mode.

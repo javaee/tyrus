@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -79,7 +79,7 @@ public class SessionEventListener {
      *
      * @param message partial message to be sent.
      * @param isLast  {@code true} when the partial message being sent is the last part of the message.
-     * @throws IOException
+     * @throws IOException if there is a problem delivering the message.
      */
     public void onSendText(String message, boolean isLast) throws IOException {
         session.getBasicRemote().sendText(message, isLast);

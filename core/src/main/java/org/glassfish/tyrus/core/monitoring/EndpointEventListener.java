@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -66,7 +66,7 @@ public interface EndpointEventListener {
 
     /**
      * Called when an error has occurred.
-     * <p/>
+     * <p>
      * Errors that occur either during {@link javax.websocket.Endpoint#onOpen(javax.websocket.Session,
      * javax.websocket.EndpointConfig)}, {@link javax.websocket.Endpoint#onClose(javax.websocket.Session,
      * javax.websocket.CloseReason)} and their annotated equivalent or when handling an incoming message, cause this

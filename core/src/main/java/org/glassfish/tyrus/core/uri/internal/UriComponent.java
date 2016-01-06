@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2010-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2010-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -421,17 +421,16 @@ public class UriComponent {
     /**
      * Decodes characters of a string that are percent-encoded octets using
      * UTF-8 decoding (if needed).
-     * <p/>
+     * <p>
      * It is assumed that the string is valid according to an (unspecified) URI
      * component type. If a sequence of contiguous percent-encoded octets is
      * not a valid UTF-8 character then the octets are replaced with '\uFFFD'.
-     * <p/>
+     * <p>
      * If the URI component is of type HOST then any "%" found between "[]" is
      * left alone. It is an IPv6 literal with a scope_id.
-     * <p/>
+     * <p>
      * If the URI component is of type QUERY_PARAM then any "+" is decoded as
      * as ' '.
-     * <p/>
      *
      * @param s the string to be decoded.
      * @param t the URI component type, may be null.
@@ -490,7 +489,6 @@ public class UriComponent {
      * <p>
      * Query parameter names in the returned map are always decoded. Decoding of query parameter
      * values can be controlled using the {@code decode} parameter flag.
-     * </p>
      *
      * @param u      the URI.
      * @param decode {@code true} if the returned query parameter values of the query component
@@ -506,7 +504,6 @@ public class UriComponent {
      * <p>
      * Query parameter names in the returned map are always decoded. Decoding of query parameter
      * values can be controlled using the {@code decode} parameter flag.
-     * </p>
      *
      * @param q      the query component in encoded form.
      * @param decode {@code true} if the returned query parameter values of the query component
@@ -522,7 +519,6 @@ public class UriComponent {
      * <p>
      * Decoding of query parameter names and values can be controlled using the {@code decodeNames}
      * and {@code decodeValues} parameter flags.
-     * </p>
      *
      * @param q            the query component in encoded form.
      * @param decodeNames  {@code true} if the returned query parameter names of the query component
@@ -634,7 +630,6 @@ public class UriComponent {
      * the path segment list will contain three empty path segments. If the path
      * is "/a/" the path segment list will consist of the following path
      * segments in order: "", "a" and "".
-     * </p>
      *
      * @param path   the path component in encoded form.
      * @param decode true if the path segments of the path component
@@ -795,7 +790,7 @@ public class UriComponent {
 
     /**
      * Decode a continuous sequence of percent encoded octets.
-     * <p/>
+     * <p>
      * Assumes the index, i, starts that the first hex digit of the first
      * percent-encoded octet.
      */
@@ -898,7 +893,7 @@ public class UriComponent {
 
     /**
      * Return the {@code Request-Uri} representation as defined by HTTP spec. For example:
-     * <pre>&lt;Method> &lt;Request-URI> HTTP/&lt;Version> (e.g. GET /auth;foo=bar/hello?foo=bar HTTP/1.1)</pre>
+     * <pre>&lt;Method&gt; &lt;Request-URI&gt; HTTP/&lt;Version&gt; (e.g. GET /auth;foo=bar/hello?foo=bar HTTP/1.1)</pre>
      *
      * @param uri uri to obtain {@code Request-Uri} from.
      * @return {@code Request-Uri} representation or {@code null} if {@code uri} is not provided.

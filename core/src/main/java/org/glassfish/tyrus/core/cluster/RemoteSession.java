@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -92,7 +92,7 @@ public class RemoteSession implements Session, DistributedSession {
     public static enum DistributedMapKey implements Serializable {
         /**
          * Negotiated subprotocol.
-         * <p/>
+         * <p>
          * Value must be {@link String}.
          *
          * @see javax.websocket.Session#getNegotiatedSubprotocol()
@@ -100,7 +100,7 @@ public class RemoteSession implements Session, DistributedSession {
         NEGOTIATED_SUBPROTOCOL("negotiatedSubprotocol"),
         /**
          * Negotiated extensions.
-         * <p/>
+         * <p>
          * Value must be {@link List}&lt;{@link Extension}&gt;.
          *
          * @see javax.websocket.Session#getNegotiatedExtensions()
@@ -108,7 +108,7 @@ public class RemoteSession implements Session, DistributedSession {
         NEGOTIATED_EXTENSIONS("negotiatedExtensions"),
         /**
          * Secure flag.
-         * <p/>
+         * <p>
          * Value must be {@code boolean} or {@link java.lang.Boolean}.
          *
          * @see javax.websocket.Session#isSecure()
@@ -116,7 +116,7 @@ public class RemoteSession implements Session, DistributedSession {
         SECURE("secure"),
         /**
          * Max idle timeout.
-         * <p/>
+         * <p>
          * Value must be {@code long} or {@link java.lang.Long}.
          *
          * @see javax.websocket.Session#getMaxIdleTimeout()
@@ -124,7 +124,7 @@ public class RemoteSession implements Session, DistributedSession {
         MAX_IDLE_TIMEOUT("maxIdleTimeout"),
         /**
          * Max binary buffer size.
-         * <p/>
+         * <p>
          * Value must be {@code int} or {@link java.lang.Integer}.
          *
          * @see javax.websocket.Session#getMaxBinaryMessageBufferSize()
@@ -132,7 +132,7 @@ public class RemoteSession implements Session, DistributedSession {
         MAX_BINARY_MESSAGE_BUFFER_SIZE("maxBinaryBufferSize"),
         /**
          * Max text buffer size.
-         * <p/>
+         * <p>
          * Value must be {@code int} or {@link java.lang.Integer}.
          *
          * @see javax.websocket.Session#getMaxTextMessageBufferSize()
@@ -140,7 +140,7 @@ public class RemoteSession implements Session, DistributedSession {
         MAX_TEXT_MESSAGE_BUFFER_SIZE("maxTextBufferSize"),
         /**
          * Request URI.
-         * <p/>
+         * <p>
          * Value must be {@link URI}.
          *
          * @see javax.websocket.Session#getRequestURI()
@@ -148,7 +148,7 @@ public class RemoteSession implements Session, DistributedSession {
         REQUEST_URI("requestURI"),
         /**
          * Request Parameter map.
-         * <p/>
+         * <p>
          * Value must be {@link java.util.Map}&lt;{@link String}, {@link java.util.List}&lt;{@link String}&gt;&gt;.
          *
          * @see javax.websocket.Session#getRequestParameterMap()
@@ -156,7 +156,7 @@ public class RemoteSession implements Session, DistributedSession {
         REQUEST_PARAMETER_MAP("requestParameterMap"),
         /**
          * Query string.
-         * <p/>
+         * <p>
          * Value must be {@link String}.
          *
          * @see javax.websocket.Session#getQueryString()
@@ -164,7 +164,7 @@ public class RemoteSession implements Session, DistributedSession {
         QUERY_STRING("queryString"),
         /**
          * Path parameters.
-         * <p/>
+         * <p>
          * Value must be {@link java.util.Map}&lt;{@link String}, {@link String}&gt;.
          *
          * @see javax.websocket.Session#getPathParameters()
@@ -172,7 +172,7 @@ public class RemoteSession implements Session, DistributedSession {
         PATH_PARAMETERS("pathParameters"),
         /**
          * User principal.
-         * <p/>
+         * <p>
          * Value must be {@link java.security.Principal}.
          *
          * @see javax.websocket.Session#getUserPrincipal()
@@ -180,7 +180,7 @@ public class RemoteSession implements Session, DistributedSession {
         USER_PRINCIPAL("userPrincipal"),
         /**
          * Cluster connection Id. (internal property).
-         * <p/>
+         * <p>
          * Value must be {@link String}.
          */
         CONNECTION_ID("connectionId");
@@ -201,10 +201,11 @@ public class RemoteSession implements Session, DistributedSession {
     /**
      * Constructor.
      *
-     * @param sessionId       session id.
-     * @param clusterContext  cluster context.
-     * @param endpointWrapper used just to get encoders/decoders.
-     * @param session         used just to get encoders/decoders.
+     * @param sessionId              session id.
+     * @param clusterContext         cluster context.
+     * @param distributedPropertyMap distributed property map.
+     * @param endpointWrapper        used just to get encoders/decoders.
+     * @param session                used just to get encoders/decoders.
      */
     public RemoteSession(final String sessionId,
                          final ClusterContext clusterContext,
@@ -251,7 +252,7 @@ public class RemoteSession implements Session, DistributedSession {
 
             /**
              * Wait for the future to be completed.
-             * <p/>
+             * <p>
              * {@link java.util.concurrent.Future#get()} will be invoked and exception processed (if thrown).
              *
              * @param future to be processed.

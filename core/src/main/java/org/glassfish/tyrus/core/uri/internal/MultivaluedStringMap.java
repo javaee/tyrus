@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -45,7 +45,7 @@ import java.util.List;
 /**
  * An implementation of {@link MultivaluedMap} where keys and values are
  * instances of String.
- * <p />
+ * <p>
  * This map has an additional ability to instantiate classes using the
  * individual string values as a constructor parameters.
  *

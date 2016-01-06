@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -59,17 +59,14 @@ import static java.lang.annotation.ElementType.TYPE;
  * has not been fully stabilized yet. As such, the API is subject to backward-incompatible changes
  * (or even removal) in a future Tyrus release. Tyrus development team does not make any guarantees
  * to retain backward compatibility of a {@code @Beta}-annotated Tyrus API.
- * </p>
  * <p>
  * This annotation does not indicate inferior quality or performance of the API, just informs that the
  * API may still evolve in the future in a backward-incompatible ways. Tyrus users may use beta APIs
  * in their applications keeping in mind potential cost of extra work associated with an upgrade
  * to a newer Tyrus version.
- * </p>
  * <p>
  * Once a {@code @Beta}-annotated Tyrus API reaches the desired maturity, the {@code @Beta} annotation
  * will be removed from such API and the API will become part of a stable public Tyrus API.
- * </p>
  *
  * @author Marek Potociar (marek.potociar at oracle.com)
  */

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2008-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2008-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -49,7 +49,7 @@ import javax.net.ssl.SSLEngine;
 
 /**
  * SSLEngineConfigurator class from Grizzly project.
- * <p/>
+ * <p>
  * Utility class, which helps to configure {@link SSLEngine}. Should be passed to client via configuration properties.
  * Example:
  * <pre>
@@ -416,12 +416,13 @@ public class SslEngineConfigurator {
 
     /**
      * Set custom hostname verifier.
-     * <p/>
+     * <p>
      * When custom {@link HostnameVerifier} instance is registered, it will be used to perform hostname verification,
      * no matter on the state of hostname verification flag (see {@link #isHostVerificationEnabled()}) and JDK default
      * hostname verifier won't be used.
      *
      * @param hostnameVerifier custom hostname verifier.
+     * @return updated {@link SslEngineConfigurator}.
      */
     public SslEngineConfigurator setHostnameVerifier(HostnameVerifier hostnameVerifier) {
         this.hostnameVerifier = hostnameVerifier;
@@ -432,7 +433,7 @@ public class SslEngineConfigurator {
     /**
      * Create {@link SSLContext} and store it for further invocation of this method.
      *
-     * @return
+     * @return created ssl context.
      */
     public SSLContext getSslContext() {
         if (sslContext == null) {
@@ -449,6 +450,8 @@ public class SslEngineConfigurator {
     /**
      * Return the list of allowed protocol.
      *
+     * @param sslEngine          ssl engine.
+     * @param requestedProtocols requested protocols.
      * @return String[] an array of supported protocols.
      */
     private static String[] configureEnabledProtocols(SSLEngine sslEngine, String[] requestedProtocols) {
@@ -483,6 +486,8 @@ public class SslEngineConfigurator {
     /**
      * Determines the SSL cipher suites to be enabled.
      *
+     * @param sslEngine        ssl engine.
+     * @param requestedCiphers requested ciphers.
      * @return Array of SSL cipher suites to be enabled, or null if none of the
      * requested ciphers are supported.
      */

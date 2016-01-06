@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -71,9 +71,11 @@ public interface Connection {
     /**
      * Returns the same close listener that is passed for creating connection in
      * {@link WebSocketEngine.UpgradeInfo#createConnection(Writer, CloseListener)}.
-     * <p/>
+     * <p>
      * This transport close listener receives connection close notifications
      * from Tyrus.
+     *
+     * @return close listener provided when the connection is created.
      */
     CloseListener getCloseListener();
 

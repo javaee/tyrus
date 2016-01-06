@@ -77,7 +77,9 @@ public class TestContainer {
     /**
      * Start embedded server unless "tyrus.test.host" system property is specified.
      *
+     * @param endpointClasses websocket endpoints and configs to be deployed.
      * @return new {@link Server} instance or {@code null} if "tyrus.test.host" system property is set.
+     * @throws DeploymentException when the server cannot be started.
      */
     protected Server startServer(Class<?>... endpointClasses) throws DeploymentException {
         final String host = System.getProperty("tyrus.test.host");
@@ -111,7 +113,7 @@ public class TestContainer {
 
     /**
      * Get port used for creating remote endpoint {@link URI}.
-     * <p/>
+     * <p>
      * Can be overridden by {@link TestContainer} descendants.
      *
      * @return port used for creating remote endpoint {@link URI}.
@@ -223,9 +225,9 @@ public class TestContainer {
      * @param serviceEndpoint endpoint to which the message will be sent.
      * @param expectedResult  expected reply.
      * @param message         message to be sent.
-     * @throws DeploymentException
-     * @throws IOException
-     * @throws InterruptedException
+     * @throws DeploymentException when the client cannot connect to service endpoint.
+     * @throws IOException         if there was a network or protocol problem that
+     *                             prevented the client endpoint being connected to its server.
      */
     protected void testViaServiceEndpoint(ClientManager client, Class<?> serviceEndpoint, final String expectedResult,
                                           String message) throws DeploymentException, IOException,

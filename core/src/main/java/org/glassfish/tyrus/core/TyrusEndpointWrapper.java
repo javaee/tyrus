@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -107,7 +107,7 @@ import org.glassfish.tyrus.spi.UpgradeResponse;
 
 /**
  * Wraps the registered application class.
- * <p/>
+ * <p>
  * There is one {@link TyrusEndpointWrapper} for each application class, which handles all the methods.
  *
  * @author Danny Coward (danny.coward at oracle.com)
@@ -159,9 +159,13 @@ public class TyrusEndpointWrapper {
      * @param configuration            endpoint configuration.
      * @param componentProvider        component provider.
      * @param container                container where the wrapper is running.
+     * @param contextPath              context path of the application.
+     * @param configurator             endpoint configurator.
+     * @param sessionListener          session listener.
      * @param clusterContext           cluster context instance. {@code null} indicates standalone mode.
      * @param endpointEventListener    endpoint event listener.
      * @param parallelBroadcastEnabled {@code true} if parallel broadcast should be enabled, {@code true} is default.
+     * @throws DeploymentException when the endpoint is not valid.
      */
     public TyrusEndpointWrapper(Class<? extends Endpoint> endpointClass, EndpointConfig configuration,
                                 ComponentProviderService componentProvider, WebSocketContainer container,
@@ -180,9 +184,13 @@ public class TyrusEndpointWrapper {
      * @param configuration            endpoint configuration.
      * @param componentProvider        component provider.
      * @param container                container where the wrapper is running.
+     * @param contextPath              context path of the application.
+     * @param configurator             endpoint configurator.
+     * @param sessionListener          session listener.
      * @param clusterContext           cluster context instance. {@code null} indicates standalone mode.
      * @param endpointEventListener    endpoint event listener.
      * @param parallelBroadcastEnabled {@code true} if parallel broadcast should be enabled, {@code true} is default.
+     * @throws DeploymentException when the endpoint is not valid.
      */
     public TyrusEndpointWrapper(Endpoint endpoint, EndpointConfig configuration,
                                 ComponentProviderService componentProvider, WebSocketContainer container,
@@ -564,7 +572,7 @@ public class TyrusEndpointWrapper {
 
     /**
      * Server-side; Get server endpoint path.
-     * <p/>
+     * <p>
      * In this context, server endpoint path is exactly what is present in {@link javax.websocket.server.ServerEndpoint}
      * annotation or returned from {@link javax.websocket.server.ServerEndpointConfig#getPath()} method call. Context
      * path is not included.
@@ -1195,7 +1203,7 @@ public class TyrusEndpointWrapper {
     /**
      * Called by the provider when the web socket connection
      * has an incoming ping message from the given remote endpoint.
-     * <p/>
+     * <p>
      * The endpoint needs to respond as soon as possible (see the websocket RFC).
      * No involvement from application layer, there is no ping listener.
      *
@@ -1570,7 +1578,7 @@ public class TyrusEndpointWrapper {
 
     /**
      * Server side check for protocol specific information to determine whether the request can be upgraded.
-     * <p/>
+     * <p>
      * The default implementation will check for the presence of the
      * {@code Upgrade} header with a value of {@code WebSocket}.
      *
@@ -1628,7 +1636,7 @@ public class TyrusEndpointWrapper {
 
     /**
      * Invoked when server side handshake is ready to send response.
-     * <p/>
+     * <p>
      * Changes in response parameter will be reflected in data sent back to client.
      *
      * @param request  original request which caused this handshake.
@@ -1700,7 +1708,7 @@ public class TyrusEndpointWrapper {
 
     /**
      * Session listener.
-     * <p/>
+     * <p>
      * TODO: rename/consolidate with {@link org.glassfish.tyrus.core.monitoring.EndpointEventListener}?
      */
     public abstract static class SessionListener {
@@ -1729,7 +1737,7 @@ public class TyrusEndpointWrapper {
         /**
          * Invoked before {@link javax.websocket.OnOpen} annotated method
          * or {@link Endpoint#onOpen(javax.websocket.Session, javax.websocket.EndpointConfig)} is invoked.
-         * <p/>
+         * <p>
          * Default implementation always returns {@link
          * org.glassfish.tyrus.core.TyrusEndpointWrapper.SessionListener.OnOpenResult#SESSION_ALLOWED}.
          *

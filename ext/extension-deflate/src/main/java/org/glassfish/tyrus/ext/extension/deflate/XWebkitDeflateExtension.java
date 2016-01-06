@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -42,7 +42,7 @@ package org.glassfish.tyrus.ext.extension.deflate;
 
 /**
  * Compression extension for webkit based browsers.
- * <p/>
+ * <p>
  * Very same as {@link PerMessageDeflateExtension}, only name differs.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)

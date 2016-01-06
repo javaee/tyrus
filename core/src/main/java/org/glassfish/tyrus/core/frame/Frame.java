@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -42,7 +42,6 @@ package org.glassfish.tyrus.core.frame;
 
 /**
  * WebSocket frame representation.
- * <p/>
  * <pre>TODO:
  * - masking (isMask is currently ignored)
  * - validation
@@ -68,7 +67,7 @@ public class Frame {
 
     /**
      * Copy constructor.
-     * <p/>
+     * <p>
      * Note: this is shallow copy. Payload is *not* copied to new array.
      *
      * @param frame copied frame.
@@ -176,9 +175,9 @@ public class Frame {
 
     /**
      * Get payload data.
-     * <p/>
+     * <p>
      * Changes done to returned array won't be propagated to current {@link Frame} instance. If you need to modify
-     * payload, you have to create new instance, see {@link Frame.Builder#Frame(Frame)}. Length of returned array will
+     * payload, you have to create new instance, see {@code Builder#Frame(Frame)}. Length of returned array will
      * be always same as {@link #getPayloadLength()}.
      *
      * @return payload data.
@@ -214,7 +213,7 @@ public class Frame {
     }
 
     /**
-     * Create new {@link Frame.Builder}.
+     * Create new {@link Builder}.
      *
      * @return new builder instance.
      */
@@ -223,7 +222,7 @@ public class Frame {
     }
 
     /**
-     * Create new {@link Frame.Builder} based on provided frame.
+     * Create new {@link Builder} based on provided frame.
      *
      * @param frame frame used as a base for building new frame.
      * @return new builder instance.
@@ -285,7 +284,7 @@ public class Frame {
          * Set FIN flag.
          *
          * @param fin value to be set as FIN.
-         * @return updated {@link Frame.Builder} instance.
+         * @return updated {@link Builder} instance.
          */
         public Builder fin(boolean fin) {
             this.fin = fin;
@@ -296,7 +295,7 @@ public class Frame {
          * Set RSV1 flag.
          *
          * @param rsv1 value to be set as RSV1.
-         * @return updated {@link Frame.Builder} instance.
+         * @return updated {@link Builder} instance.
          */
         public Builder rsv1(boolean rsv1) {
             this.rsv1 = rsv1;
@@ -307,7 +306,7 @@ public class Frame {
          * Set RSV2 flag.
          *
          * @param rsv2 value to be set as RSV2.
-         * @return updated {@link Frame.Builder} instance.
+         * @return updated {@link Builder} instance.
          */
         public Builder rsv2(boolean rsv2) {
             this.rsv2 = rsv2;
@@ -318,7 +317,7 @@ public class Frame {
          * Set RSV3 flag.
          *
          * @param rsv3 value to be set as RSV3.
-         * @return updated {@link Frame.Builder} instance.
+         * @return updated {@link Builder} instance.
          */
         public Builder rsv3(boolean rsv3) {
             this.rsv3 = rsv3;
@@ -329,7 +328,7 @@ public class Frame {
          * Currently not used.
          *
          * @param mask not used.
-         * @return updated {@link Frame.Builder} instance.
+         * @return updated {@link Builder} instance.
          */
         public Builder mask(boolean mask) {
             this.mask = mask;
@@ -340,7 +339,7 @@ public class Frame {
          * Set opcode.
          *
          * @param opcode opcode to be set. (4 bits).
-         * @return updated {@link Frame.Builder} instance.
+         * @return updated {@link Builder} instance.
          */
         public Builder opcode(byte opcode) {
             this.opcode = (byte) (opcode & 0x0f);
@@ -349,12 +348,12 @@ public class Frame {
 
         /**
          * Set payload length.
-         * <p/>
+         * <p>
          * Payload length is automatically set to payloadData length when {@link #payloadData(byte[])} is called. This
          * method can limit the data used for this frame by setting smaller value than payloadData.length.
          *
          * @param payloadLength payload length. Must not be greater than payloadData.length.
-         * @return updated {@link Frame.Builder} instance.
+         * @return updated {@link Builder} instance.
          * @see #payloadData(byte[])
          */
         public Builder payloadLength(long payloadLength) {
@@ -366,7 +365,7 @@ public class Frame {
          * Set masking key. Default value is {@code null}.
          *
          * @param maskingKey masking key.
-         * @return updated {@link Frame.Builder} instance.
+         * @return updated {@link Builder} instance.
          */
         public Builder maskingKey(Integer maskingKey) {
             this.maskingKey = maskingKey;
@@ -377,7 +376,7 @@ public class Frame {
          * Set payload data. {@link #payloadLength(long)} is also updated with payloadData.length.
          *
          * @param payloadData data to be set.
-         * @return updated {@link Frame.Builder} instance.
+         * @return updated {@link Builder} instance.
          * @see #payloadLength(long)
          */
         public Builder payloadData(byte[] payloadData) {

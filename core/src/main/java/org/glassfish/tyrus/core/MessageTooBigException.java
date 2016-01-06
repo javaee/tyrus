@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -43,7 +43,7 @@ import javax.websocket.CloseReason;
 
 /**
  * Thrown when {@link javax.websocket.OnMessage#maxMessageSize()} is smaller than received message size.
- * <p/>
+ * <p>
  * Underlying web socket connection will be closed with {@link javax.websocket.CloseReason.CloseCode}
  * {@link javax.websocket.CloseReason.CloseCodes#TOO_BIG} and {@link javax.websocket.OnError} annotated method (or
  * {@link javax.websocket.Endpoint#onError(javax.websocket.Session, Throwable)} will be called with instance of this

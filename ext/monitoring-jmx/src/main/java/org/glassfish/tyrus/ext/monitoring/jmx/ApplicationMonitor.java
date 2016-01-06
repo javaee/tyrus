@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -51,11 +51,11 @@ import org.glassfish.tyrus.core.monitoring.EndpointEventListener;
 /**
  * Application events listener and application-level statistics collector.
  * The statistics are collected by aggregating statistics from application endpoints.
- * <p/>
+ * <p>
  * Creates and registers {@link org.glassfish.tyrus.ext.monitoring.jmx.ApplicationMXBean} MXBean that exposes these
  * application statistics. Also creates and registers {@link org.glassfish.tyrus.ext.monitoring.jmx
  * .MessageStatisticsMXBean} MXBean for exposing text, binary and control messages statistics.
- * <p/>
+ * <p>
  * Allows defining the level monitoring will be conducted on by setting parameter in constructor that determines
  * if message statistics should be collected on session level or not. In the former case statistics will be collected
  * and exposed in MXBeans per session, endpoint and application. In the latter case statistics will be collected

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -75,7 +75,7 @@ import org.glassfish.tyrus.spi.Writer;
 
 /**
  * Tyrus protocol handler.
- * <p/>
+ * <p>
  * Responsible for framing and unframing raw websocket frames. Tyrus creates exactly one instance per Session.
  */
 public final class ProtocolHandler {
@@ -107,7 +107,7 @@ public final class ProtocolHandler {
 
     /**
      * Synchronizes all public send* (including stream variants) methods.
-     * <p/>
+     * <p>
      * The reason for this lock is that we need to have consistent value in {#sendingFragment} field to be able to
      * determine the sending state of this particular instance/session.
      */
@@ -174,7 +174,7 @@ public final class ProtocolHandler {
 
     /**
      * Set {@link Writer} instance.
-     * <p/>
+     * <p>
      * The set instance is used for "sending" all outgoing WebSocket frames.
      *
      * @param writer {@link Writer} to be set.
@@ -360,7 +360,7 @@ public final class ProtocolHandler {
 
     /**
      * Check whether current {@link ProtocolHandler} is sending a partial message.
-     * <p/>
+     * <p>
      * If yes, wait for {@value ProtocolHandler#SEND_TIMEOUT} and if the message still cannot be sent, throw {@link
      * IllegalStateException}.
      */
@@ -751,9 +751,9 @@ public final class ProtocolHandler {
 
     /**
      * TODO.
-     * <p/>
+     * <p>
      * called after Extension execution.
-     * <p/>
+     * <p>
      * validates frame + processes its content
      *
      * @param frame  TODO.

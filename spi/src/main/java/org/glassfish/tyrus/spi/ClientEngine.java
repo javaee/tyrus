@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -73,7 +73,7 @@ public interface ClientEngine {
 
     /**
      * Process error.
-     * <p/>
+     * <p>
      * This method can be called any time when client encounters an error which cannot be handled in the container
      * before {@link ClientUpgradeStatus#SUCCESS} is returned from {@link #processResponse(UpgradeResponse, Writer,
      * Connection.CloseListener)}.
@@ -97,21 +97,21 @@ public interface ClientEngine {
 
     /**
      * Upgrade process result.
-     * <p/>
+     * <p>
      * Provides information about upgrade process. There are three possible states which can be reported:
      * <ul>
      * <li>{@link ClientUpgradeStatus#ANOTHER_UPGRADE_REQUEST_REQUIRED}</li>
      * <li>{@link ClientUpgradeStatus#UPGRADE_REQUEST_FAILED}</li>
      * <li>{@link ClientUpgradeStatus#SUCCESS}</li>
      * </ul>
-     * <p/>
+     * <p>
      * When {@link #getUpgradeStatus()} returns {@link ClientUpgradeStatus#SUCCESS}, client container can create
      * {@link Connection} and start processing read events from the underlying connection and report them to Tyrus
      * runtime.
-     * <p/>
+     * <p>
      * When {@link #getUpgradeStatus()} returns {@link ClientUpgradeStatus#UPGRADE_REQUEST_FAILED}, client container
      * HAS TO close all resources related to currently processed {@link UpgradeResponse}.
-     * <p/>
+     * <p>
      * When {@link #getUpgradeStatus()} returns {@link ClientUpgradeStatus#ANOTHER_UPGRADE_REQUEST_REQUIRED}, client
      * container HAS TO close all resources related to currently processed {@link UpgradeResponse}, open new TCP
      * connection and send {@link UpgradeRequest} obtained from method {@link #createUpgradeRequest(TimeoutHandler)}.
@@ -129,14 +129,14 @@ public interface ClientEngine {
          * Create new {@link Connection} when {@link #getUpgradeStatus()} returns {@link ClientUpgradeStatus#SUCCESS}.
          *
          * @return new {@link Connection} instance or {@code null}, when {@link #getUpgradeStatus()} does not return
-         * {@link ClientUpgradeStatus#}.
+         * {@link ClientUpgradeStatus}.
          */
         Connection createConnection();
     }
 
     /**
      * Status of upgrade process.
-     * <p/>
+     * <p>
      * Returned by {@link #processResponse(UpgradeResponse, Writer, Connection.CloseListener)}.
      */
     enum ClientUpgradeStatus {

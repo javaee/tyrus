@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -205,6 +205,7 @@ public class Utils {
      * @param list        list to be converted.
      * @param stringifier strignifier used for conversion. When {@code null}, {@link Object#toString()} method will be
      *                    used.
+     * @param <T>         type to be converted.
      * @return converted list.
      */
     public static <T> List<String> getStringList(List<T> list, Stringifier<T> stringifier) {
@@ -225,6 +226,7 @@ public class Utils {
      * @param list        list of values.
      * @param stringifier strignifier used for conversion. When {@code null}, {@link Object#toString()} method will be
      *                    used.
+     * @param <T>         type to be converted.
      * @return serialized list.
      */
     public static <T> String getHeaderFromList(List<T> list, Stringifier<T> stringifier) {
@@ -306,9 +308,12 @@ public class Utils {
      * the other one, it will be done and the original buffer will be returned. Otherwise new buffer will
      * be created.
      *
-     * @param buffer  first buffer.
-     * @param buffer1 second buffer.
+     * @param buffer             first buffer.
+     * @param buffer1            second buffer.
+     * @param incomingBufferSize incoming buffer size. Concatenation length cannot be bigger than this value.
+     * @param BUFFER_STEP_SIZE   buffer step size.
      * @return concatenation.
+     * @throws IllegalArgumentException when the concatenation length is bigger than provided incoming buffer size.
      */
     public static ByteBuffer appendBuffers(ByteBuffer buffer, ByteBuffer buffer1, int incomingBufferSize,
                                            int BUFFER_STEP_SIZE) {
@@ -358,6 +363,7 @@ public class Utils {
      * @param properties property map.
      * @param key        key of value to be retrieved.
      * @param type       type of value to be retrieved.
+     * @param <T>        type of value to be retrieved.
      * @return typed value or {@code null} if property is not set or value is not assignable.
      */
     public static <T> T getProperty(Map<String, Object> properties, String key, Class<T> type) {
@@ -370,6 +376,7 @@ public class Utils {
      * @param properties   property map.
      * @param key          key of value to be retrieved.
      * @param type         type of value to be retrieved.
+     * @param <T>          type of value to be retrieved.
      * @param defaultValue value returned when record does not exist in supplied map.
      * @return typed value or {@code null} if property is not set or value is not assignable.
      */
@@ -418,7 +425,7 @@ public class Utils {
 
     /**
      * Get port from provided {@link URI}.
-     * <p/>
+     * <p>
      * Expected schemes are {@code "ws"} and {@code "wss"} and this method will return {@code 80} or
      * {@code 443} when the port is not explicitly set in the provided {@link URI}.
      *
@@ -431,7 +438,7 @@ public class Utils {
 
     /**
      * Get port from provided {@link URI}.
-     * <p/>
+     * <p>
      * Expected schemes are {@code "ws"} and {@code "wss"} and this method will return {@code 80} or
      * {@code 443} when the port is not explicitly set in the provided {@link URI}.
      *
@@ -455,7 +462,7 @@ public class Utils {
 
     /**
      * Parse HTTP date.
-     * <p/>
+     * <p>
      * HTTP applications have historically allowed three different formats for the representation of date/time stamps:
      * <ul>
      * <li>{@code Sun, 06 Nov 1994 08:49:37 GMT} (RFC 822, updated by RFC 1123)</li>

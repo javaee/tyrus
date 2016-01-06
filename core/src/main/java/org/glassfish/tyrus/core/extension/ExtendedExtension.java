@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -49,39 +49,35 @@ import org.glassfish.tyrus.core.frame.Frame;
 
 /**
  * WebSocket {@link Extension}.
- * <p/>
+ * <p>
  * Capable of parameters negotiation, incoming and outgoing frames processing.
- * <p/>
+ * <p>
  * Extensions are ordered as they appear in handshake response headers, as per RFC 6455, chapter 9.1. It does not state
  * any ordering in regards of sender/receiver side and current implementation reflects that. See TODO below for
  * possible
  * issue related to ordering.
- * <p/>
+ * <p>
  * Let's say we have negotiated two extensions, ext1 and ext2 in this order without parameters, so handshake response
  * headers will be: "sec-websocket-extensions: ext1, ext2". Prefix "c_" means client side, prefix "s_" server side.
  * <pre>
- *   client -> server
+ *   client -&gt; server
  *
  *                +--------+   +--------+                  +--------+   +--------+
- *   client  >----| c_ext1 |-->| c_ext2 |--> [network] --> | s_ext1 |-->| s_ext2 |--> server
+ *   client  &gt;----| c_ext1 |--&gt;| c_ext2 |--&gt; [network] --&gt; | s_ext1 |--&gt;| s_ext2 |--&gt; server
  *                +--------+   +--------+                  +--------+   +--------+
  *
- *   client <- server
+ *   client &lt;- server
  *
  *                +--------+   +--------+                  +--------+   +--------+
- *   client  <----| c_ext2 |<--| c_ext1 |<-- [network] <-- | s_ext2 |<--| s_ext1 |<-- server
+ *   client  &lt;----| c_ext2 |&lt;--| c_ext1 |&lt;-- [network] &lt;-- | s_ext2 |&lt;--| s_ext1 |&lt;-- server
  *                +--------+   +--------+                  +--------+   +--------+
  * </pre>
- * <p/>
- * </pre>
- * <p/>
+ * <p>
  * Any exception thrown from processIncoming or processOutgoing will be logged. Rest of extension chain will be invoked
  * without any modifications done in "faulty" extension. {@link javax.websocket.OnError} won't be triggered. (this
  * might
  * change).
- * <p/>
- * <p/>
- * <pre>TODO:
+ * <pre>TODO:\
  * - naming.
  * - ordering - we might need to ensure that compression/decompression is invoked first when receiving and last when
  * sending message (to enable access to uncompressed data for other extensions).
@@ -97,7 +93,7 @@ public interface ExtendedExtension extends Extension {
 
     /**
      * Process incoming frame.
-     * <p/>
+     * <p>
      * Passed frame is unmasked in case it was masked when received (server to client communication).
      *
      * @param context per-connection/session context.
@@ -108,7 +104,7 @@ public interface ExtendedExtension extends Extension {
 
     /**
      * Process outgoing frame.
-     * <p/>
+     * <p>
      * Passed frame is unmasked. Frame payload will be masked when required (server to client communication).
      *
      * @param context per-connection/session context.
@@ -120,7 +116,7 @@ public interface ExtendedExtension extends Extension {
     /**
      * Parameter negotiation. Executed before handshake response is sent to the client (server only). Returned
      * list of parameters will be present in handshake response headers.
-     * <p/>
+     * <p>
      * TODO: Seems like list of all "requested" extensions should be passed (at least all with the same name) - the
      * TODO: extension implementation should be able to choose which version (parameter set) will be used for the
      * TODO: established WebSocket session. (We should also properly describe that this method will be called only once
@@ -135,7 +131,7 @@ public interface ExtendedExtension extends Extension {
 
     /**
      * Called only on the client side when handshake response arrives.
-     * <p/>
+     * <p>
      * Can be used to process extension parameters returned from server side.
      *
      * @param context            extension context.
@@ -154,7 +150,7 @@ public interface ExtendedExtension extends Extension {
     /**
      * Context present as a parameter in all {@link ExtendedExtension} methods. Maintains per
      * connection state of current extension.
-     * <p/>
+     * <p>
      * Context is created right before {@link #onExtensionNegotiation(ExtendedExtension.ExtensionContext,
      * java.util.List)} method call (server-side) or {@link #onHandshakeResponse(ExtendedExtension.ExtensionContext,
      * java.util.List)} method call (client-side). Last chance to access it is within {@link
@@ -164,7 +160,7 @@ public interface ExtendedExtension extends Extension {
 
         /**
          * Mutable, not synchronised property map.
-         * <p/>
+         * <p>
          * Synchronisation is not necessary if you are accessing this map only during {@link ExtendedExtension} methods
          * invocation.
          *

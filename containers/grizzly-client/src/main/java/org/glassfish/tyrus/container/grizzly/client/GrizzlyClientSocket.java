@@ -1,7 +1,7 @@
 /*
 * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
 *
-* Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
+* Copyright (c) 2011-2016 Oracle and/or its affiliates. All rights reserved.
 *
 * The contents of this file are subject to the terms of either the GNU
 * General Public License Version 2 only ("GPL") or the Common Development
@@ -104,10 +104,9 @@ public class GrizzlyClientSocket {
 
     /**
      * Client-side user property to set proxy URI.
-     * <p/>
+     * <p>
      * Value is expected to be {@link String} and represent proxy URI. Protocol part is currently ignored
      * but must be present ({@link URI#URI(String)} is used for parsing).
-     * <p/>
      * <pre>
      *     client.getProperties().put(GrizzlyClientSocket.PROXY_URI, "http://my.proxy.com:80");
      *     client.connectToServer(...);
@@ -121,14 +120,14 @@ public class GrizzlyClientSocket {
 
     /**
      * Client-side user property to set additional proxy headers.
-     * <p/>
-     * Value is expected to be {@link Map}&lt{@link String}, {@link String}&gt and represent raw http headers
+     * <p>
+     * Value is expected to be {@link Map}&lt;{@link String}, {@link String}&gt; and represent raw http headers
      * to be added to initial request which is sent to proxy. Key corresponds to header name, value is header
      * value.
-     * <p/>
+     * <p>
      * Sample below demonstrates use of this feature to set preemptive basic proxy authentication:
      * <pre>
-     *     final HashMap<String, String> proxyHeaders = new HashMap<String, String>();
+     *     final HashMap&lt;String, String&gt; proxyHeaders = new HashMap&lt;String, String&gt;();
      *     proxyHeaders.put("Proxy-Authorization", "Basic " +
      *         Base64Utils.encodeToString("username:password".getBytes(Charset.forName("UTF-8")),false));
      *
@@ -146,7 +145,7 @@ public class GrizzlyClientSocket {
 
     /**
      * Client-side property to set custom worker {@link ThreadPoolConfig}.
-     * <p/>
+     * <p>
      * Value is expected to be instance of {@link ThreadPoolConfig}, can be {@code null} (it won't be used).
      *
      * @deprecated please use {@link org.glassfish.tyrus.container.grizzly.client
@@ -157,7 +156,7 @@ public class GrizzlyClientSocket {
 
     /**
      * Client-side property to set custom selector {@link ThreadPoolConfig}.
-     * <p/>
+     * <p>
      * Value is expected to be instance of {@link ThreadPoolConfig}, can be {@code null} (it won't be used).
      *
      * @deprecated please use {@link org.glassfish.tyrus.container.grizzly.client
@@ -239,10 +238,10 @@ public class GrizzlyClientSocket {
     }
 
     /**
-     * Connect
+     * Performs connect to server endpoint.
      *
-     * @throws DeploymentException
-     * @throws IOException
+     * @throws DeploymentException when there the server endpoint cannot be reached.
+     * @throws IOException         when transport fails to start.
      */
     public void connect() throws DeploymentException, IOException {
         try {

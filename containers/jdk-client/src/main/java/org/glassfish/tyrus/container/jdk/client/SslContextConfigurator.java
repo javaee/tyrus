@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2007-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2007-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -61,10 +61,9 @@ import javax.net.ssl.TrustManagerFactory;
 
 /**
  * Utility class, which helps to configure ssl context.
- * <p/>
+ * <p>
  * Used to configure {@link SslEngineConfigurator}, which will be passed to client via configuration properties.
  * Example:
- * <p/>
  * <pre>
  *      SslContextConfigurator sslContextConfigurator = new SslContextConfigurator();
  *      sslContextConfigurator.setTrustStoreFile("...");
@@ -87,122 +86,102 @@ import javax.net.ssl.TrustManagerFactory;
 public class SslContextConfigurator {
     /**
      * <em>Trust</em> store provider name.
-     * <p/>
+     * <p>
      * The value MUST be a {@code String} representing the name of a <em>trust</em> store provider.
      * <p>
      * No default value is set.
-     * </p>
      * <p>
      * The name of the configuration property is <tt>{@value}</tt>.
-     * </p>
      */
     public static final String TRUST_STORE_PROVIDER = "javax.net.ssl.trustStoreProvider";
     /**
      * <em>Key</em> store provider name.
-     * <p/>
+     * <p>
      * The value MUST be a {@code String} representing the name of a <em>trust</em> store provider.
      * <p>
      * No default value is set.
-     * </p>
      * <p>
      * The name of the configuration property is <tt>{@value}</tt>.
-     * </p>
      */
     public static final String KEY_STORE_PROVIDER = "javax.net.ssl.keyStoreProvider";
     /**
      * <em>Trust</em> store file name.
-     * <p/>
+     * <p>
      * The value MUST be a {@code String} representing the name of a <em>trust</em> store file.
      * <p>
      * No default value is set.
-     * </p>
      * <p>
      * The name of the configuration property is <tt>{@value}</tt>.
-     * </p>
      */
     public static final String TRUST_STORE_FILE = "javax.net.ssl.trustStore";
     /**
      * <em>Key</em> store file name.
-     * <p/>
+     * <p>
      * The value MUST be a {@code String} representing the name of a <em>key</em> store file.
      * <p>
      * No default value is set.
-     * </p>
      * <p>
      * The name of the configuration property is <tt>{@value}</tt>.
-     * </p>
      */
     public static final String KEY_STORE_FILE = "javax.net.ssl.keyStore";
     /**
      * <em>Trust</em> store file password - the password used to unlock the <em>trust</em> store file.
-     * <p/>
+     * <p>
      * The value MUST be a {@code String} representing the <em>trust</em> store file password.
      * <p>
      * No default value is set.
-     * </p>
      * <p>
      * The name of the configuration property is <tt>{@value}</tt>.
-     * </p>
      */
     public static final String TRUST_STORE_PASSWORD = "javax.net.ssl.trustStorePassword";
     /**
      * <em>Key</em> store file password - the password used to unlock the <em>trust</em> store file.
-     * <p/>
+     * <p>
      * The value MUST be a {@code String} representing the <em>key</em> store file password.
      * <p>
      * No default value is set.
-     * </p>
      * <p>
      * The name of the configuration property is <tt>{@value}</tt>.
-     * </p>
      */
     public static final String KEY_STORE_PASSWORD = "javax.net.ssl.keyStorePassword";
     /**
      * <em>Trust</em> store type (see {@link java.security.KeyStore#getType()} for more info).
-     * <p/>
+     * <p>
      * The value MUST be a {@code String} representing the <em>trust</em> store type name.
      * <p>
      * No default value is set.
-     * </p>
      * <p>
      * The name of the configuration property is <tt>{@value}</tt>.
-     * </p>
      */
     public static final String TRUST_STORE_TYPE = "javax.net.ssl.trustStoreType";
     /**
      * <em>Key</em> store type (see {@link java.security.KeyStore#getType()} for more info).
-     * <p/>
+     * <p>
      * The value MUST be a {@code String} representing the <em>key</em> store type name.
      * <p>
      * No default value is set.
-     * </p>
      * <p>
      * The name of the configuration property is <tt>{@value}</tt>.
-     * </p>
      */
     public static final String KEY_STORE_TYPE = "javax.net.ssl.keyStoreType";
     /**
      * <em>Key</em> manager factory algorithm name.
-     * <p/>
+     * <p>
      * The value MUST be a {@code String} representing the <em>key</em> manager factory algorithm name.
      * <p>
      * No default value is set.
-     * </p>
      * <p>
      * The name of the configuration property is <tt>{@value}</tt>.
-     * </p>
      */
     public static final String KEY_FACTORY_MANAGER_ALGORITHM = "ssl.KeyManagerFactory.algorithm";
     /**
      * <em>Trust</em> manager factory algorithm name.
-     * <p/>
+     * <p>
      * The value MUST be a {@code String} representing the <em>trust</em> manager factory algorithm name.
      * <p>
      * No default value is set.
-     * </p>
      * <p>
      * The name of the configuration property is <tt>{@value}</tt>.
-     * </p>
      */
     public static final String TRUST_FACTORY_MANAGER_ALGORITHM = "ssl.TrustManagerFactory.algorithm";
 

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -49,10 +49,10 @@ public final class GrizzlyClientProperties {
 
     /**
      * Client-side property to set custom worker {@link org.glassfish.grizzly.threadpool.ThreadPoolConfig}.
-     * <p/>
+     * <p>
      * Value is expected to be instance of {@link org.glassfish.grizzly.threadpool.ThreadPoolConfig}, can be {@code
      * null} (it won't be used).
-     * <p/>
+     * <p>
      * If both {@link #WORKER_THREAD_POOL_CONFIG} nad  {@link org.glassfish.tyrus.client
      * .ClientProperties#WORKER_THREAD_POOL_CONFIG} are set, configuration set in {@link #WORKER_THREAD_POOL_CONFIG}
      * will be used.
@@ -61,7 +61,7 @@ public final class GrizzlyClientProperties {
 
     /**
      * Client-side property to set custom selector {@link org.glassfish.grizzly.threadpool.ThreadPoolConfig}.
-     * <p/>
+     * <p>
      * Value is expected to be instance of {@link org.glassfish.grizzly.threadpool.ThreadPoolConfig}, can be {@code
      * null} (it won't be used).
      */

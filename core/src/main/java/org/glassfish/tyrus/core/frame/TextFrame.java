@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -120,7 +120,7 @@ public class TextFrame extends TyrusFrame {
 
     /**
      * Remainder after UTF-8 decoding.
-     * <p/>
+     * <p>
      * This might be removed in the future, if encoding part will be separated from text frame impl.
      *
      * @return UTF-8 decoding remainder. Used internally to decoding next incoming frame.

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -256,9 +256,8 @@ public final class RequestContext extends UpgradeRequest {
         /**
          * Set http session.
          *
-         * @param httpSession http session to be set.
+         * @param httpSession {@code javax.servlet.http.HttpSession} session to be set.
          * @return updated {@link RequestContext.Builder} instance.
-         * @see {@code javax.servlet.http.HttpSession}
          */
         public Builder httpSession(Object httpSession) {
             this.httpSession = httpSession;
@@ -342,7 +341,7 @@ public final class RequestContext extends UpgradeRequest {
 
         /**
          * Is user in role delegate.
-         * <p/>
+         * <p>
          * Cannot easily query ServletContext or HttpServletRequest for this information, since it is stored only as
          * object.
          */

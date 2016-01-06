@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -56,14 +56,14 @@ public interface DistributedSession extends Session {
 
     /**
      * Get distributed properties.
-     * <p/>
+     * <p>
      * Values put into this map must be {@link Serializable} or serializable by other, implementation-dependent
      * alternative.
-     * <p/>
+     * <p>
      * Content of this map is synchronized among all cluster nodes, so putting an entry on any of the nodes will be
      * visible on all other nodes which have reference to current session (in form of {@link TyrusSession} or {@link
      * RemoteSession}).
-     * <p/>
+     * <p>
      * Please note that when not running in the distributed environment, this map behaves similarly to {@link
      * #getUserProperties()}, so no serialization or deserialization is performed when values are read from or stored to
      * the returned map.

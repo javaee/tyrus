@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -78,7 +78,7 @@ import org.osgi.framework.SynchronousBundleListener;
  * Taken from Jersey 2. Utility class to deal with OSGi runtime specific behavior.
  * This is mainly to handle META-INF/services lookup
  * and generic/application class lookup issue in OSGi.
- * <p/>
+ * <p>
  * When OSGi runtime is detected by the {@link ServiceFinder} class,
  * an instance of OsgiRegistry is created and associated with given
  * OSGi BundleContext. META-INF/services entries are then being accessed
@@ -343,7 +343,7 @@ public final class OsgiRegistry implements SynchronousBundleListener {
 
     /**
      * Get the Class from the class name.
-     * <p/>
+     * <p>
      * The context class loader will be utilized if accessible and non-null.
      * Otherwise the defining class loader of this class will
      * be utilized.

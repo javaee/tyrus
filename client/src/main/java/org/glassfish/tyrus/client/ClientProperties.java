@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -57,16 +57,15 @@ public final class ClientProperties {
 
     /**
      * Property usable in {@link ClientManager#getProperties()}.
-     * <p/>
+     * <p>
      * Value must be {@code int} and represents handshake timeout in milliseconds. Default value is 30000 (30 seconds).
      */
     public static final String HANDSHAKE_TIMEOUT = "org.glassfish.tyrus.client.ClientManager.ContainerTimeout";
 
     /**
      * Property usable in {@link ClientManager#getProperties()}.
-     * <p/>
+     * <p>
      * Value must be {@link org.glassfish.tyrus.client.ClientManager.ReconnectHandler} instance.
-     * <p/>
      *
      * @see ClientProperties#RETRY_AFTER_SERVICE_UNAVAILABLE
      */
@@ -74,10 +73,9 @@ public final class ClientProperties {
 
     /**
      * User property to set proxy URI.
-     * <p/>
+     * <p>
      * Value is expected to be {@link String} and represent proxy URI. Protocol part is currently ignored
      * but must be present ({@link java.net.URI#URI(String)} is used for parsing).
-     * <p/>
      * <pre>
      *     client.getProperties().put(ClientProperties.PROXY_URI, "http://my.proxy.com:80");
      *     client.connectToServer(...);
@@ -89,14 +87,14 @@ public final class ClientProperties {
 
     /**
      * User property to set additional proxy headers.
-     * <p/>
-     * Value is expected to be {@link java.util.Map}&lt{@link String}, {@link String}&gt and represent raw http headers
+     * <p>
+     * Value is expected to be {@link java.util.Map}&lt;{@link String}, {@link String}&gt; and represent raw http headers
      * to be added to initial request which is sent to proxy. Key corresponds to header name, value is header
      * value.
-     * <p/>
+     * <p>
      * Sample below demonstrates use of this feature to set preemptive basic proxy authentication:
      * <pre>
-     *     final HashMap<String, String> proxyHeaders = new HashMap<String, String>();
+     *     final HashMap&lt;String, String&gt; proxyHeaders = new HashMap&lt;String, String&gt;();
      *     proxyHeaders.put("Proxy-Authorization", "Basic " +
      *         Base64Utils.encodeToString("username:password".getBytes(Charset.forName("UTF-8")), false));
      *
@@ -113,15 +111,15 @@ public final class ClientProperties {
 
     /**
      * Property usable in {@link ClientManager#getProperties()} as a key for SSL configuration.
-     * <p/>
+     * <p>
      * Value is expected to be either {@code org.glassfish.grizzly.ssl.SSLEngineConfigurator} or
      * {@link org.glassfish.tyrus.client.SslEngineConfigurator} when configuring Grizzly client or only
      * {@link org.glassfish.tyrus.client.SslEngineConfigurator} when configuring JDK client.
-     * <p/>
+     * <p>
      * The advantage of using {@link org.glassfish.tyrus.client.SslEngineConfigurator} with Grizzly client is that
      * {@link org.glassfish.tyrus.client.SslEngineConfigurator} allows configuration of host name verification
      * (which is turned on by default)
-     * <p/>
+     * <p>
      * Example configuration for JDK client:
      * <pre>
      *      SslContextConfigurator sslContextConfigurator = new SslContextConfigurator();
@@ -140,7 +138,7 @@ public final class ClientProperties {
 
     /**
      * Property name for maximal incoming buffer size.
-     * <p/>
+     * <p>
      * Can be set in properties map (see {@link
      * org.glassfish.tyrus.spi.ClientContainer#openClientSocket(javax.websocket.ClientEndpointConfig, java.util.Map,
      * org.glassfish.tyrus.spi.ClientEngine)}.
@@ -150,7 +148,7 @@ public final class ClientProperties {
     /**
      * When set to {@code true} (boolean value), client runtime preserves used container and reuses it for outgoing
      * connections.
-     * <p/>
+     * <p>
      * A single thread pool is reused by all clients with this property set to {@code true}.
      * JDK client supports only shared container option, so setting this property has no effect.
      *
@@ -160,7 +158,7 @@ public final class ClientProperties {
 
     /**
      * Container idle timeout in seconds ({@link Integer} value).
-     * <p/>
+     * <p>
      * When the timeout elapses, the shared thread pool will be destroyed.
      *
      * @see #SHARED_CONTAINER
@@ -169,11 +167,11 @@ public final class ClientProperties {
 
     /**
      * User property to set worker thread pool configuration.
-     * <p/>
+     * <p>
      * An instance of {@link org.glassfish.tyrus.client.ThreadPoolConfig} is expected for both JDK
      * and Grizzly client. Instance of {@code org.glassfish.grizzly.threadpool.ThreadPoolConfig}, can be used
      * for Grizzly client.
-     * <p/>
+     * <p>
      * Sample below demonstrates how to use this property:
      * <pre>
      *     client.getProperties().put(ClientProperties.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.defaultConfig());
@@ -184,9 +182,9 @@ public final class ClientProperties {
     /**
      * Authentication configuration. If no AuthConfig is specified then default configuration will be used,
      * containing both Basic and Digest provided authenticators.
-     * <p/>
+     * <p>
      * Value must be {@link AuthConfig} instance.
-     * <p/>
+     * <p>
      * Sample below demonstrates how to use this property:
      * <pre>
      *     client.getProperties().put(ClientProperties.AUTH_CONFIG, AuthConfig.builder().enableProvidedBasicAuth()
@@ -201,13 +199,13 @@ public final class ClientProperties {
 
     /**
      * Authentication credentials.
-     * <p/>
+     * <p>
      * Value must be {@link Credentials} instance.
-     * <p/>
+     * <p>
      * Provided authenticators (both Basic and Digest) require this property set,
      * otherwise {@link AuthenticationException} will be thrown during a handshake.
      * User defined authenticators may look up credentials in another sources.
-     * <p/>
+     * <p>
      * Sample below demonstrates how to use this property:
      * <pre>
      *     client.getProperties().put(ClientProperties.CREDENTIALS, new Credentials("websocket_user", "password");
@@ -221,14 +219,14 @@ public final class ClientProperties {
 
     /**
      * HTTP Redirect support.
-     * <p/>
+     * <p>
      * Value is expected to be {@code boolean}. Default value is {@code false}.
-     * <p/>
+     * <p>
      * When set to {@code true} and one of the following redirection HTTP response status code (3xx) is received during
      * a handshake, client will attempt to connect to the {@link URI} contained in {@value UpgradeResponse#LOCATION}
-     * header from handshake response. Number of redirection is limited by property {@link #REDIRECT_THRESHOLD} (integer
-     * value), while default value is {@value TyrusClientEngine#DEFAULT_REDIRECT_THRESHOLD}.
-     * <p/>
+     * header from handshake response. Number of redirection is limited by property {@link #REDIRECT_THRESHOLD}
+     * (integer value), while default value is {@value TyrusClientEngine#DEFAULT_REDIRECT_THRESHOLD}.
+     * <p>
      * List of supported HTTP status codes:
      * <ul>
      * <li>{@code 300 - Multiple Choices}</li>
@@ -245,10 +243,10 @@ public final class ClientProperties {
 
     /**
      * The maximal number of redirects during single handshake.
-     * <p/>
+     * <p>
      * Value is expected to be positive {@link Integer}. Default value is {@value
      * TyrusClientEngine#DEFAULT_REDIRECT_THRESHOLD}.
-     * <p/>
+     * <p>
      * HTTP redirection must be enabled by property {@link #REDIRECT_ENABLED}, otherwise {@code REDIRECT_THRESHOLD} is
      * not applied.
      *
@@ -259,14 +257,14 @@ public final class ClientProperties {
 
     /**
      * HTTP Service Unavailable - {@value UpgradeResponse#RETRY_AFTER} reconnect support.
-     * <p/>
+     * <p>
      * Value is expected to be {@code boolean}. Default value is {@code false}.
-     * <p/>
+     * <p>
      * When set to {@code true} and HTTP response code {@code 503 - Service Unavailable} is received, client will
      * attempt to reconnect after delay specified in {@value UpgradeResponse#RETRY_AFTER} header from handshake
      * response. According to RFC 2616 the value must be decimal integer (representing delay in seconds) or {@code
      * http-date}.
-     * <p/>
+     * <p>
      * Tyrus client will try to reconnect after this delay if:
      * <ul>
      * <li>{@value UpgradeResponse#RETRY_AFTER} header is present and is not empty</li>
@@ -274,7 +272,6 @@ public final class ClientProperties {
      * <li>number of reconnection attempts does not exceed 5</li>
      * <li>delay is not longer then 300 seconds</li>
      * </ul>
-     * <p/>
      *
      * @see RetryAfterException
      * @see ClientProperties#RECONNECT_HANDLER
@@ -285,9 +282,9 @@ public final class ClientProperties {
 
     /**
      * User property to configure logging of HTTP upgrade messages.
-     * <p/>
+     * <p>
      * Value is expected to be {@code boolean}. Default value is {@code false}.
-     * <p/>
+     * <p>
      * When set to {@code true} upgrade request and response messages will be logged regardless of the logging
      * level configuration. When the logging is configured to {@link java.util.logging.Level#FINE} or lower,
      * this setting will have no effect as at this level HTTP upgrade messages will be logged anyway.
@@ -297,7 +294,7 @@ public final class ClientProperties {
     /**
      * Property name for registering a custom masking key generator. The expected value is an instance of
      * {@link org.glassfish.tyrus.core.MaskingKeyGenerator}.
-     * <p/>
+     * <p>
      * As a security measure, all frames originating on websocket client have to be masked with random 4B value, which
      * should be freshly generated for each frame. Moreover to fully comply with the security requirements of RFC 6455,
      * a masking key of a frame must not be predictable from masking keys of previous frames and therefore Tyrus uses
@@ -305,7 +302,7 @@ public final class ClientProperties {
      * client use cases, usage of {@link java.security.SecureRandom} might prove to be a performance issue,
      * when the client is used for instance for highly parallel stress testing as {@link java.security.SecureRandom}
      * uses a synchronized singleton as a random entropy provider in its internals.
-     * <p/>
+     * <p>
      * This property allows replacing the default {@link java.security.SecureRandom} with a more scalable provider
      * of masking keys.
      */

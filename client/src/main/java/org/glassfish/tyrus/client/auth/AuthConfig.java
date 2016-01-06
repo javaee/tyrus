@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -50,7 +50,7 @@ import org.glassfish.tyrus.core.Beta;
 
 /**
  * AuthConfig serves as a configuration of HTTP authentication.
- * <p/>
+ * <p>
  * An instance of this class can be created by {@link AuthConfig} and it must be registered to property bag in {@link
  * ClientManager}.
  *
@@ -126,7 +126,7 @@ public class AuthConfig {
     /**
      * The AuthConfig.Builder is a class used for creating an instance of {@link AuthConfig} for purpose of HTTP
      * Authentication.
-     * <p/>
+     * <p>
      * Example 1 - building an authentication configuration enhanced with user defined NTLM authentication and
      * overridden Basic Authentication:
      * <pre><code>
@@ -166,7 +166,7 @@ public class AuthConfig {
 
         /**
          * Register {@link Authenticator} for provided authentication scheme.
-         * <p/>
+         * <p>
          * Only one {@link Authenticator} for one authentication scheme can be registered. If current builder instance
          * already contains {@link Authenticator} for provided scheme, existing authenticator will be replaced. Note
          * that schemes are compared in case insensitive manner.

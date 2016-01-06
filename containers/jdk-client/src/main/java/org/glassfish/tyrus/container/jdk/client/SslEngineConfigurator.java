@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2008-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2008-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -48,7 +48,7 @@ import javax.net.ssl.SSLEngine;
 
 /**
  * SSLEngineConfigurator class from Grizzly project.
- * <p/>
+ * <p>
  * Utility class, which helps to configure {@link SSLEngine}. Should be passed to client via configuration properties.
  * Example:
  * <pre>
@@ -257,6 +257,7 @@ public class SslEngineConfigurator {
      * @param clientMode <tt>true</tt>, if {@link SSLEngine} will be configured
      *                   to work in <tt>client</tt> mode, or <tt>false</tt> for <tt>server</tt>
      *                   mode.
+     * @return updated configurator instance.
      */
     public SslEngineConfigurator setClientMode(boolean clientMode) {
         this.clientMode = clientMode;

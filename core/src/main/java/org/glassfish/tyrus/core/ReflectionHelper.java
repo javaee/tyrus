@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -68,7 +68,10 @@ import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 public class ReflectionHelper {
 
     /**
+     * Get declaring class of provided field, method or constructor.
      *
+     * @param ao object for which the declared class will be returned.
+     * @return declaring class of provided object.
      */
     public static Class getDeclaringClass(AccessibleObject ao) {
         if (ao instanceof Method) {
@@ -84,7 +87,7 @@ public class ReflectionHelper {
 
     /**
      * Create a string representation of an object.
-     * <p/>
+     * <p>
      * Returns a string consisting of the name of the class of which the
      * object is an instance, the at-sign character '<code>@</code>', and
      * the unsigned hexadecimal representation of the hash code of the
@@ -110,7 +113,7 @@ public class ReflectionHelper {
     /**
      * Create a string representation of a method and an instance whose
      * class implements the method.
-     * <p/>
+     * <p>
      * Returns a string consisting of the name of the class of which the object
      * is an instance, the at-sign character '<code>@</code>',
      * the unsigned hexadecimal representation of the hash code of the
@@ -172,7 +175,7 @@ public class ReflectionHelper {
 
     /**
      * Get the Class from the class name.
-     * <p/>
+     * <p>
      * The context class loader will be utilized if accessible and non-null.
      * Otherwise the defining class loader of this class will
      * be utilized.
@@ -209,7 +212,7 @@ public class ReflectionHelper {
 
     /**
      * Get the Class from the class name.
-     * <p/>
+     * <p>
      * The context class loader will be utilized if accessible and non-null.
      * Otherwise the defining class loader of this class will
      * be utilized.
@@ -245,7 +248,7 @@ public class ReflectionHelper {
      * Get privileged exception action to obtain Class from given class name.
      * If run using security manager, the returned privileged exception action
      * must be invoked within a doPrivileged block.
-     * <p/>
+     * <p>
      * The actual context class loader will be utilized if accessible and non-null.
      * Otherwise the defining class loader of the calling class will be utilized.
      *
@@ -253,6 +256,7 @@ public class ReflectionHelper {
      * @param name class name.
      * @return privileged exception action to obtain the Class.
      * The action could throw {@link ClassNotFoundException} or return {@code null} if the class cannot be found.
+     * @throws ClassNotFoundException when provided string contains classname of unknown class.
      * @see AccessController#doPrivileged(java.security.PrivilegedExceptionAction)
      */
     public static <T> PrivilegedExceptionAction<Class<T>> classForNameWithExceptionPEA(final String name) throws
@@ -272,6 +276,7 @@ public class ReflectionHelper {
      * @return privileged exception action to obtain the Class.
      * The action throws {@link ClassNotFoundException}
      * or returns {@code null} if the class cannot be found.
+     * @throws ClassNotFoundException when provided string contains classname of unknown class.
      * @see AccessController#doPrivileged(java.security.PrivilegedExceptionAction)
      */
     @SuppressWarnings("unchecked")
@@ -342,7 +347,6 @@ public class ReflectionHelper {
 
     /**
      * Get the class that is the type argument of a parameterized type.
-     * <p/>
      *
      * @param parameterizedType must be an instance of ParameterizedType
      *                          and have exactly one type argument.
@@ -359,7 +363,7 @@ public class ReflectionHelper {
      *                                  of the generic array type is not class, or not a parameterized
      *                                  type with a raw type that is not a class.
      */
-    public static Class getGenericClass(Type parameterizedType) throws Exception {
+    public static Class getGenericClass(Type parameterizedType) throws IllegalArgumentException {
         final Type t = getTypeArgumentOfParameterizedType(parameterizedType);
         if (t == null) {
             return null;
@@ -367,7 +371,7 @@ public class ReflectionHelper {
 
         final Class c = getClassOfType(t);
         if (c == null) {
-            throw new Exception("Type not supported");
+            throw new IllegalArgumentException("Type not supported");
         }
         return c;
     }
@@ -382,7 +386,7 @@ public class ReflectionHelper {
         }
     }
 
-    public static TypeClassPair getTypeArgumentAndClass(Type parameterizedType) throws Exception {
+    public static TypeClassPair getTypeArgumentAndClass(Type parameterizedType) throws IllegalArgumentException {
         final Type t = getTypeArgumentOfParameterizedType(parameterizedType);
         if (t == null) {
             return null;
@@ -390,7 +394,7 @@ public class ReflectionHelper {
 
         final Class c = getClassOfType(t);
         if (c == null) {
-            throw new Exception("Generic type not supported");
+            throw new IllegalArgumentException("Generic type not supported");
         }
 
         return new TypeClassPair(t, c);
@@ -753,11 +757,11 @@ public class ReflectionHelper {
 
     /**
      * Find a method on a class given an existing method.
-     * <p/>
+     * <p>
      * If there exists a public method on the class that has the same name
      * and parameters as the existing method then that public method is
      * returned.
-     * <p/>
+     * <p>
      * Otherwise, if there exists a public method on the class that has
      * the same name and the same number of parameters as the existing method,
      * and each generic parameter type, in order, of the public method is equal
@@ -800,7 +804,7 @@ public class ReflectionHelper {
      *
      * @param inspectedClass Class whose type is searched for.
      * @param superClass     Class relatively to which the search is performed.
-     * @return
+     * @return type of the class.
      */
     public static Class<?> getClassType(Class<?> inspectedClass, Class<?> superClass) {
         ReflectionHelper.DeclaringClassInterfacePair p = ReflectionHelper.getClass(inspectedClass, superClass);
@@ -833,7 +837,7 @@ public class ReflectionHelper {
     }
 
     /**
-     * Creates an instance of {@link Class} c using {@link Class#newInstance()}. </p> Exceptions are logged to {@link
+     * Creates an instance of {@link Class} c using {@link Class#newInstance()}. Exceptions are logged to {@link
      * ErrorCollector}.
      *
      * @param c         {@link Class} whose instance is going to be created
@@ -860,6 +864,12 @@ public class ReflectionHelper {
      * @param c   {@link Class} whose instance is going to be created
      * @param <T> type.
      * @return new instance of {@link Class}.
+     * @throws IllegalAccessException if the class or its nullary
+     *                                constructor is not accessible.
+     * @throws InstantiationException if this {@code Class} represents an abstract class,
+     *                                an interface, an array class, a primitive type, or void;
+     *                                or if the class has no nullary constructor;
+     *                                or if the instantiation fails for some other reason.
      */
     public static <T> T getInstance(Class<T> c) throws IllegalAccessException, InstantiationException {
         return c.newInstance();

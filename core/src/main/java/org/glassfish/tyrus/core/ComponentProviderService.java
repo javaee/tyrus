@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -71,9 +71,9 @@ public class ComponentProviderService {
 
     /**
      * Create new instance of {@link ComponentProviderService}.
-     * </p>
+     * <p>
      * Searches for registered {@link ComponentProvider}s and registers them with this service.
-     * </p>
+     * <p>
      * {@link DefaultComponentProvider} is always added to found providers.
      *
      * @return initialized {@link ComponentProviderService}.
@@ -92,7 +92,7 @@ public class ComponentProviderService {
 
     /**
      * Create new instance of {@link ComponentProviderService}.
-     * </p>
+     * <p>
      * Contains *only* {@link DefaultComponentProvider}. Used for creating client instances (CDI/EJB container are
      * often confused and using them to retrieve instances leads to unstable results since the injection scope is not
      * properly defined for these cases). See https://java.net/jira/browse/WEBSOCKET_SPEC-197 and
@@ -122,11 +122,12 @@ public class ComponentProviderService {
 
     /**
      * Provide an instance of class which is coupled to {@link Session}.
-     * </p>
+     * <p>
      * The first time the method is called the provider creates an instance and caches it.
      * Next time the method is called the cached instance is returned.
      *
      * @param c         {@link Class} whose instance will be provided.
+     * @param session   session to which the instance belongs (think of this as a scope).
      * @param collector error collector.
      * @param <T>       type of the provided instance.
      * @return instance
@@ -164,13 +165,14 @@ public class ComponentProviderService {
     /**
      * Provide an instance of {@link javax.websocket.Encoder} or {@link javax.websocket.Decoder} descendant which is
      * coupled to {@link Session}.
-     * </p>
+     * <p>
      * The first time the method is called the provider creates an instance, calls {@link
      * javax.websocket.Encoder#init(javax.websocket.EndpointConfig)}
      * or {@link javax.websocket.Decoder#init(javax.websocket.EndpointConfig)} and caches it.
      * Next time the method is called the cached instance is returned.
      *
      * @param c              {@link Class} whose instance will be provided.
+     * @param session        session to which the instance belongs (think of this as a scope).
      * @param collector      error collector.
      * @param endpointConfig configuration corresponding to current context. Used for
      *                       {@link javax.websocket.Encoder#init(javax.websocket.EndpointConfig)} and
