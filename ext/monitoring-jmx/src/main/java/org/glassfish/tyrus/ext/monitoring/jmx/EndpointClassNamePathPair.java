@@ -46,7 +46,7 @@ import java.io.Serializable;
 /**
  * Path and class name of an endpoint exposed by JMX.
  * <p>
- * See {@code org.glassfish.tyrus.core.monitoring.ApplicationEventListener}.
+ * See {@link org.glassfish.tyrus.core.monitoring.ApplicationEventListener}.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
