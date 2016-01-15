@@ -209,6 +209,7 @@
                 </executions>
                 <configuration>
                     <excludePackageNames>*.tests.*,*.sample.*</excludePackageNames>
+                    <failOnError>false</failOnError>
                 </configuration>
             </plugin>
         </plugins>
