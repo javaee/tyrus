@@ -83,6 +83,8 @@ public abstract class TyrusServerContainer extends BaseContainer implements Serv
 
     private ClientManager clientManager = null;
 
+    private volatile int port = -1;
+
     /**
      * Create new {@link TyrusServerContainer}.
      *
@@ -112,8 +114,9 @@ public abstract class TyrusServerContainer extends BaseContainer implements Serv
     }
 
     /**
-     * Start container.
+     * Start the container.
      *
+     * @param rootPath context path of the deployed websocket application.
      * @throws IOException         when any IO related issues emerge during {@link
      *                             org.glassfish.tyrus.spi.ServerContainer#start(String, int)}.
      * @throws DeploymentException when any deployment related error is found; should contain list of all found issues.
@@ -160,6 +163,10 @@ public abstract class TyrusServerContainer extends BaseContainer implements Serv
             this.stop();
             throw collector.composeComprehensiveException();
         }
+
+        if (this.port == -1) {
+            this.port = port;
+        }
     }
 
     /**
@@ -194,6 +201,16 @@ public abstract class TyrusServerContainer extends BaseContainer implements Serv
         } else {
             throw new IllegalStateException("Not in 'deploy' scope.");
         }
+    }
+
+    /**
+     * Get port of the started container.
+     *
+     * @return the port of the started container or {@code -1}, when the container is not started or the container does
+     * not provide the port.
+     */
+    public int getPort() {
+        return port;
     }
 
     /**
