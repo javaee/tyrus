@@ -147,6 +147,7 @@ public class GrizzlyServerContainer extends ServerContainerFactory {
 
             private HttpServer server;
             private String contextPath;
+            private volatile NetworkListener listener = null;
 
             @Override
             public void register(Class<?> endpointClass) throws DeploymentException {
@@ -169,7 +170,7 @@ public class GrizzlyServerContainer extends ServerContainerFactory {
                 server = new HttpServer();
                 final ServerConfiguration config = server.getServerConfiguration();
 
-                final NetworkListener listener = new NetworkListener("grizzly", "0.0.0.0", port);
+                listener = new NetworkListener("grizzly", "0.0.0.0", port);
                 server.addListener(listener);
 
                 // server = HttpServer.createSimpleServer(rootPath, port);
@@ -220,6 +221,15 @@ public class GrizzlyServerContainer extends ServerContainerFactory {
 
                 server.start();
                 super.start(rootPath, port);
+            }
+
+            @Override
+            public int getPort() {
+                if (listener != null && listener.getPort() > 0) {
+                    return listener.getPort();
+                } else {
+                    return -1;
+                }
             }
 
             @Override

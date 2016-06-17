@@ -81,7 +81,7 @@ public class Server {
     private final Map<String, Object> properties;
     private final Set<Class<?>> configuration;
     private final String hostName;
-    private final int port;
+    private volatile int port;
     private final String contextPath;
 
     private ServerContainer server;
@@ -118,7 +118,8 @@ public class Server {
      * Construct new server.
      *
      * @param hostName      hostName of the server.
-     * @param port          port of the server.
+     * @param port          port of the server. When provided value is {@code 0}, default port ({@value #DEFAULT_PORT})
+     *                      will be used, when {@code -1}, ephemeral port number will be used.
      * @param contextPath   root path to the server App.
      * @param properties    properties used as a parameter to {@link ServerContainerFactory#createServerContainer
      *                      (java.util.Map)} call.
@@ -127,6 +128,7 @@ public class Server {
      *                      {@link javax.websocket.server.ServerApplicationConfig} or extending {@link
      *                      javax.websocket.server.ServerEndpointConfig}
      *                      are supported.
+     * @see #getPort()
      */
     public Server(String hostName, int port, String contextPath, Map<String, Object> properties,
                   Class<?>... configuration) {
@@ -137,7 +139,8 @@ public class Server {
      * Construct new server.
      *
      * @param hostName      hostName of the server.
-     * @param port          port of the server.
+     * @param port          port of the server. When provided value is {@code 0}, default port ({@value #DEFAULT_PORT})
+     *                      will be used, when {@code -1}, ephemeral port number will be used.
      * @param contextPath   root path to the server App.
      * @param properties    properties used as a parameter to {@link ServerContainerFactory#createServerContainer
      *                      (java.util.Map)} call.
@@ -146,11 +149,19 @@ public class Server {
      *                      javax.websocket.server.ServerApplicationConfig}
      *                      or extending {@link javax.websocket.server.ServerEndpointConfig}
      *                      are supported.
+     * @see #getPort()
      */
     public Server(String hostName, int port, String contextPath, Map<String, Object> properties,
                   Set<Class<?>> configuration) {
         this.hostName = hostName == null ? DEFAULT_HOST_NAME : hostName;
-        this.port = port == 0 ? DEFAULT_PORT : port;
+        if (port == 0) {
+            this.port = DEFAULT_PORT;
+        } else if (port == -1) {
+            // OS selected (ephemeral) port.
+            this.port = 0;
+        } else {
+            this.port = port;
+        }
         this.contextPath = contextPath == null ? DEFAULT_CONTEXT_PATH : contextPath;
         this.configuration = configuration;
         this.properties = properties == null ? null : new HashMap<String, Object>(properties);
@@ -215,12 +226,27 @@ public class Server {
                 }
 
                 server.start(contextPath, port);
-                LOGGER.info("WebSocket Registered apps: URLs all start with ws://" + this.hostName + ":" + this.port);
+
+                if (server instanceof TyrusServerContainer) {
+                    this.port = ((TyrusServerContainer) server).getPort();
+                }
+
+                LOGGER.info("WebSocket Registered apps: URLs all start with ws://" + this.hostName + ":" + getPort());
                 LOGGER.info("WebSocket server started.");
+
             }
         } catch (IOException e) {
             throw new DeploymentException(e.getMessage(), e);
         }
+    }
+
+    /**
+     * Get the port which was used to start the container.
+     *
+     * @return the port which was used to start the container.
+     */
+    public int getPort() {
+        return port;
     }
 
     /**
