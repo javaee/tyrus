@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,6 +40,7 @@
 package org.glassfish.tyrus.container.grizzly.client;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -105,25 +106,25 @@ public class GrizzlyWriter extends Writer {
 
     private class WriterCondition implements TaskProcessor.Condition {
 
+        private final AtomicBoolean writeHandlerRegistered = new AtomicBoolean(false);
+
         @Override
         public boolean isValid() {
-            if (!connection.canWrite()) {
-                try {
-                    connection.notifyCanWrite(new WriteHandler() {
-                        @Override
-                        public void onWritePossible() throws Exception {
-                            taskProcessor.processTask();
-                        }
+            if (!connection.canWrite() && writeHandlerRegistered.compareAndSet(false, true)) {
+                connection.notifyCanWrite(new WriteHandler() {
+                    @Override
+                    public void onWritePossible() throws Exception {
+                        writeHandlerRegistered.set(false);
+                        taskProcessor.processTask();
+                    }
 
-                        @Override
-                        public void onError(Throwable t) {
-                            Logger.getLogger(GrizzlyWriter.class.getName()).log(Level.WARNING, t.getMessage(), t);
-                            // TODO: do what?
-                        }
-                    });
-                } catch (IllegalStateException e) {
-                    // ignore - WriteHandler was already registered.
-                }
+                    @Override
+                    public void onError(Throwable t) {
+                        writeHandlerRegistered.set(false);
+                        Logger.getLogger(GrizzlyWriter.class.getName()).log(Level.WARNING, t.getMessage(), t);
+                        // TODO: do what?
+                    }
+                });
 
                 return false;
             }
