@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.server;
+package org.glassfish.tyrus.core;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +47,6 @@ import javax.websocket.HandshakeResponse;
 import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
 
-import org.glassfish.tyrus.core.ComponentProviderService;
 import org.glassfish.tyrus.core.extension.ExtendedExtension;
 import org.glassfish.tyrus.core.frame.Frame;
 
@@ -90,7 +89,7 @@ public class TyrusServerEndpointConfigurator extends ServerEndpointConfig.Config
 
                     if (name != null && name.equals(requestedExtension.getName())) {
 
-                        /**
+                        /*
                          * Per message compression - draft 19
                          * https://tools.ietf.org/html/draft-ietf-hybi-permessage-compression-19
                          *
