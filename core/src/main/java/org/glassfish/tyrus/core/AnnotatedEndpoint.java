@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -143,12 +143,26 @@ public class AnnotatedEndpoint extends Endpoint {
         this.annotatedInstance = instance;
         this.annotatedClass = annotatedClass;
         this.endpointEventListener = endpointEventListener;
-        this.componentProvider = isServerEndpoint ? new ComponentProviderService(componentProvider) {
-            @Override
-            public <T> Object getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
-                return ((ServerEndpointConfig) configuration).getConfigurator().getEndpointInstance(endpointClass);
+
+        if (isServerEndpoint) {
+            if (TyrusServerEndpointConfigurator.class
+                    .equals(((ServerEndpointConfig) configuration).getConfigurator().getClass())) {
+                // if the platform Configurator is Tyrus provided, it doesn't need to be called to get an endpoint
+                // instance, since it uses ComponentProviderService anyway.
+                this.componentProvider = componentProvider;
+            } else {
+                // if the platform Configurator is not tyrus one, it needs to be used for instance lookups.
+                this.componentProvider = new ComponentProviderService(componentProvider) {
+                    @Override
+                    public <T> Object getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
+                        return ((ServerEndpointConfig) configuration).getConfigurator()
+                                                                     .getEndpointInstance(endpointClass);
+                    }
+                };
             }
-        } : componentProvider;
+        } else {
+            this.componentProvider = componentProvider;
+        }
 
         Method onOpen = null;
         Method onClose = null;
