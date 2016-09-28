@@ -233,7 +233,7 @@ public class DebugContext {
     }
 
     private void appendTracingHeader(String message) {
-        String headerName = UpgradeResponse.TRACING_HEADER_PREFIX + String.format("%02d%n", tracingHeaders.size());
+        String headerName = UpgradeResponse.TRACING_HEADER_PREFIX + String.format("%02d", tracingHeaders.size());
         tracingHeaders.put(headerName,
                            Arrays.asList("[" + (System.nanoTime() - startTimestamp) / 1000000 + " ms] " + message));
     }
