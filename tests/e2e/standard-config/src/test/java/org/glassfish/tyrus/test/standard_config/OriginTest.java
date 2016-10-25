@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -67,7 +67,7 @@ public class OriginTest extends TestContainer {
     private static final String SENT_MESSAGE = "Always pass on what you have learned.";
 
     @ServerEndpoint(value = "/echo7", configurator = MyServerConfigurator.class)
-    public static class TestEndpoint {
+    public static class TestEndpointOriginTest1 {
 
         @OnMessage
         public String onMessage(String message) {
@@ -83,9 +83,31 @@ public class OriginTest extends TestContainer {
         }
     }
 
+    @ServerEndpoint(value = "/testEndpointOriginTest2", configurator = AnotherServerConfigurator.class)
+    public static class TestEndpointOriginTest2 {
+
+        @OnMessage
+        public String onMessage(String message) {
+            return message;
+        }
+    }
+
+    public static class AnotherServerConfigurator extends ServerEndpointConfig.Configurator {
+
+        @Override
+        public boolean checkOrigin(String originHeaderValue) {
+
+            if (!originHeaderValue.startsWith("http://")) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+    }
+
     @Test
     public void testInvalidOrigin() throws URISyntaxException, IOException, DeploymentException {
-        Server server = startServer(TestEndpoint.class);
+        Server server = startServer(TestEndpointOriginTest1.class);
 
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
@@ -96,12 +118,35 @@ public class OriginTest extends TestContainer {
                 @Override
                 public void onOpen(final Session session, EndpointConfig EndpointConfig) {
                 }
-            }, cec, getURI(TestEndpoint.class));
+            }, cec, getURI(TestEndpointOriginTest1.class));
 
             fail("DeploymentException expected.");
         } catch (DeploymentException e) {
             e.printStackTrace();
             assertTrue(e.getCause().getMessage().contains("403"));
+        } finally {
+            stopServer(server);
+        }
+    }
+
+    @Test
+    public void testOriginStartsWithHttp() throws URISyntaxException, IOException, DeploymentException {
+        Server server = startServer(TestEndpointOriginTest2.class);
+
+        try {
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+
+            ClientManager client = createClient();
+            client.connectToServer(new Endpoint() {
+
+                @Override
+                public void onOpen(final Session session, EndpointConfig EndpointConfig) {
+                }
+            }, cec, getURI(TestEndpointOriginTest2.class));
+
+        } catch (DeploymentException e) {
+            e.printStackTrace();
+            throw e;
         } finally {
             stopServer(server);
         }
