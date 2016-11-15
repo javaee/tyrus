@@ -3,7 +3,7 @@
 
     DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
 
-    Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+    Copyright (c) 2013-2016 Oracle and/or its affiliates. All rights reserved.
 
     The contents of this file are subject to the terms of either the GNU
     General Public License Version 2 only ("GPL") or the Common Development
@@ -188,8 +188,9 @@ public void echo(String message, Session session) {
         <section>
             <title><code>javax.websocket.RemoteEndpoint.Basic</code></title>
             <para>
-                is used to send synchronous messages The point of completion of the send is defined when all the supplied
-                data has been written to the underlying connection. The methods for sending messages on the
+                This representation of the peer of a web socket conversation is used to send synchronous messages. The point
+                of completion of the send is defined when all the supplied data has been written to the underlying connection.
+                The methods for sending messages on the
                 <code>javax.websocket.RemoteEndpoint$Basic</code> block until this point of completion is reached, except for
                 <code>javax.websocket.RemoteEndpoint$Basic#getSendStream()</code> and
                 <code>javax.websocket.RemoteEndpoint$Basic#getSendWriter()</code> which present traditional blocking I/O streams
