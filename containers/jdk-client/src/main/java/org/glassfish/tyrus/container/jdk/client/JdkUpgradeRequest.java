@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -50,7 +50,7 @@ import org.glassfish.tyrus.spi.UpgradeRequest;
  * Adds getHttpMethod method to @UpgradeRequest. Wraps an upgrade request and delegates all method calls except
  * {@link #getHttpMethod()} to it.
  *
- * @author Petr Janouch (petr.janouch at oracle.com)
+ * @author Petr Janouch
  */
 abstract class JdkUpgradeRequest extends UpgradeRequest {
 

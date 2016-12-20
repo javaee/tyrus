@@ -68,7 +68,7 @@ import org.glassfish.grizzly.memory.Buffers;
  * <p>
  * It is only for tests.
  *
- * @author Petr Janouch (petr.janouch at oracle.com)
+ * @author Petr Janouch
  */
 public class GrizzlyModProxy {
 

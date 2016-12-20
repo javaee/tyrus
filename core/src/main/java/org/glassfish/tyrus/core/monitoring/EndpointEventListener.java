@@ -44,7 +44,7 @@ import org.glassfish.tyrus.core.Beta;
 /**
  * Listens to endpoint-level events that are interesting for monitoring.
  *
- * @author Petr Janouch (petr.janouch at oracle.com)
+ * @author Petr Janouch
  */
 @Beta
 public interface EndpointEventListener {

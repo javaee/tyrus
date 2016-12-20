@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2016 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -73,7 +73,7 @@ import static junit.framework.Assert.fail;
  * messages and one binary message. Then it is checked that sending of those 3 x (2 + 1) messages has been included in
  * server monitoring statistics.
  *
- * @author Petr Janouch (petr.janouch at oracle.com)
+ * @author Petr Janouch
  */
 public class BroadcastTest extends TestContainer {
 

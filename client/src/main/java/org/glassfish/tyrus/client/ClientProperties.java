@@ -51,7 +51,7 @@ import org.glassfish.tyrus.spi.UpgradeResponse;
 /**
  * Tyrus client configuration properties.
  *
- * @author Petr Janouch (petr.janouch at oracle.com)
+ * @author Petr Janouch
  */
 public final class ClientProperties {
 

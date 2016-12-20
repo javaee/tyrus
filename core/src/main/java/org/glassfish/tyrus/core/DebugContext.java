@@ -60,7 +60,7 @@ import org.glassfish.tyrus.spi.UpgradeResponse;
  * Log records are provided with a session ID, so that log records from a single upgrade request can be easily linked
  * together in a log of a busy server or client.
  *
- * @author Petr Janouch (petr.janouch at oracle.com)
+ * @author Petr Janouch
  */
 public class DebugContext {
 
