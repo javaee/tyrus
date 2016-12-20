@@ -60,7 +60,7 @@ package org.glassfish.tyrus.ext.monitoring.jmx;
  *         <param-value>org.glassfish.tyrus.ext.monitoring.jmx.SessionAwareApplicationMonitor</param-value>
  *     </context-param>}</pre>
  *
- * @author Petr Janouch (petr.janouch at oracle.com)
+ * @author Petr Janouch
  * @see org.glassfish.tyrus.core.monitoring.ApplicationEventListener
  */
 public final class SessionAwareApplicationMonitor extends ApplicationMonitor {

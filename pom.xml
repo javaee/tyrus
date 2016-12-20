@@ -116,15 +116,6 @@
             </roles>
         </developer>
         <developer>
-            <id>petrjanouch</id>
-            <name>Petr Janouch</name>
-            <organization>Oracle Corporation</organization>
-            <organizationUrl>http://www.oracle.com</organizationUrl>
-            <roles>
-                <role>developer</role>
-            </roles>
-        </developer>
-        <developer>
             <id>pavel_bucek</id>
             <name>Pavel Bucek</name>
             <organization>Oracle Corporation</organization>
@@ -150,6 +141,9 @@
         <contributor>
             <name>Jitendra Kotamraju</name>
             <url>https://www.java.net/blogs/jitu</url>
+        </contributor>
+        <contributor>
+            <name>Petr Janouch</name>
         </contributor>
     </contributors>
 

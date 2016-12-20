@@ -48,7 +48,7 @@ import java.io.Serializable;
  * <p>
  * See {@link org.glassfish.tyrus.core.monitoring.ApplicationEventListener}.
  *
- * @author Petr Janouch (petr.janouch at oracle.com)
+ * @author Petr Janouch
  */
 public class EndpointClassNamePathPair implements Serializable {
 

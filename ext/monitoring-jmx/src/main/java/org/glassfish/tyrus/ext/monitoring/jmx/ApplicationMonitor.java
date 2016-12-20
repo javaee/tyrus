@@ -61,7 +61,7 @@ import org.glassfish.tyrus.core.monitoring.EndpointEventListener;
  * and exposed in MXBeans per session, endpoint and application. In the latter case statistics will be collected
  * and exposed in MXBeans only per endpoint and application, which is the default setting.
  *
- * @author Petr Janouch (petr.janouch at oracle.com)
+ * @author Petr Janouch
  * @see ApplicationEventListener
  */
 class ApplicationMonitor extends BaseMonitor implements ApplicationEventListener, MessageListener {

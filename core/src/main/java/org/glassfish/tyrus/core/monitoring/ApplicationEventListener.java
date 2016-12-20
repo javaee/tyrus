@@ -45,7 +45,7 @@ import org.glassfish.tyrus.core.Beta;
  * Listens to application-level events that are interesting for monitoring. Only one listener per application can be
  * registered.
  *
- * @author Petr Janouch (petr.janouch at oracle.com)
+ * @author Petr Janouch
  */
 @Beta
 public interface ApplicationEventListener {
