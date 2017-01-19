@@ -46,7 +46,7 @@
     <parent>
         <groupId>org.glassfish.tyrus.ext</groupId>
         <artifactId>tyrus-extensions-project</artifactId>
-        <version>1.14-SNAPSHOT</version>
+        <version>1.13.1</version>
     </parent>
 
     <artifactId>tyrus-monitoring-jmx</artifactId>
