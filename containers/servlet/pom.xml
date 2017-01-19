@@ -87,6 +87,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
+                        <Import-Package>javax.servlet.*;version="[3.1,5)",*</Import-Package>
                         <Export-Package>org.glassfish.tyrus.servlet.*;version=${project.version}</Export-Package>
                     </instructions>
                     <unpackBundle>true</unpackBundle>
