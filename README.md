@@ -15,7 +15,6 @@ Tyrus is licensed under a dual license - [CDDL 1.1 and GPL 2.0 with Class-path E
 We use [GlassFish Governance Policy](http://glassfish.java.net/public/GovernancePolicy.html), which means we can only accept contributions under the terms of [OCA](http://oracle.com/technetwork/goto/oca).
 
 ### Links
-- Website: https://tyrus.java.net
-- Issue tracker (JIRA): http://java.net/jira/browse/TYRUS
-- Mailing list: users@tyrus.java.net
-
+- Website: https://tyrus-project.github.io
+- Issue tracker: https://github.com/tyrus-project/tyrus/issues
+- Mailing list: https://javaee.groups.io/g/websocket-spec 
