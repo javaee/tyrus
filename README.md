@@ -10,9 +10,9 @@ applications that require sending a huge volume of relatively small messages lik
 online games or market ticker broadcasting.
 
 ### Licensing and Governance
-Tyrus is licensed under a dual license - [CDDL 1.1 and GPL 2.0 with Class-path Exception](http://glassfish.java.net/public/CDDL+GPL_1_1.html). That means you can choose which one of the two suits your needs better and use it under those terms.
+Tyrus is licensed under a dual license - [CDDL 1.1 and GPL 2.0 with Class-path Exception](https://javaee.github.io/glassfish/LICENSE). That means you can choose which one of the two suits your needs better and use it under those terms.
 
-We use [GlassFish Governance Policy](http://glassfish.java.net/public/GovernancePolicy.html), which means we can only accept contributions under the terms of [OCA](http://oracle.com/technetwork/goto/oca).
+We use [GlassFish Governance Policy](https://javaee.github.io/glassfish/CONTRIBUTING), which means we can only accept contributions under the terms of [OCA](http://oracle.com/technetwork/goto/oca).
 
 ### Links
 - Website: https://tyrus-project.github.io
