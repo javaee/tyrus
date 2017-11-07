@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014-2016 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2017 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -46,6 +46,8 @@ import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
+import java.nio.channels.UnresolvedAddressException;
+import java.nio.channels.UnsupportedAddressTypeException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Queue;
@@ -189,26 +191,30 @@ class TransportFilter extends Filter {
             return;
         }
 
-        socketChannel.connect(serverAddress, null, new CompletionHandler<Void, Void>() {
+        try {
+            socketChannel.connect(serverAddress, null, new CompletionHandler<Void, Void>() {
 
-            @Override
-            public void completed(Void result, Void nothing) {
-                final ByteBuffer inputBuffer = ByteBuffer.allocate(inputBufferSize);
-                onConnect();
-                _read(inputBuffer);
-            }
-
-            @Override
-            public void failed(Throwable exc, Void nothing) {
-                onError(exc);
-
-                try {
-                    socketChannel.close();
-                } catch (IOException e) {
-                    LOGGER.log(Level.FINE, "Could not close connection", exc.getMessage());
+                @Override
+                public void completed(Void result, Void nothing) {
+                    final ByteBuffer inputBuffer = ByteBuffer.allocate(inputBufferSize);
+                    onConnect();
+                    _read(inputBuffer);
                 }
-            }
-        });
+
+                @Override
+                public void failed(Throwable exc, Void nothing) {
+                    onError(exc);
+
+                    try {
+                        socketChannel.close();
+                    } catch (IOException e) {
+                        LOGGER.log(Level.FINE, "Could not close connection", exc.getMessage());
+                    }
+                }
+            });
+        } catch (UnresolvedAddressException | UnsupportedAddressTypeException e) {
+            onError(e);
+        }
     }
 
     private void updateThreadPoolConfig() {
