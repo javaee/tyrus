@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014-2016 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2017 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -46,6 +46,7 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -69,7 +70,6 @@ import javax.websocket.server.ServerEndpoint;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.ClientProperties;
 import org.glassfish.tyrus.client.auth.Credentials;
-import org.glassfish.tyrus.core.Base64Utils;
 import org.glassfish.tyrus.core.TyrusWebSocketEngine;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.spi.UpgradeRequest;
@@ -443,7 +443,7 @@ public class DebugSampleTest extends TestContainer {
                                 instance = MessageDigest.getInstance("SHA-1");
                                 instance.update(key.getBytes("UTF-8"));
                                 final byte[] digest = instance.digest();
-                                String responseKey = Base64Utils.encodeToString(digest, false);
+                                String responseKey = Base64.getEncoder().encodeToString(digest);
 
                                 response.addHeader(HandshakeResponse.SEC_WEBSOCKET_ACCEPT, responseKey);
                             } catch (Exception e) {

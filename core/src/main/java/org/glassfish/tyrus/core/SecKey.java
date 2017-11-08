@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2017 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -44,6 +44,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.Random;
 
 import org.glassfish.tyrus.core.l10n.LocalizationMessages;
@@ -71,7 +72,7 @@ class SecKey {
     private String create() {
         byte[] bytes = new byte[KEY_SIZE];
         random.nextBytes(bytes);
-        return Base64Utils.encodeToString(bytes, false);
+        return Base64.getEncoder().encodeToString(bytes);
     }
 
     /**
@@ -105,10 +106,8 @@ class SecKey {
                 throw new HandshakeException(LocalizationMessages.SEC_KEY_INVALID_LENGTH(digest.length));
             }
 
-            return new SecKey(Base64Utils.encodeToString(digest, false));
-        } catch (NoSuchAlgorithmException e) {
-            throw new HandshakeException(e.getMessage());
-        } catch (UnsupportedEncodingException e) {
+            return new SecKey(Base64.getEncoder().encodeToString(digest));
+        } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
             throw new HandshakeException(e.getMessage());
         }
     }

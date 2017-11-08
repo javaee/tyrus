@@ -1,7 +1,7 @@
 /*
 * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
 *
-* Copyright (c) 2011-2016 Oracle and/or its affiliates. All rights reserved.
+* Copyright (c) 2011-2017 Oracle and/or its affiliates. All rights reserved.
 *
 * The contents of this file are subject to the terms of either the GNU
 * General Public License Version 2 only ("GPL") or the Common Development
@@ -48,6 +48,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,7 +70,6 @@ import javax.net.ssl.SSLParameters;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.ClientProperties;
 import org.glassfish.tyrus.client.SslEngineConfigurator;
-import org.glassfish.tyrus.core.Base64Utils;
 import org.glassfish.tyrus.core.TyrusFuture;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.spi.ClientEngine;
@@ -129,7 +129,7 @@ public class GrizzlyClientSocket {
      * <pre>
      *     final HashMap&lt;String, String&gt; proxyHeaders = new HashMap&lt;String, String&gt;();
      *     proxyHeaders.put("Proxy-Authorization", "Basic " +
-     *         Base64Utils.encodeToString("username:password".getBytes(Charset.forName("UTF-8")),false));
+     *         Base64.getEncoder().encodeToString("username:password".getBytes(Charset.forName("UTF-8"))));
      *
      *     client.getProperties().put(GrizzlyClientSocket.PROXY_HEADERS, proxyHeaders);
      *     client.connectToServer(...);
@@ -503,8 +503,8 @@ public class GrizzlyClientSocket {
             if (wlsProxyUsername != null && wlsProxyPassword != null) {
                 proxyHeaders = new HashMap<String, String>();
                 proxyHeaders.put("Proxy-Authorization", "Basic "
-                        + Base64Utils.encodeToString(
-                        (wlsProxyUsername + ":" + wlsProxyPassword).getBytes(Charset.forName("UTF-8")), false));
+                        + Base64.getEncoder().encodeToString(
+                        (wlsProxyUsername + ":" + wlsProxyPassword).getBytes(Charset.forName("UTF-8"))));
             }
         } else {
             boolean proxyAuthPresent = false;
@@ -517,8 +517,8 @@ public class GrizzlyClientSocket {
             // if (proxyAuthPresent == true) then do nothing, proxy authorization header is already added.
             if (!proxyAuthPresent && wlsProxyUsername != null && wlsProxyPassword != null) {
                 proxyHeaders.put("Proxy-Authorization", "Basic "
-                        + Base64Utils.encodeToString(
-                        (wlsProxyUsername + ":" + wlsProxyPassword).getBytes(Charset.forName("UTF-8")), false));
+                        + Base64.getEncoder().encodeToString(
+                        (wlsProxyUsername + ":" + wlsProxyPassword).getBytes(Charset.forName("UTF-8"))));
             }
         }
         return proxyHeaders;

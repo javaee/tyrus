@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014-2016 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2017 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -43,6 +43,7 @@ package org.glassfish.tyrus.test.e2e.non_deployable;
 import java.io.IOException;
 import java.net.URI;
 import java.security.MessageDigest;
+import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -55,7 +56,6 @@ import javax.websocket.Session;
 import javax.websocket.server.HandshakeRequest;
 
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.core.Base64Utils;
 import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.spi.UpgradeResponse;
 import org.glassfish.tyrus.test.tools.TestContainer;
@@ -135,7 +135,7 @@ public class SameHeadersOnClientTest extends TestContainer {
                     instance = MessageDigest.getInstance("SHA-1");
                     instance.update(key.getBytes("UTF-8"));
                     final byte[] digest = instance.digest();
-                    String responseKey = Base64Utils.encodeToString(digest, false);
+                    String responseKey = Base64.getEncoder().encodeToString(digest);
 
                     response.addHeader(UpgradeResponse.SEC_WEBSOCKET_ACCEPT, responseKey);
                 } catch (Exception e) {

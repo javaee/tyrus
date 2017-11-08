@@ -33,6 +33,7 @@ nbactions.xml
 /LICENSE.txt
 README.txt
 README.md
+/CONTRIBUTING.md
 .dart.js
 /archetype-resources/
 /core/etc
