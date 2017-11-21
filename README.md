@@ -18,3 +18,6 @@ We use [GlassFish Governance Policy](https://javaee.github.io/glassfish/CONTRIBU
 - Website: https://tyrus-project.github.io
 - Issue tracker: https://github.com/tyrus-project/tyrus/issues
 - Mailing list: https://javaee.groups.io/g/websocket-spec 
+
+
+HTML 5 logo by W3C - http://www.w3.org
