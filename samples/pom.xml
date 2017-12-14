@@ -61,7 +61,6 @@
         <module>draw</module>
         <module>echo</module>
         <module>echo-basic-auth</module>
-        <module>echo-dart</module>
         <module>echo-https</module>
         <module>programmatic-echo</module>
         <module>simplelife</module>
