@@ -64,7 +64,6 @@
         <module>echo-https</module>
         <module>programmatic-echo</module>
         <module>simplelife</module>
-        <module>btc-xchange</module>
         <module>shared-collection</module>
     </modules>
 
