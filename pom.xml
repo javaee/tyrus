@@ -107,20 +107,10 @@
 
     <developers>
         <developer>
-            <id>ondrejkosatka</id>
-            <name>Ondřej Košatka</name>
+            <id>roman_grigoriadi</id>
+            <name>Roman Grigoriadi</name>
             <organization>Oracle Corporation</organization>
             <organizationUrl>http://www.oracle.com</organizationUrl>
-            <roles>
-                <role>developer</role>
-            </roles>
-        </developer>
-        <developer>
-            <id>pavel_bucek</id>
-            <name>Pavel Bucek</name>
-            <organization>Oracle Corporation</organization>
-            <organizationUrl>http://www.oracle.com</organizationUrl>
-            <url>https://blogs.oracle.com/PavelBucek/</url>
             <roles>
                 <role>developer</role>
             </roles>
