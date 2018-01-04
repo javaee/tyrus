@@ -45,7 +45,7 @@
     <parent>
         <groupId>org.glassfish.tyrus.bundles</groupId>
         <artifactId>tyrus-bundles</artifactId>
-        <version>1.14-SNAPSHOT</version>
+        <version>1.14</version>
     </parent>
 
     <artifactId>websocket-ri-archive</artifactId>

@@ -52,7 +52,7 @@
 
     <groupId>org.glassfish.tyrus</groupId>
     <artifactId>tyrus-bom</artifactId>
-    <version>1.14-SNAPSHOT</version>
+    <version>1.14</version>
     <packaging>pom</packaging>
     <name>Tyrus BOM</name>
 
@@ -150,4 +150,8 @@
             </plugins>
         </pluginManagement>
     </build>
+
+  <scm>
+    <tag>1.14</tag>
+  </scm>
 </project>

@@ -45,7 +45,7 @@
     <parent>
         <groupId>org.glassfish.tyrus.tests.qa</groupId>
         <artifactId>tyrus-tests-qa-project</artifactId>
-        <version>1.14-SNAPSHOT</version>
+        <version>1.14</version>
     </parent>
 
     <packaging>war</packaging>
